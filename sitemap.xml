@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://naoyuki.top/recommend/index.html</loc>
+    
+    <lastmod>2026-05-11</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/2026/05/11/Profiling_CPU_zh/</loc>
     
     <lastmod>2026-05-11</lastmod>
@@ -40,13 +47,6 @@
     <loc>http://naoyuki.top/2025/04/30/Transition%20from%20RT%20in%20one%20Weeknd%20to%20PBRT/</loc>
     
     <lastmod>2025-04-30</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/recommend/index.html</loc>
-    
-    <lastmod>2025-04-21</lastmod>
     
   </url>
   
@@ -256,6 +256,13 @@
   </url>
   
   <url>
+    <loc>http://naoyuki.top/tags/Easy/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/tags/Medium/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
@@ -264,13 +271,6 @@
   
   <url>
     <loc>http://naoyuki.top/tags/Hard/</loc>
-    <lastmod>2026-05-11</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/tags/Easy/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -312,6 +312,20 @@
   </url>
   
   <url>
+    <loc>http://naoyuki.top/tags/%E6%97%A5%E5%B8%B8%E7%94%9F%E6%B4%BB/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://naoyuki.top/tags/%E6%97%85%E8%A1%8C/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/tags/Design/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
@@ -333,14 +347,14 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/%E6%97%A5%E5%B8%B8%E7%94%9F%E6%B4%BB/</loc>
+    <loc>http://naoyuki.top/tags/Point-Matching/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/%E6%97%85%E8%A1%8C/</loc>
+    <loc>http://naoyuki.top/tags/Data-Structure/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -362,20 +376,6 @@
   
   <url>
     <loc>http://naoyuki.top/tags/Lyrics/</loc>
-    <lastmod>2026-05-11</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/tags/Data-Structure/</loc>
-    <lastmod>2026-05-11</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/tags/Point-Matching/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -433,6 +433,13 @@
   </url>
   
   <url>
+    <loc>http://naoyuki.top/categories/Life-Journal-Travel/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/categories/Design/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
@@ -440,14 +447,14 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering-textbook/</loc>
+    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://naoyuki.top/categories/Life-Journal-Travel/</loc>
+    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering-textbook/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -483,13 +490,6 @@
   
   <url>
     <loc>http://naoyuki.top/categories/Audio-Programming/</loc>
-    <lastmod>2026-05-11</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering/</loc>
     <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
