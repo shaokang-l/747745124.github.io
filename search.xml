@@ -1,51 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>121.Buy And Sell Stock</title>
-    <url>/2021/09/22/121.BuyAndSellStock/</url>
-    <content><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h3><p>You are given an array <code>prices</code> where <code>prices[i]</code> is the price of a given stock on the <code>ith</code> day.</p>
-<p>You want to maximize your profit by choosing a <strong>single day</strong> to buy one stock and choosing a <strong>different day in the future</strong> to sell that stock.</p>
-<p>Return <em>the maximum profit you can achieve from this transaction</em>. If you cannot achieve any profit, return <code>0</code>.</p>
-<p><strong>Example 1:</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Input: prices = [7,1,5,3,6,4]</span><br><span class="line">Output: 5</span><br><span class="line">Explanation: Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.</span><br><span class="line">Note that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Brute-Force"><a href="#Brute-Force" class="headerlink" title="Brute Force:"></a>Brute Force:</h3><p>Traverse all price pairs, ans &#x3D; max(ans,pair[j]-pair[i]), where j &gt; i.</p>
-<p>Steps:$n^2&#x2F;2$ -&gt; TLE</p>
-<h3 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h3><h4 id="Define"><a href="#Define" class="headerlink" title="Define:"></a>Define:</h4><p>Max_profit &#x3D; max{price[j]-price[i]}</p>
-<p>0&lt;&#x3D; i &lt; j &lt; n-1</p>
-<h4 id="Finding"><a href="#Finding" class="headerlink" title="Finding:"></a>Finding:</h4><blockquote>
-<p>Buy: price[i] &#x3D; min{prices[:i]}</p>
-<p>Sell: price[j] &#x3D; max{prices[j:]}</p>
-</blockquote>
-<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution:"></a>Solution:</h3><h4 id="1-Keep-track-of-the-minimun-price-so-far"><a href="#1-Keep-track-of-the-minimun-price-so-far" class="headerlink" title="1.Keep track of the minimun price so far:"></a>1.Keep track of the minimun price so far:</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Traverse the price:</span><br><span class="line"></span><br><span class="line">​	L = the Lowest price up to day i</span><br><span class="line">	P = the max profit up to day i</span><br><span class="line">	</span><br><span class="line">	L.update</span><br><span class="line">	P.update</span><br><span class="line"></span><br><span class="line">//Buy at the lowest price, sell at day i.</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="2-Convert-the-priceList-to-the-gainList"><a href="#2-Convert-the-priceList-to-the-gainList" class="headerlink" title="2.Convert the priceList to the gainList"></a>2.Convert the priceList to the gainList</h4><blockquote>
-<p>Example:</p>
-<p>prices &#x3D; [7,1,5,3,6,4]</p>
-<p>Gains &#x3D; [0,-6,4,-2,3,-2]</p>
-</blockquote>
-<h3 id="Note-1"><a href="#Note-1" class="headerlink" title="Note:"></a>Note:</h3><p>The profit is the sum of a subarray in gains.</p>
-<p>And the max_profit &#x3D; the largest sum of subarray of an array(LeetCode 53).</p>
-<h4 id="Using-Kadane’s-Algorithm"><a href="#Using-Kadane’s-Algorithm" class="headerlink" title="Using Kadane’s Algorithm"></a>Using Kadane’s Algorithm</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">maxSubArray</span>(<span class="params">self, nums</span>):</span><br><span class="line">        <span class="comment"># Kadane&#x27;s Algorithm</span></span><br><span class="line">        maxCurrent = maxGlobal = nums[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(nums)):</span><br><span class="line">            <span class="comment"># the maxCurrent is sum(maxCurrent+num)(the max subarray before this elem) or num</span></span><br><span class="line">            maxCurrent = <span class="built_in">max</span>(nums[i], maxCurrent + nums[i])</span><br><span class="line">            <span class="comment"># update maxGlobal = max(maxCurrent)</span></span><br><span class="line">            maxGlobal = <span class="built_in">max</span>(maxCurrent, maxGlobal)</span><br><span class="line">        <span class="keyword">return</span> maxGlobal</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Programming</category>
-      </categories>
-      <tags>
-        <tag>C/C++</tag>
-        <tag>LeetCode</tag>
-        <tag>DataStructure</tag>
-        <tag>Easy</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>1239.Maximum Length of a Concatenated String with Unique Characters</title>
     <url>/2021/09/22/1239.Maximum%20Length%20of%20a%20Concatenated%20String%20with%20Unique%20Characters/</url>
     <content><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h3><p>Given an array of strings <code>arr</code>. String <code>s</code> is a concatenation of a <mark>sub-sequence</mark> of <code>arr</code> which have <strong>unique characters</strong>.</p>
@@ -100,6 +55,130 @@
         <tag>LeetCode</tag>
         <tag>DataStructure</tag>
         <tag>Medium</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>382. Linked List Random Node</title>
+    <url>/2021/11/15/382.%20Linked%20List%20Random%20Node/</url>
+    <content><![CDATA[<h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><p>Given a singly linked list, return a random node’s value from the linked list. Each node must have the <strong>same probability</strong> of being chosen.</p>
+<p>Implement the <code>Solution</code> class:</p>
+<ul>
+<li><code>Solution(ListNode head)</code> Initializes the object with the integer array nums.</li>
+<li><code>int getRandom()</code> Chooses a node randomly from the list and returns its value. All the nodes of the list should be equally likely to be choosen.</li>
+</ul>
+<h3 id="Example"><a href="#Example" class="headerlink" title="Example:"></a>Example:</h3><p><img src="https://assets.leetcode.com/uploads/2021/03/16/getrand-linked-list.jpg" alt="getrand-linked-list"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Input</span><br><span class="line">[&quot;Solution&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;]</span><br><span class="line">[[[1, 2, 3]], [], [], [], [], []]</span><br><span class="line">Output</span><br><span class="line">[null, 1, 3, 2, 2, 3]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Constraints"><a href="#Constraints" class="headerlink" title="Constraints:"></a><strong>Constraints:</strong></h3><ul>
+<li>The number of nodes in the linked list will be in the range <code>[1, 104]</code>.</li>
+<li><code>-10^4 &lt;= Node.val &lt;= 10^4</code></li>
+<li>At most <code>10^4</code> calls will be made to <code>getRandom</code>.</li>
+</ul>
+<blockquote>
+<p>Since at most 10k calls will be made, the overall time complexity of each random call is expected to be bounded by O(nlogn).</p>
+</blockquote>
+<h3 id="Intuition"><a href="#Intuition" class="headerlink" title="Intuition:"></a>Intuition:</h3><p>A simple approach would be converting the linked list into an array, and then random generate a number and random access the array. This would cost extra <code>O(n)</code> space for keeping an array, and <code>O(1)</code> to random access the array.</p>
+<blockquote>
+<p>Actually, another implementation is that, we could traverse the list to get the length, and then random generate a number, and then take O(n) step to get the number.</p>
+<p>This implementation would take O(1) extra space, and O(n) for traversing and accessing.</p>
+</blockquote>
+<h3 id="What-if…-just-visit-each-node-only-once-and-use-O-1-space"><a href="#What-if…-just-visit-each-node-only-once-and-use-O-1-space" class="headerlink" title="What if… just visit each node only once and use O(1) space?"></a>What if… just visit each node only once and use O(1) space?</h3><blockquote>
+<p>The key is, Each node must have the <strong>same probability</strong> of being chosen.</p>
+<p>So to ensure the same probability, it is not necessary to use the built-in random function.</p>
+</blockquote>
+<h3 id="Introducing-Reservoir-Sampling"><a href="#Introducing-Reservoir-Sampling" class="headerlink" title="Introducing Reservoir Sampling:"></a>Introducing Reservoir Sampling:</h3><p>I found a video on YouTube, explaining this idea in an interesting and great way.</p>
+<ul>
+<li><h4 id="Scenario-A-man-picking-a-hat"><a href="#Scenario-A-man-picking-a-hat" class="headerlink" title="Scenario: A man picking a hat"></a>Scenario: A man picking a hat</h4><ul>
+<li><h4 id="each-round-replace-the-old-hat-or-wear-new-hat"><a href="#each-round-replace-the-old-hat-or-wear-new-hat" class="headerlink" title="each round replace the old hat or wear new hat"></a>each round replace the old hat or wear new hat</h4></li>
+<li><p>Each round probability of wearing new hat: 1&#x2F;n</p>
+</li>
+<li><p>The first hat has a chance of 1&#x2F;1, so he 100% wear the hat</p>
+</li>
+<li><p>The second hat has a chance of 1&#x2F;2, so he 50% wear the 2nd hat, 50% keep the first hat</p>
+</li>
+<li><p>The third hat has a chance of 1&#x2F;3, 1&#x2F;3 wear the 3nd hat, 2&#x2F;3 keep the original hat</p>
+</li>
+<li><p>So on and so forth…</p>
+</li>
+</ul>
+</li>
+</ul>
+<img src="https://s2.loli.net/2022/01/08/F9ehzSj1Ovrx6Tq.png" alt="image-20220108005314005" style="zoom: 50%;" />
+
+<img src="https://s2.loli.net/2022/01/08/OA8nIcDtopjaB7x.png" alt="image-20220108005616966" style="zoom:50%;" />
+
+<h3 id="The-Good-Side"><a href="#The-Good-Side" class="headerlink" title="The Good Side:"></a>The Good Side:</h3><p>Reservoir sampling doesn’t need to know the length of the list in advance, it’s an online random algorithm.</p>
+<h3 id="Proof-on-Equal-Probability"><a href="#Proof-on-Equal-Probability" class="headerlink" title="Proof on Equal Probability:"></a>Proof on Equal Probability:</h3><p>The $i_{th}$ hat has a probability of $\frac{1}{i}$ of being chosen in its round. The probability of  $i_{th}$ hat being chosen after $n$ times can be given as:</p>
+<img src="https://s2.loli.net/2022/01/08/XFk2Rr3On7gaKpM.png" alt="image-20220108005314005" style="zoom: 100%;" />
+
+<p>Which is the multiplication of $i_{th}$ hat being chosen, and all the hats after $i_{th}$ hat not being chosen.</p>
+<p>And this RHS equals to $\frac{1}n$, which means every hat has the same probability of being chosen.</p>
+<ul>
+<li>Link: <a href="https://www.youtube.com/watch?v=A1iwzSew5QY">https://www.youtube.com/watch?v=A1iwzSew5QY</a></li>
+</ul>
+<h3 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation:"></a>Implementation:</h3><p>Now let’s implement the Reservoir Sampling into our code, note that we still have to simulate the process of spinning the wheel, using the random function to implement. And it’s generally slower to perform floating point division, use integer instead.</p>
+<ul>
+<li>Instead of <code>1/i</code>, we have <code>1,2,3…i</code>, but only the <code>1</code> means being chosen</li>
+<li><code>i</code> start from <code>1</code>, because it’s not valid to divide by 0.</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.hpp&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// reservoir sampling</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">const</span> ListNode *head;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Solution</span>(ListNode *head)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;head = head;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">getRandom</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// we are not allowed to modify the head pointer itself</span></span><br><span class="line">        <span class="comment">// each round we create a new node to do the trick</span></span><br><span class="line">        <span class="keyword">auto</span> node = head;</span><br><span class="line">        <span class="type">int</span> res = head-&gt;val;</span><br><span class="line">        <span class="type">int</span> i = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (node != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// random generate 1~i, only 1 means being selected</span></span><br><span class="line">            <span class="comment">// i should start from 1, or there would be divide by 0 issue</span></span><br><span class="line">            <span class="type">bool</span> replace = (<span class="built_in">rand</span>() % (i - <span class="number">1</span> + <span class="number">1</span>)) + <span class="number">1</span> == <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (replace)</span><br><span class="line">                res = node-&gt;val;</span><br><span class="line">            node = node-&gt;next;</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Your Solution object will be instantiated and called as such:</span></span><br><span class="line"><span class="comment"> * Solution* obj = new Solution(head);</span></span><br><span class="line"><span class="comment"> * int param_1 = obj-&gt;getRandom();</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>LeetCode</tag>
+        <tag>DataStructure</tag>
+        <tag>Medium</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>121.Buy And Sell Stock</title>
+    <url>/2021/09/22/121.BuyAndSellStock/</url>
+    <content><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h3><p>You are given an array <code>prices</code> where <code>prices[i]</code> is the price of a given stock on the <code>ith</code> day.</p>
+<p>You want to maximize your profit by choosing a <strong>single day</strong> to buy one stock and choosing a <strong>different day in the future</strong> to sell that stock.</p>
+<p>Return <em>the maximum profit you can achieve from this transaction</em>. If you cannot achieve any profit, return <code>0</code>.</p>
+<p><strong>Example 1:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Input: prices = [7,1,5,3,6,4]</span><br><span class="line">Output: 5</span><br><span class="line">Explanation: Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.</span><br><span class="line">Note that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Brute-Force"><a href="#Brute-Force" class="headerlink" title="Brute Force:"></a>Brute Force:</h3><p>Traverse all price pairs, ans &#x3D; max(ans,pair[j]-pair[i]), where j &gt; i.</p>
+<p>Steps:$n^2&#x2F;2$ -&gt; TLE</p>
+<h3 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h3><h4 id="Define"><a href="#Define" class="headerlink" title="Define:"></a>Define:</h4><p>Max_profit &#x3D; max{price[j]-price[i]}</p>
+<p>0&lt;&#x3D; i &lt; j &lt; n-1</p>
+<h4 id="Finding"><a href="#Finding" class="headerlink" title="Finding:"></a>Finding:</h4><blockquote>
+<p>Buy: price[i] &#x3D; min{prices[:i]}</p>
+<p>Sell: price[j] &#x3D; max{prices[j:]}</p>
+</blockquote>
+<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution:"></a>Solution:</h3><h4 id="1-Keep-track-of-the-minimun-price-so-far"><a href="#1-Keep-track-of-the-minimun-price-so-far" class="headerlink" title="1.Keep track of the minimun price so far:"></a>1.Keep track of the minimun price so far:</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Traverse the price:</span><br><span class="line"></span><br><span class="line">​	L = the Lowest price up to day i</span><br><span class="line">	P = the max profit up to day i</span><br><span class="line">	</span><br><span class="line">	L.update</span><br><span class="line">	P.update</span><br><span class="line"></span><br><span class="line">//Buy at the lowest price, sell at day i.</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-Convert-the-priceList-to-the-gainList"><a href="#2-Convert-the-priceList-to-the-gainList" class="headerlink" title="2.Convert the priceList to the gainList"></a>2.Convert the priceList to the gainList</h4><blockquote>
+<p>Example:</p>
+<p>prices &#x3D; [7,1,5,3,6,4]</p>
+<p>Gains &#x3D; [0,-6,4,-2,3,-2]</p>
+</blockquote>
+<h3 id="Note-1"><a href="#Note-1" class="headerlink" title="Note:"></a>Note:</h3><p>The profit is the sum of a subarray in gains.</p>
+<p>And the max_profit &#x3D; the largest sum of subarray of an array(LeetCode 53).</p>
+<h4 id="Using-Kadane’s-Algorithm"><a href="#Using-Kadane’s-Algorithm" class="headerlink" title="Using Kadane’s Algorithm"></a>Using Kadane’s Algorithm</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">maxSubArray</span>(<span class="params">self, nums</span>):</span><br><span class="line">        <span class="comment"># Kadane&#x27;s Algorithm</span></span><br><span class="line">        maxCurrent = maxGlobal = nums[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(nums)):</span><br><span class="line">            <span class="comment"># the maxCurrent is sum(maxCurrent+num)(the max subarray before this elem) or num</span></span><br><span class="line">            maxCurrent = <span class="built_in">max</span>(nums[i], maxCurrent + nums[i])</span><br><span class="line">            <span class="comment"># update maxGlobal = max(maxCurrent)</span></span><br><span class="line">            maxGlobal = <span class="built_in">max</span>(maxCurrent, maxGlobal)</span><br><span class="line">        <span class="keyword">return</span> maxGlobal</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>LeetCode</tag>
+        <tag>DataStructure</tag>
+        <tag>Easy</tag>
       </tags>
   </entry>
   <entry>
@@ -256,85 +335,6 @@
       </tags>
   </entry>
   <entry>
-    <title>382. Linked List Random Node</title>
-    <url>/2021/11/15/382.%20Linked%20List%20Random%20Node/</url>
-    <content><![CDATA[<h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><p>Given a singly linked list, return a random node’s value from the linked list. Each node must have the <strong>same probability</strong> of being chosen.</p>
-<p>Implement the <code>Solution</code> class:</p>
-<ul>
-<li><code>Solution(ListNode head)</code> Initializes the object with the integer array nums.</li>
-<li><code>int getRandom()</code> Chooses a node randomly from the list and returns its value. All the nodes of the list should be equally likely to be choosen.</li>
-</ul>
-<h3 id="Example"><a href="#Example" class="headerlink" title="Example:"></a>Example:</h3><p><img src="https://assets.leetcode.com/uploads/2021/03/16/getrand-linked-list.jpg" alt="getrand-linked-list"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Input</span><br><span class="line">[&quot;Solution&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;, &quot;getRandom&quot;]</span><br><span class="line">[[[1, 2, 3]], [], [], [], [], []]</span><br><span class="line">Output</span><br><span class="line">[null, 1, 3, 2, 2, 3]</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Constraints"><a href="#Constraints" class="headerlink" title="Constraints:"></a><strong>Constraints:</strong></h3><ul>
-<li>The number of nodes in the linked list will be in the range <code>[1, 104]</code>.</li>
-<li><code>-10^4 &lt;= Node.val &lt;= 10^4</code></li>
-<li>At most <code>10^4</code> calls will be made to <code>getRandom</code>.</li>
-</ul>
-<blockquote>
-<p>Since at most 10k calls will be made, the overall time complexity of each random call is expected to be bounded by O(nlogn).</p>
-</blockquote>
-<h3 id="Intuition"><a href="#Intuition" class="headerlink" title="Intuition:"></a>Intuition:</h3><p>A simple approach would be converting the linked list into an array, and then random generate a number and random access the array. This would cost extra <code>O(n)</code> space for keeping an array, and <code>O(1)</code> to random access the array.</p>
-<blockquote>
-<p>Actually, another implementation is that, we could traverse the list to get the length, and then random generate a number, and then take O(n) step to get the number.</p>
-<p>This implementation would take O(1) extra space, and O(n) for traversing and accessing.</p>
-</blockquote>
-<h3 id="What-if…-just-visit-each-node-only-once-and-use-O-1-space"><a href="#What-if…-just-visit-each-node-only-once-and-use-O-1-space" class="headerlink" title="What if… just visit each node only once and use O(1) space?"></a>What if… just visit each node only once and use O(1) space?</h3><blockquote>
-<p>The key is, Each node must have the <strong>same probability</strong> of being chosen.</p>
-<p>So to ensure the same probability, it is not necessary to use the built-in random function.</p>
-</blockquote>
-<h3 id="Introducing-Reservoir-Sampling"><a href="#Introducing-Reservoir-Sampling" class="headerlink" title="Introducing Reservoir Sampling:"></a>Introducing Reservoir Sampling:</h3><p>I found a video on YouTube, explaining this idea in an interesting and great way.</p>
-<ul>
-<li><h4 id="Scenario-A-man-picking-a-hat"><a href="#Scenario-A-man-picking-a-hat" class="headerlink" title="Scenario: A man picking a hat"></a>Scenario: A man picking a hat</h4><ul>
-<li><h4 id="each-round-replace-the-old-hat-or-wear-new-hat"><a href="#each-round-replace-the-old-hat-or-wear-new-hat" class="headerlink" title="each round replace the old hat or wear new hat"></a>each round replace the old hat or wear new hat</h4></li>
-<li><p>Each round probability of wearing new hat: 1&#x2F;n</p>
-</li>
-<li><p>The first hat has a chance of 1&#x2F;1, so he 100% wear the hat</p>
-</li>
-<li><p>The second hat has a chance of 1&#x2F;2, so he 50% wear the 2nd hat, 50% keep the first hat</p>
-</li>
-<li><p>The third hat has a chance of 1&#x2F;3, 1&#x2F;3 wear the 3nd hat, 2&#x2F;3 keep the original hat</p>
-</li>
-<li><p>So on and so forth…</p>
-</li>
-</ul>
-</li>
-</ul>
-<img src="https://s2.loli.net/2022/01/08/F9ehzSj1Ovrx6Tq.png" alt="image-20220108005314005" style="zoom: 50%;" />
-
-<img src="https://s2.loli.net/2022/01/08/OA8nIcDtopjaB7x.png" alt="image-20220108005616966" style="zoom:50%;" />
-
-<h3 id="The-Good-Side"><a href="#The-Good-Side" class="headerlink" title="The Good Side:"></a>The Good Side:</h3><p>Reservoir sampling doesn’t need to know the length of the list in advance, it’s an online random algorithm.</p>
-<h3 id="Proof-on-Equal-Probability"><a href="#Proof-on-Equal-Probability" class="headerlink" title="Proof on Equal Probability:"></a>Proof on Equal Probability:</h3><p>The $i_{th}$ hat has a probability of $\frac{1}{i}$ of being chosen in its round. The probability of  $i_{th}$ hat being chosen after $n$ times can be given as:</p>
-<img src="https://s2.loli.net/2022/01/08/XFk2Rr3On7gaKpM.png" alt="image-20220108005314005" style="zoom: 100%;" />
-
-<p>Which is the multiplication of $i_{th}$ hat being chosen, and all the hats after $i_{th}$ hat not being chosen.</p>
-<p>And this RHS equals to $\frac{1}n$, which means every hat has the same probability of being chosen.</p>
-<ul>
-<li>Link: <a href="https://www.youtube.com/watch?v=A1iwzSew5QY">https://www.youtube.com/watch?v=A1iwzSew5QY</a></li>
-</ul>
-<h3 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation:"></a>Implementation:</h3><p>Now let’s implement the Reservoir Sampling into our code, note that we still have to simulate the process of spinning the wheel, using the random function to implement. And it’s generally slower to perform floating point division, use integer instead.</p>
-<ul>
-<li>Instead of <code>1/i</code>, we have <code>1,2,3…i</code>, but only the <code>1</code> means being chosen</li>
-<li><code>i</code> start from <code>1</code>, because it’s not valid to divide by 0.</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.hpp&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// reservoir sampling</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">const</span> ListNode *head;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Solution</span>(ListNode *head)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;head = head;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">getRandom</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// we are not allowed to modify the head pointer itself</span></span><br><span class="line">        <span class="comment">// each round we create a new node to do the trick</span></span><br><span class="line">        <span class="keyword">auto</span> node = head;</span><br><span class="line">        <span class="type">int</span> res = head-&gt;val;</span><br><span class="line">        <span class="type">int</span> i = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (node != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// random generate 1~i, only 1 means being selected</span></span><br><span class="line">            <span class="comment">// i should start from 1, or there would be divide by 0 issue</span></span><br><span class="line">            <span class="type">bool</span> replace = (<span class="built_in">rand</span>() % (i - <span class="number">1</span> + <span class="number">1</span>)) + <span class="number">1</span> == <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (replace)</span><br><span class="line">                res = node-&gt;val;</span><br><span class="line">            node = node-&gt;next;</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Your Solution object will be instantiated and called as such:</span></span><br><span class="line"><span class="comment"> * Solution* obj = new Solution(head);</span></span><br><span class="line"><span class="comment"> * int param_1 = obj-&gt;getRandom();</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Programming</category>
-      </categories>
-      <tags>
-        <tag>C/C++</tag>
-        <tag>LeetCode</tag>
-        <tag>DataStructure</tag>
-        <tag>Medium</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>98.Validate Binary Search Tree</title>
     <url>/2021/09/30/98.ValidateBST/</url>
     <content><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h3><p>Given the <code>root</code> of a binary tree, <em>determine if it is a valid binary search tree (BST)</em>.</p>
@@ -381,45 +381,6 @@
         <tag>LeetCode</tag>
         <tag>DataStructure</tag>
         <tag>Medium</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Blender 3.1 Alpha Render Test on M1 Max</title>
-    <url>/2021/12/10/Blender%203.1%20Render%20Test/</url>
-    <content><![CDATA[<h2 id="All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P"><a href="#All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P" class="headerlink" title="All Scenes are rendered using cycles using GPU Compute 1080P"></a>All Scenes are rendered using cycles using GPU Compute 1080P</h2><h3 id="1-Classroom-300-Samplings"><a href="#1-Classroom-300-Samplings" class="headerlink" title="1.Classroom 300 Samplings"></a>1.Classroom 300 Samplings</h3><ul>
-<li><p>Result: 1min 47.32s &#x3D; 107.32s </p>
-</li>
-<li><p>Boost compared to CPU: 8*60&#x2F;107.32 &#x3D; 4.47x</p>
-</li>
-<li><p>Roughly equivalent to CUDA 3060Ti @Blender 2.9x </p>
-</li>
-<li><p>Roughtly equivalent to Optix 2080 @Blender 2.8x and Optix 3060 @Blender 2.9x</p>
-</li>
-<li><p>According to Rob Williams@<a href="https://techgage.com/article/blender-3-0-gpu-performance/">https://techgage.com/article/blender-3-0-gpu-performance/</a>, the performance of M1 Max is half of the 3060 with Optix 3060 @Blender 3.00. If we assume there is a performance boost of 2 times in Cycles from 2.9x to 3.00, a rough equivalent will be 2060 Max-Q (206s Optix 2.93).</p>
-<p><img src="https://s2.loli.net/2022/01/01/WiZIz8rKlXEcOYM.png" alt="image-20220101235753865"></p>
-</li>
-</ul>
-<h3 id="2-BMW27-GPU-Compute-1225-Samplings"><a href="#2-BMW27-GPU-Compute-1225-Samplings" class="headerlink" title="2.BMW27 (GPU Compute) 1225 Samplings"></a>2.BMW27 (GPU Compute) 1225 Samplings</h3><ul>
-<li>Result: 43.59s</li>
-<li>Boost Compared to CPU: 210&#x2F;43.59 &#x3D; 4.82x</li>
-<li>Roughly equivalent to CUDA 3060~3060Ti @Blender 2.9x </li>
-<li>Roughtly equivalent to Optix 2060 @Blender 2.8x and Optix 3050Ti @Blender 2.9x</li>
-<li><img src="https://s2.loli.net/2022/01/01/wZ35lDaBkiJ7mWQ.png" alt="image-20211219164344829" style="zoom:50%;" /></li>
-</ul>
-<h3 id="3-Barcelona-Pavilion-1000-Samplings"><a href="#3-Barcelona-Pavilion-1000-Samplings" class="headerlink" title="3.Barcelona Pavilion 1000 Samplings"></a>3.Barcelona Pavilion 1000 Samplings</h3><ul>
-<li>Result: 176.51s</li>
-<li>Boost Compared to CPU: 640&#x2F;176.51 &#x3D; 3.62x</li>
-<li>Roughly equivalent to CUDA 3070~3070Ti @Blender 2.9x </li>
-<li>Roughtly equivalent to Optix 2070 @Blender 2.8x and Optix 3050Ti @Blender 2.9x</li>
-<li><img src="https://s2.loli.net/2022/01/01/oBTbOQra1Dp8nZd.png" alt="image-20211219171113341" style="zoom:33%;" /></li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
-      <categories>
-        <category>Rendering</category>
-      </categories>
-      <tags>
-        <tag>Redering</tag>
-        <tag>Blender</tag>
       </tags>
   </entry>
   <entry>
@@ -615,136 +576,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Missing triangle in BVH</title>
-    <url>/2023/05/22/Little%20Caveat%20in%20BVH%20of%20Triangles/</url>
-    <content><![CDATA[<p>Recently I was applying Bounding Volume Hierachy to a Whitted-style Raytracing system. The idea of BVH and implementation are well described in <strong>Ray Tracing in the Next Week</strong> by Peter Shirly. It’s a really great book. And here’s the link <a href="https://raytracing.github.io/books/RayTracingTheNextWeek.html">https://raytracing.github.io/books/RayTracingTheNextWeek.html</a></p>
-<p>One key component in BVH is AABB (Axis-Aligned-Bounding-Box) intersects with ray. People usually adopt Slab method to address this problem. To be more specific, computing the ray-AABB intersection along 3 different axis, if these intervals produces an overlapping region, then the ray intersects with AABB and vice versa.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">compute (tx0, tx1)</span><br><span class="line">compute (ty0, ty1)</span><br><span class="line">compute (tz0, tz1)</span><br><span class="line">return overlap?( (tx0, tx1), (ty0, ty1), (tz0, tz1))</span><br></pre></td></tr></table></figure>
-
-
-
-<img src="https://s2.loli.net/2023/05/23/vhnUw7z6Z1xqeHg.png" alt="image-20230522223149832" style="zoom:33%;" />
-
-<p>After applying this method to the scene rendering, I lost some of the triangles in the scene. However, all spheres are kept intact. For example, here’s what I got after applying BVH and the latter is before BVH.</p>
-<img src="https://s2.loli.net/2023/05/23/dN6TeBRK4MjtzSm.png" alt="image-20230522224231933" style="zoom:33%;" />
-
-<img src="https://s2.loli.net/2023/05/23/xQ8LMCgjAqoVWPw.png" alt="image-20230522224256173" style="zoom:33%;" />
-
-<p> After couple hours of <code>step_into</code> debugging, I found the reason to be as follows:</p>
-<blockquote>
-<p>For spheres, the Bouding box will always have some length along 3 axis. However, this isn’t necessarily the case for AABB of triangles. &#x3D;&#x3D;Bounding Box of triangles can fall back to plane if the triangle is parallel to either xy, yz or xz plane&#x3D;&#x3D; . </p>
-<p>Let’s say a triangle is parallel to the <code>xz</code> plane, so the 3 vertices has the same <code>y</code> value. And this makes <code>ty0</code> and <code>ty1</code> to be the same in above computation, and thus resulting no overlapping region for other 2 axis. i.e. The bounding box doesn’t intersect with the triangle (which is a false statement)</p>
-</blockquote>
-<p>To address this, simply add some thickness to each axis while building bounding box for triangles. In my case, I use <code>1e-3</code>, and boom, problem solved!</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//in triangle class  </span></span><br><span class="line"><span class="function">AABB <span class="title">getAABB</span><span class="params">(<span class="type">float</span> t0, <span class="type">float</span> t1)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> min_x = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">x</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> min_y = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">y</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> min_z = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">z</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_x = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">x</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_y = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">y</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_z = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">z</span>()&#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">AABB</span>(gl::<span class="built_in">vec3</span>(min_x<span class="number">-1e3</span>, min_y<span class="number">-1e3</span>, min_z<span class="number">-1e3</span>), gl::<span class="built_in">vec3</span>(max_x, max_y, max_z));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Rendering</category>
-      </categories>
-      <tags>
-        <tag>C/C++</tag>
-        <tag>Rendering</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>计算机网络-概览笔记</title>
-    <url>/2021/09/05/Notes-Computer%20Networks/</url>
-    <content><![CDATA[<h3 id="Client-Server"><a href="#Client-Server" class="headerlink" title="Client&#x2F;Server:"></a>Client&#x2F;Server:</h3><p>应用层，最为抽象</p>
-<h3 id="TCP-传输层"><a href="#TCP-传输层" class="headerlink" title="TCP:传输层"></a>TCP:传输层</h3><p>对可靠性要求高、检验错误</p>
-<h3 id="UDP："><a href="#UDP：" class="headerlink" title="UDP："></a>UDP：</h3><p>对可靠性要求低、但是能够保证实时</p>
-<ul>
-<li>直播</li>
-<li>事务性应用</li>
-</ul>
-<h3 id="IP-网络层-End-to-End"><a href="#IP-网络层-End-to-End" class="headerlink" title="IP:网络层 End to End"></a>IP:网络层 End to End</h3><p>从主机到主机</p>
-<p>在Link Layer的点到点通讯基础上实现</p>
-<h3 id="Link-Layer-点到点通讯"><a href="#Link-Layer-点到点通讯" class="headerlink" title="Link Layer:点到点通讯"></a>Link Layer:点到点通讯</h3><h3 id="Physical-Layer-物理信号-数字信号"><a href="#Physical-Layer-物理信号-数字信号" class="headerlink" title="Physical Layer:物理信号-数字信号"></a>Physical Layer:物理信号-数字信号</h3><p>通过media（介质）：</p>
-<ul>
-<li>Copper</li>
-<li>Fibre</li>
-</ul>
-<h3 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h3><h4 id="传统工作方式：查表-转发"><a href="#传统工作方式：查表-转发" class="headerlink" title="传统工作方式：查表+转发"></a>传统工作方式：查表+转发</h4><ul>
-<li>路由器交换信息</li>
-<li>计算出路由表</li>
-<li>IP协议收到分组后，根据IP查路由表，再根据表转发</li>
-</ul>
-<h4 id="SDN方式：数据平面-控制系统"><a href="#SDN方式：数据平面-控制系统" class="headerlink" title="SDN方式：数据平面+控制系统"></a>SDN方式：数据平面+控制系统</h4><p>交换机：多字段匹配-&gt;block&#x2F;转发&#x2F;flood</p>
-<p>操作系统：计算flow table-下发给交换机</p>
-<p>（programmable+new features could be added）</p>
-<p>比如说要新增加负载均衡，只需要编程即可</p>
-<h4 id="链路层和局域网"><a href="#链路层和局域网" class="headerlink" title="链路层和局域网"></a>链路层和局域网</h4><h3 id="框架："><a href="#框架：" class="headerlink" title="框架："></a>框架：</h3><p>在下层提供的服务上实现更高级的功能</p>
-<h3 id="网络："><a href="#网络：" class="headerlink" title="网络："></a>网络：</h3><h4 id="Node"><a href="#Node" class="headerlink" title="Node:"></a>Node:</h4><ul>
-<li><p>主机以及主机上的应用程序</p>
-</li>
-<li><p>路由器、交换机等网络交换设备</p>
-</li>
-<li><p>方的节点：主要节点（Client&#x2F;Server）</p>
-<p>圆形节点：中转节点</p>
-</li>
-</ul>
-<h4 id="Edge-通信链路"><a href="#Edge-通信链路" class="headerlink" title="Edge:通信链路"></a>Edge:通信链路</h4><ul>
-<li>access：主机接入到（最近的交换机）互联网的链路（一方一圆）</li>
-<li>backbone：路由器之间的链路（两个圆的）</li>
-</ul>
-<h4 id="Protocol-对等层实体交换数据所需要遵循的规范"><a href="#Protocol-对等层实体交换数据所需要遵循的规范" class="headerlink" title="Protocol:对等层实体交换数据所需要遵循的规范"></a>Protocol:对等层实体交换数据所需要遵循的规范</h4><p>Protocol Data Unit(PDU)</p>
-<h3 id="互联网包括：网络边缘-网络核心-接入网"><a href="#互联网包括：网络边缘-网络核心-接入网" class="headerlink" title="互联网包括：网络边缘&#x2F;网络核心&#x2F;接入网"></a>互联网包括：网络边缘&#x2F;网络核心&#x2F;接入网</h3><h3 id="1-2-网络边缘"><a href="#1-2-网络边缘" class="headerlink" title="1.2 网络边缘"></a>1.2 网络边缘</h3><p>网络边缘:</p>
-<ul>
-<li>主机</li>
-<li>应用程序</li>
-</ul>
-<h3 id="1-3-Core（用于数据交换）"><a href="#1-3-Core（用于数据交换）" class="headerlink" title="1.3 Core（用于数据交换）"></a>1.3 Core（用于数据交换）</h3><ul>
-<li>相互连接的路由器</li>
-<li>网络的网络</li>
-</ul>
-<h3 id="1-4-Access"><a href="#1-4-Access" class="headerlink" title="1.4 Access"></a>1.4 Access</h3><ul>
-<li>有线或者无线通信链路</li>
-</ul>
-<p>边缘接入核心-&gt;核心连接所有边缘节点-&gt;边缘可以和任意边缘节点交换</p>
-<p>网络核心：相当于全球范围内的切换开关（如果需要交换，就打开）</p>
-<h4 id="应用进程交互模式："><a href="#应用进程交互模式：" class="headerlink" title="应用进程交互模式："></a>应用进程交互模式：</h4><ul>
-<li><p>Client&#x2F;Server模式：</p>
-<ul>
-<li>Client后运行起来，向Server发出请求，资源来自于Server</li>
-<li>问题：如果Client特别多，需要准备很多Server，到达一定程度时性能断崖式下跌</li>
-</ul>
-</li>
-<li><p>Peer-Peer 模式：</p>
-<ul>
-<li>没有专门的服务器</li>
-<li>每个节点既是Client也是Server</li>
-<li>分布式通信，下载文件的时候，相当于多路下载片段</li>
-</ul>
-</li>
-</ul>
-<h4 id="基础设施为网络应用提供的服务："><a href="#基础设施为网络应用提供的服务：" class="headerlink" title="基础设施为网络应用提供的服务："></a>基础设施为网络应用提供的服务：</h4><ul>
-<li>TCP（面向连接（端系统知道&#x2F;路径节点不知道）的通信方式）：Shake Hand方式（数据传输前做好准备）<ul>
-<li>可靠：不重复、不丢、不乱序</li>
-<li>Flow Control:发送方不会淹没接收方</li>
-<li>阻塞控制(Congestion Control)</li>
-<li>要考虑网络+设备</li>
-</ul>
-</li>
-<li>UDP(connectless，直接发送，不需要提前连接)<ul>
-<li>不可靠</li>
-<li>没有流量控制</li>
-<li>没有阻塞控制</li>
-<li>适合实时多媒体应用</li>
-<li>事务性很强的应用（）</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Programming</category>
-      </categories>
-      <tags>
-        <tag>Computer Networks</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>One day in Monterey</title>
     <url>/2023/06/20/One%20Day%20in%20Monterey/</url>
     <content><![CDATA[<p>​	        因为赶着要去实习(在San Jose)，Path Tracer的作业又拖到最后一天才交，上学和实习便几乎是无缝衔接了。具体衔接得有多紧密呢？我18号中午提交完作业，20号就要开始实习。实习的公司距离学校很远，开车要4.5小时。即使我想一天冲到实习期间的住处，房东也只有19号才有空，这就意味着我只能19号到San Jose，第二天便直接迎接实习生活了。</p>
@@ -776,36 +607,133 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2025/05/07/Performance%20Diff/</url>
-    <content><![CDATA[<p>BIASED:</p>
-<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 3.35209 seconds<br>Total hit count: 69321088</p>
-<p>DISCARD:</p>
-<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 3.19591 seconds<br>Total hit count: 92402356</p>
-<p>DISCARD (old):</p>
-<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 34.357 seconds<br>Total hit count: 2095764284</p>
-<p>Biased (old)</p>
-<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 6.01832 seconds<br>Total hit count: 193249724</p>
-<p>BIASED (new)</p>
-<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 6.17927 seconds<br>Total hit count: 198975950</p>
-<p>DISCARD (new)</p>
-<p>Rendering time: 5.97217 seconds<br>Total hit count: 192974678<br>31210</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Portfolio Site</title>
-    <url>/2022/01/19/Portfolio%20Site%20Online/</url>
-    <content><![CDATA[<p>Recently I began my Master application for 2022 Fall, and some of the universities, require the applicants to submit their portfolio in the form of personal website. I was intended to submit this site, however, this site only contains daily logs and technical topic posts. So I would rather create another website for my portfolio works.</p>
-<p>After one afternoon’s work, new Portfolio Website was online, powering by Wix. Actually I found the Wix tool quite easy to use, only drags and drops are needed, just like what they’ve shown in the Youtube ads. The problem is, it’s not suitable for me to contantly update the contents since it tooks a lot more to render a single site in Wix. You have to drag and drop each paragraph yourself. However, it’s pretty easy to publish a post in Hexo. I can just use Typora and markdown to upload a post in seconds. Also, Wix doesn’t have good support for code snippets as the Markdown does. So I‘m just gonna post most of my daily thoughts and progresses here. And major works on the portfolio site.</p>
-<p>I actually want to merge these two sites, this site and the portfolio site, into one. However, I find the two sites’ styles are quite different and I’m not interested in writing pieces of CSS code anyway. Maybe I will merge them someday.</p>
-<p>Finally, if you are interested in my portfolio, check  <a href = "https://zhaonzh.wixsite.com/mysite-1">Portfolio Site</a>.</p>
-]]></content>
+    <title>Blender 3.1 Alpha Render Test on M1 Max</title>
+    <url>/2021/12/10/Blender%203.1%20Render%20Test/</url>
+    <content><![CDATA[<h2 id="All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P"><a href="#All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P" class="headerlink" title="All Scenes are rendered using cycles using GPU Compute 1080P"></a>All Scenes are rendered using cycles using GPU Compute 1080P</h2><h3 id="1-Classroom-300-Samplings"><a href="#1-Classroom-300-Samplings" class="headerlink" title="1.Classroom 300 Samplings"></a>1.Classroom 300 Samplings</h3><ul>
+<li><p>Result: 1min 47.32s &#x3D; 107.32s </p>
+</li>
+<li><p>Boost compared to CPU: 8*60&#x2F;107.32 &#x3D; 4.47x</p>
+</li>
+<li><p>Roughly equivalent to CUDA 3060Ti @Blender 2.9x </p>
+</li>
+<li><p>Roughtly equivalent to Optix 2080 @Blender 2.8x and Optix 3060 @Blender 2.9x</p>
+</li>
+<li><p>According to Rob Williams@<a href="https://techgage.com/article/blender-3-0-gpu-performance/">https://techgage.com/article/blender-3-0-gpu-performance/</a>, the performance of M1 Max is half of the 3060 with Optix 3060 @Blender 3.00. If we assume there is a performance boost of 2 times in Cycles from 2.9x to 3.00, a rough equivalent will be 2060 Max-Q (206s Optix 2.93).</p>
+<p><img src="https://s2.loli.net/2022/01/01/WiZIz8rKlXEcOYM.png" alt="image-20220101235753865"></p>
+</li>
+</ul>
+<h3 id="2-BMW27-GPU-Compute-1225-Samplings"><a href="#2-BMW27-GPU-Compute-1225-Samplings" class="headerlink" title="2.BMW27 (GPU Compute) 1225 Samplings"></a>2.BMW27 (GPU Compute) 1225 Samplings</h3><ul>
+<li>Result: 43.59s</li>
+<li>Boost Compared to CPU: 210&#x2F;43.59 &#x3D; 4.82x</li>
+<li>Roughly equivalent to CUDA 3060~3060Ti @Blender 2.9x </li>
+<li>Roughtly equivalent to Optix 2060 @Blender 2.8x and Optix 3050Ti @Blender 2.9x</li>
+<li><img src="https://s2.loli.net/2022/01/01/wZ35lDaBkiJ7mWQ.png" alt="image-20211219164344829" style="zoom:50%;" /></li>
+</ul>
+<h3 id="3-Barcelona-Pavilion-1000-Samplings"><a href="#3-Barcelona-Pavilion-1000-Samplings" class="headerlink" title="3.Barcelona Pavilion 1000 Samplings"></a>3.Barcelona Pavilion 1000 Samplings</h3><ul>
+<li>Result: 176.51s</li>
+<li>Boost Compared to CPU: 640&#x2F;176.51 &#x3D; 3.62x</li>
+<li>Roughly equivalent to CUDA 3070~3070Ti @Blender 2.9x </li>
+<li>Roughtly equivalent to Optix 2070 @Blender 2.8x and Optix 3050Ti @Blender 2.9x</li>
+<li><img src="https://s2.loli.net/2022/01/01/oBTbOQra1Dp8nZd.png" alt="image-20211219171113341" style="zoom:33%;" /></li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
       <categories>
-        <category>Design</category>
+        <category>Rendering</category>
       </categories>
       <tags>
-        <tag>Design</tag>
-        <tag>About Me</tag>
+        <tag>Redering</tag>
+        <tag>Blender</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>在 M1 Max 上 Profiling 一个小型 Path Tracer</title>
+    <url>/2026/05/11/Profiling_CPU_zh/</url>
+    <content><![CDATA[<p>这篇记录整理了一次针对 bunny 场景的 CPU profiling 和优化过程。目标不是把渲染器彻底重写，而是用 Instruments 找到真实瓶颈，然后做一些小而可验证的改动。</p>
+<p>当时使用的 profiling 配置尽量保持简单：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// 关闭 scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
+
+<p>我先从单线程开始，并且把 <code>useBVH</code> 设为 <code>false</code>。这样 profile 主要集中在 bunny mesh 自己的内部 BVH，也就是 BLAS。这个场景的顶层 object 数量很少，如果打开 scene-level BVH，TLAS 的遍历开销反而可能掩盖真正想看的 mesh traversal 成本。</p>
+<h2 id="Baseline"><a href="#Baseline" class="headerlink" title="Baseline"></a>Baseline</h2><p>初始结果：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 15.2775 seconds</span><br><span class="line">Total hit count: 717420294</span><br></pre></td></tr></table></figure>
+
+<p>第一个意外发现是，最热的部分并不是 BVH traversal，而是 sampler。Owen-scrambled Halton sampling 在单线程 profile 里占了很大比例，热点主要来自 <code>gl::permutationElement()</code> 和 <code>gl::owenScrambledRadicalInverse()</code>。</p>
+<p>把 Owen scrambling 关掉之后，CPU baseline 干净了很多：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 11.3048 seconds</span><br><span class="line">Total hit count: 193636618</span><br></pre></td></tr></table></figure>
+
+<p>这不代表 <code>RandomStrategy::None</code> 适合作为最终画质设置。它会带来一些 banding 或 structured noise。但对性能分析来说，先移除昂贵的 sampler，可以更清楚地看到几何求交和 BVH traversal 的瓶颈。</p>
+<h2 id="Ray-和-AABB-优化"><a href="#Ray-和-AABB-优化" class="headerlink" title="Ray 和 AABB 优化"></a>Ray 和 AABB 优化</h2><p>接下来明显的热点是 <code>AABB::intersect()</code>，其中不少时间被归因到 <code>gl::vec3::operator[]</code>。原始的 AABB slab test 在循环里反复调用 <code>ray.getOrigin()</code> 和 <code>ray.getDirection()</code>。早期这些 getter 是按值返回的，所以 hot path 里会发生不必要的 <code>vec3</code> 拷贝。</p>
+<p>第一步 cleanup 是让 ray 的 origin &#x2F; direction 按 const reference 返回，并且在 <code>Ray</code> 里缓存每条 ray 的 inverse direction：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Ray stores:</span><br><span class="line">  origin</span><br><span class="line">  direction</span><br><span class="line">  inv_direction</span><br></pre></td></tr></table></figure>
+
+<p>这个优化有效的原因是：一条 ray 会测试很多 BVH node，但 <code>1.0f / direction</code> 对这条 ray 来说是不变的。把 inverse direction 放到 <code>Ray::setDirection()</code> 里维护，就可以避免每次 AABB intersect 都重新做除法。</p>
+<p>这个 ray-side 优化之后：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 10.7534 seconds</span><br><span class="line">Total hit count: 193642185</span><br></pre></td></tr></table></figure>
+
+<p>之后我又把 AABB slab test 从：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">for (int i = 0; i &lt; 3; ++i)</span><br></pre></td></tr></table></figure>
+
+<p>展开成显式的 x&#x2F;y&#x2F;z 三段计算。这个改动主要减少 <code>operator[]</code> 的采样成本。在测试 trace 里，<code>operator[]</code> 大概从 <code>1.0s</code> 降到了 <code>0.5s</code> 左右。总时间变化不算大，但 profile 变得更干净，indexed vector access 的热点也明显降低了。</p>
+<h2 id="TLAS-和-BLAS"><a href="#TLAS-和-BLAS" class="headerlink" title="TLAS 和 BLAS"></a>TLAS 和 BLAS</h2><p>这次 profiling 里一个很有用的观察是：对当前这个 bunny 场景来说，打开 scene-level BVH 不一定更快。</p>
+<p>因为场景顶层只有一个 bunny，再加几个墙面和灯。bunny mesh 自己内部已经有 BVH。所以：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">useBVH=false:</span><br><span class="line">  ObjectList 线性测试少量 scene objects</span><br><span class="line">  TriangleMesh 内部仍然使用 MeshBVH</span><br><span class="line"></span><br><span class="line">useBVH=true:</span><br><span class="line">  ray 先遍历 scene-level BVH</span><br><span class="line">  然后 TriangleMesh 内部仍然使用 MeshBVH</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，<code>useBVH</code> 控制的是 TLAS，而 <code>TriangleMesh</code> 内部的 MeshBVH 是 BLAS。对于这个小场景，TLAS 虽然能减少 primitive hit count，但额外的 AABB traversal 和 pointer chasing 可能抵消掉收益，甚至变慢。</p>
+<h2 id="Near-First-BVH-Traversal"><a href="#Near-First-BVH-Traversal" class="headerlink" title="Near-First BVH Traversal"></a>Near-First BVH Traversal</h2><p>原来的 mesh BVH traversal 是固定顺序：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">先 intersect left subtree</span><br><span class="line">再 intersect right subtree</span><br></pre></td></tr></table></figure>
+
+<p>这个顺序是正确的，但不一定高效。如果 ray 实际上先命中右边 subtree 里更近的 triangle，那么先遍历左边就可能做很多无用工作。</p>
+<p>于是 traversal 改成先测试左右 child 的 AABB，拿到各自的 <code>t_enter</code>，再优先访问更近的 child：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">left_t  = ray 进入 left child box 的 t</span><br><span class="line">right_t = ray 进入 right child box 的 t</span><br><span class="line"></span><br><span class="line">优先访问 t_enter 更小的 child</span><br><span class="line">如果先找到更近 triangle，则 far_t &gt; closest 的 child 可以跳过</span><br></pre></td></tr></table></figure>
+
+<p>这只是一个 heuristic。更早进入某个 box，并不保证最近 triangle 一定在那个 box 里。但它经常能更早找到较小的 <code>closest</code>，从而让后面的 subtree 更容易被剪枝。</p>
+<h2 id="Flatten-Mesh-BVH"><a href="#Flatten-Mesh-BVH" class="headerlink" title="Flatten Mesh BVH"></a>Flatten Mesh BVH</h2><p>原来的 mesh BVH 是 pointer tree：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; left;</span><br><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; right;</span><br></pre></td></tr></table></figure>
+
+<p>这种结构会带来递归函数调用和 pointer chasing。为了改善 locality，我把 recursive BVH flatten 成一个数组：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">LinearMeshBVHNode</span> &#123;</span><br><span class="line">  AABB box;</span><br><span class="line">  <span class="type">int</span> left;</span><br><span class="line">  <span class="type">int</span> right;</span><br><span class="line">  <span class="type">int</span> first_tri;</span><br><span class="line">  <span class="type">int</span> tri_count;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这不是 heap layout。也就是说 child 不是通过 <code>2*i+1</code> 和 <code>2*i+2</code> 找到的，因为 BVH 不是 perfect binary tree。每个 linear node 会显式保存自己 child 在数组里的 index。</p>
+<p>Leaf triangle id 单独存放在：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">linear_bvh_tri_indices</span><br></pre></td></tr></table></figure>
+
+<p>每个 leaf 只保存：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">first_tri</span><br><span class="line">tri_count</span><br></pre></td></tr></table></figure>
+
+<p>它们指向 <code>linear_bvh_tri_indices</code> 里的一段连续区间。这些值仍然只是 triangle index，真正的三角形数据还在 mesh data 里。</p>
+<p>运行时 traversal 也从递归改成 iterative：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">push root node index</span><br><span class="line">while stack not empty:</span><br><span class="line">  pop node index</span><br><span class="line">  test AABB</span><br><span class="line">  if leaf: test triangles</span><br><span class="line">  else: push children</span><br></pre></td></tr></table></figure>
+
+<p>一开始我用 <code>std::vector</code> 作为 traversal stack，但 profile 里出现了明显的 allocation 开销。改成固定大小的 local stack 后：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::array&lt;StackEntry, 128&gt; stack;</span><br></pre></td></tr></table></figure>
+
+<p>flat traversal 变快了一些。这个收益不是质变，但它减少了递归开销和 pointer chasing，也让 BVH 表达更适合后续做 SoA 或 SIMD 实验。</p>
+<h2 id="时间最后花在哪里"><a href="#时间最后花在哪里" class="headerlink" title="时间最后花在哪里"></a>时间最后花在哪里</h2><p>完成这些改动之后，主要热点仍然集中在：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">TriangleMesh::intersectFlat</span><br><span class="line">AABB::intersect</span><br><span class="line">gl::vec3::operator[]</span><br><span class="line">TriangleMesh::hitTriangleFlat</span><br></pre></td></tr></table></figure>
+
+<p>这很合理。当前 flat BVH 改善的是 node traversal locality，但 triangle data 本身仍然是间接访问：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">leaf -&gt; linear_bvh_tri_indices -&gt; mesh.indices -&gt; mesh.positions</span><br></pre></td></tr></table></figure>
+
+<p>所以后面真正有意义的优化，大概率不是继续 micro-opt traversal，而是改善 triangle data 的布局。</p>
+<h2 id="后续方向"><a href="#后续方向" class="headerlink" title="后续方向"></a>后续方向</h2><p>比较自然的下一步有三个。</p>
+<p>第一，预计算 triangle data：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">p0</span><br><span class="line">e1 = p1 - p0</span><br><span class="line">e2 = p2 - p0</span><br><span class="line">geometric normal</span><br></pre></td></tr></table></figure>
+
+<p>这样可以减少 <code>hitTriangleFlat()</code> 里每次重复计算 edge 和 normal 的成本。</p>
+<p>第二，按 BVH leaf 顺序重排 triangle：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">让同一个 leaf 里的 triangles 在内存里连续</span><br></pre></td></tr></table></figure>
+
+<p>这可以减少 leaf intersection 时的随机访问。</p>
+<p>第三，再考虑 SIMD。</p>
+<p>单个 AABB SIMD，也就是 one ray vs one box 的 x&#x2F;y&#x2F;z 三轴并行，是可以做的，但不一定划算。更好的 SIMD 目标通常是 one ray vs multiple boxes，比如 4-wide BVH node，也就是 QBVH。这需要把 child AABB 组织成更适合 SIMD 的布局。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次优化最大的收获是：先 profile 很重要。一开始真正的 hotspot 是 sampler，不是 BVH。把 profiling noise 移除后，几何求交的成本才变得清楚。之后的 ray inverse-direction cache、near-first traversal、flat BVH、fixed stack、AABB unroll 都是小步优化，但它们让代码更接近适合后续 data layout 和 SIMD 优化的形态。</p>
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>CG</tag>
       </tags>
   </entry>
   <entry>
@@ -903,94 +831,98 @@
       </tags>
   </entry>
   <entry>
-    <title>在 M1 Max 上 Profiling 一个小型 Path Tracer</title>
-    <url>/2026/05/11/Profiling_CPU_zh/</url>
-    <content><![CDATA[<p>这篇记录整理了一次针对 bunny 场景的 CPU profiling 和优化过程。目标不是把渲染器彻底重写，而是用 Instruments 找到真实瓶颈，然后做一些小而可验证的改动。</p>
-<p>当时使用的 profiling 配置尽量保持简单：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// 关闭 scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
-
-<p>我先从单线程开始，并且把 <code>useBVH</code> 设为 <code>false</code>。这样 profile 主要集中在 bunny mesh 自己的内部 BVH，也就是 BLAS。这个场景的顶层 object 数量很少，如果打开 scene-level BVH，TLAS 的遍历开销反而可能掩盖真正想看的 mesh traversal 成本。</p>
-<h2 id="Baseline"><a href="#Baseline" class="headerlink" title="Baseline"></a>Baseline</h2><p>初始结果：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 15.2775 seconds</span><br><span class="line">Total hit count: 717420294</span><br></pre></td></tr></table></figure>
-
-<p>第一个意外发现是，最热的部分并不是 BVH traversal，而是 sampler。Owen-scrambled Halton sampling 在单线程 profile 里占了很大比例，热点主要来自 <code>gl::permutationElement()</code> 和 <code>gl::owenScrambledRadicalInverse()</code>。</p>
-<p>把 Owen scrambling 关掉之后，CPU baseline 干净了很多：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 11.3048 seconds</span><br><span class="line">Total hit count: 193636618</span><br></pre></td></tr></table></figure>
-
-<p>这不代表 <code>RandomStrategy::None</code> 适合作为最终画质设置。它会带来一些 banding 或 structured noise。但对性能分析来说，先移除昂贵的 sampler，可以更清楚地看到几何求交和 BVH traversal 的瓶颈。</p>
-<h2 id="Ray-和-AABB-优化"><a href="#Ray-和-AABB-优化" class="headerlink" title="Ray 和 AABB 优化"></a>Ray 和 AABB 优化</h2><p>接下来明显的热点是 <code>AABB::intersect()</code>，其中不少时间被归因到 <code>gl::vec3::operator[]</code>。原始的 AABB slab test 在循环里反复调用 <code>ray.getOrigin()</code> 和 <code>ray.getDirection()</code>。早期这些 getter 是按值返回的，所以 hot path 里会发生不必要的 <code>vec3</code> 拷贝。</p>
-<p>第一步 cleanup 是让 ray 的 origin &#x2F; direction 按 const reference 返回，并且在 <code>Ray</code> 里缓存每条 ray 的 inverse direction：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Ray stores:</span><br><span class="line">  origin</span><br><span class="line">  direction</span><br><span class="line">  inv_direction</span><br></pre></td></tr></table></figure>
-
-<p>这个优化有效的原因是：一条 ray 会测试很多 BVH node，但 <code>1.0f / direction</code> 对这条 ray 来说是不变的。把 inverse direction 放到 <code>Ray::setDirection()</code> 里维护，就可以避免每次 AABB intersect 都重新做除法。</p>
-<p>这个 ray-side 优化之后：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 10.7534 seconds</span><br><span class="line">Total hit count: 193642185</span><br></pre></td></tr></table></figure>
-
-<p>之后我又把 AABB slab test 从：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">for (int i = 0; i &lt; 3; ++i)</span><br></pre></td></tr></table></figure>
-
-<p>展开成显式的 x&#x2F;y&#x2F;z 三段计算。这个改动主要减少 <code>operator[]</code> 的采样成本。在测试 trace 里，<code>operator[]</code> 大概从 <code>1.0s</code> 降到了 <code>0.5s</code> 左右。总时间变化不算大，但 profile 变得更干净，indexed vector access 的热点也明显降低了。</p>
-<h2 id="TLAS-和-BLAS"><a href="#TLAS-和-BLAS" class="headerlink" title="TLAS 和 BLAS"></a>TLAS 和 BLAS</h2><p>这次 profiling 里一个很有用的观察是：对当前这个 bunny 场景来说，打开 scene-level BVH 不一定更快。</p>
-<p>因为场景顶层只有一个 bunny，再加几个墙面和灯。bunny mesh 自己内部已经有 BVH。所以：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">useBVH=false:</span><br><span class="line">  ObjectList 线性测试少量 scene objects</span><br><span class="line">  TriangleMesh 内部仍然使用 MeshBVH</span><br><span class="line"></span><br><span class="line">useBVH=true:</span><br><span class="line">  ray 先遍历 scene-level BVH</span><br><span class="line">  然后 TriangleMesh 内部仍然使用 MeshBVH</span><br></pre></td></tr></table></figure>
-
-<p>也就是说，<code>useBVH</code> 控制的是 TLAS，而 <code>TriangleMesh</code> 内部的 MeshBVH 是 BLAS。对于这个小场景，TLAS 虽然能减少 primitive hit count，但额外的 AABB traversal 和 pointer chasing 可能抵消掉收益，甚至变慢。</p>
-<h2 id="Near-First-BVH-Traversal"><a href="#Near-First-BVH-Traversal" class="headerlink" title="Near-First BVH Traversal"></a>Near-First BVH Traversal</h2><p>原来的 mesh BVH traversal 是固定顺序：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">先 intersect left subtree</span><br><span class="line">再 intersect right subtree</span><br></pre></td></tr></table></figure>
-
-<p>这个顺序是正确的，但不一定高效。如果 ray 实际上先命中右边 subtree 里更近的 triangle，那么先遍历左边就可能做很多无用工作。</p>
-<p>于是 traversal 改成先测试左右 child 的 AABB，拿到各自的 <code>t_enter</code>，再优先访问更近的 child：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">left_t  = ray 进入 left child box 的 t</span><br><span class="line">right_t = ray 进入 right child box 的 t</span><br><span class="line"></span><br><span class="line">优先访问 t_enter 更小的 child</span><br><span class="line">如果先找到更近 triangle，则 far_t &gt; closest 的 child 可以跳过</span><br></pre></td></tr></table></figure>
-
-<p>这只是一个 heuristic。更早进入某个 box，并不保证最近 triangle 一定在那个 box 里。但它经常能更早找到较小的 <code>closest</code>，从而让后面的 subtree 更容易被剪枝。</p>
-<h2 id="Flatten-Mesh-BVH"><a href="#Flatten-Mesh-BVH" class="headerlink" title="Flatten Mesh BVH"></a>Flatten Mesh BVH</h2><p>原来的 mesh BVH 是 pointer tree：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; left;</span><br><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; right;</span><br></pre></td></tr></table></figure>
-
-<p>这种结构会带来递归函数调用和 pointer chasing。为了改善 locality，我把 recursive BVH flatten 成一个数组：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">LinearMeshBVHNode</span> &#123;</span><br><span class="line">  AABB box;</span><br><span class="line">  <span class="type">int</span> left;</span><br><span class="line">  <span class="type">int</span> right;</span><br><span class="line">  <span class="type">int</span> first_tri;</span><br><span class="line">  <span class="type">int</span> tri_count;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>这不是 heap layout。也就是说 child 不是通过 <code>2*i+1</code> 和 <code>2*i+2</code> 找到的，因为 BVH 不是 perfect binary tree。每个 linear node 会显式保存自己 child 在数组里的 index。</p>
-<p>Leaf triangle id 单独存放在：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">linear_bvh_tri_indices</span><br></pre></td></tr></table></figure>
-
-<p>每个 leaf 只保存：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">first_tri</span><br><span class="line">tri_count</span><br></pre></td></tr></table></figure>
-
-<p>它们指向 <code>linear_bvh_tri_indices</code> 里的一段连续区间。这些值仍然只是 triangle index，真正的三角形数据还在 mesh data 里。</p>
-<p>运行时 traversal 也从递归改成 iterative：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">push root node index</span><br><span class="line">while stack not empty:</span><br><span class="line">  pop node index</span><br><span class="line">  test AABB</span><br><span class="line">  if leaf: test triangles</span><br><span class="line">  else: push children</span><br></pre></td></tr></table></figure>
-
-<p>一开始我用 <code>std::vector</code> 作为 traversal stack，但 profile 里出现了明显的 allocation 开销。改成固定大小的 local stack 后：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::array&lt;StackEntry, 128&gt; stack;</span><br></pre></td></tr></table></figure>
-
-<p>flat traversal 变快了一些。这个收益不是质变，但它减少了递归开销和 pointer chasing，也让 BVH 表达更适合后续做 SoA 或 SIMD 实验。</p>
-<h2 id="时间最后花在哪里"><a href="#时间最后花在哪里" class="headerlink" title="时间最后花在哪里"></a>时间最后花在哪里</h2><p>完成这些改动之后，主要热点仍然集中在：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">TriangleMesh::intersectFlat</span><br><span class="line">AABB::intersect</span><br><span class="line">gl::vec3::operator[]</span><br><span class="line">TriangleMesh::hitTriangleFlat</span><br></pre></td></tr></table></figure>
-
-<p>这很合理。当前 flat BVH 改善的是 node traversal locality，但 triangle data 本身仍然是间接访问：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">leaf -&gt; linear_bvh_tri_indices -&gt; mesh.indices -&gt; mesh.positions</span><br></pre></td></tr></table></figure>
-
-<p>所以后面真正有意义的优化，大概率不是继续 micro-opt traversal，而是改善 triangle data 的布局。</p>
-<h2 id="后续方向"><a href="#后续方向" class="headerlink" title="后续方向"></a>后续方向</h2><p>比较自然的下一步有三个。</p>
-<p>第一，预计算 triangle data：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">p0</span><br><span class="line">e1 = p1 - p0</span><br><span class="line">e2 = p2 - p0</span><br><span class="line">geometric normal</span><br></pre></td></tr></table></figure>
-
-<p>这样可以减少 <code>hitTriangleFlat()</code> 里每次重复计算 edge 和 normal 的成本。</p>
-<p>第二，按 BVH leaf 顺序重排 triangle：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">让同一个 leaf 里的 triangles 在内存里连续</span><br></pre></td></tr></table></figure>
-
-<p>这可以减少 leaf intersection 时的随机访问。</p>
-<p>第三，再考虑 SIMD。</p>
-<p>单个 AABB SIMD，也就是 one ray vs one box 的 x&#x2F;y&#x2F;z 三轴并行，是可以做的，但不一定划算。更好的 SIMD 目标通常是 one ray vs multiple boxes，比如 4-wide BVH node，也就是 QBVH。这需要把 child AABB 组织成更适合 SIMD 的布局。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次优化最大的收获是：先 profile 很重要。一开始真正的 hotspot 是 sampler，不是 BVH。把 profiling noise 移除后，几何求交的成本才变得清楚。之后的 ray inverse-direction cache、near-first traversal、flat BVH、fixed stack、AABB unroll 都是小步优化，但它们让代码更接近适合后续 data layout 和 SIMD 优化的形态。</p>
+    <title>计算机网络-概览笔记</title>
+    <url>/2021/09/05/Notes-Computer%20Networks/</url>
+    <content><![CDATA[<h3 id="Client-Server"><a href="#Client-Server" class="headerlink" title="Client&#x2F;Server:"></a>Client&#x2F;Server:</h3><p>应用层，最为抽象</p>
+<h3 id="TCP-传输层"><a href="#TCP-传输层" class="headerlink" title="TCP:传输层"></a>TCP:传输层</h3><p>对可靠性要求高、检验错误</p>
+<h3 id="UDP："><a href="#UDP：" class="headerlink" title="UDP："></a>UDP：</h3><p>对可靠性要求低、但是能够保证实时</p>
+<ul>
+<li>直播</li>
+<li>事务性应用</li>
+</ul>
+<h3 id="IP-网络层-End-to-End"><a href="#IP-网络层-End-to-End" class="headerlink" title="IP:网络层 End to End"></a>IP:网络层 End to End</h3><p>从主机到主机</p>
+<p>在Link Layer的点到点通讯基础上实现</p>
+<h3 id="Link-Layer-点到点通讯"><a href="#Link-Layer-点到点通讯" class="headerlink" title="Link Layer:点到点通讯"></a>Link Layer:点到点通讯</h3><h3 id="Physical-Layer-物理信号-数字信号"><a href="#Physical-Layer-物理信号-数字信号" class="headerlink" title="Physical Layer:物理信号-数字信号"></a>Physical Layer:物理信号-数字信号</h3><p>通过media（介质）：</p>
+<ul>
+<li>Copper</li>
+<li>Fibre</li>
+</ul>
+<h3 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h3><h4 id="传统工作方式：查表-转发"><a href="#传统工作方式：查表-转发" class="headerlink" title="传统工作方式：查表+转发"></a>传统工作方式：查表+转发</h4><ul>
+<li>路由器交换信息</li>
+<li>计算出路由表</li>
+<li>IP协议收到分组后，根据IP查路由表，再根据表转发</li>
+</ul>
+<h4 id="SDN方式：数据平面-控制系统"><a href="#SDN方式：数据平面-控制系统" class="headerlink" title="SDN方式：数据平面+控制系统"></a>SDN方式：数据平面+控制系统</h4><p>交换机：多字段匹配-&gt;block&#x2F;转发&#x2F;flood</p>
+<p>操作系统：计算flow table-下发给交换机</p>
+<p>（programmable+new features could be added）</p>
+<p>比如说要新增加负载均衡，只需要编程即可</p>
+<h4 id="链路层和局域网"><a href="#链路层和局域网" class="headerlink" title="链路层和局域网"></a>链路层和局域网</h4><h3 id="框架："><a href="#框架：" class="headerlink" title="框架："></a>框架：</h3><p>在下层提供的服务上实现更高级的功能</p>
+<h3 id="网络："><a href="#网络：" class="headerlink" title="网络："></a>网络：</h3><h4 id="Node"><a href="#Node" class="headerlink" title="Node:"></a>Node:</h4><ul>
+<li><p>主机以及主机上的应用程序</p>
+</li>
+<li><p>路由器、交换机等网络交换设备</p>
+</li>
+<li><p>方的节点：主要节点（Client&#x2F;Server）</p>
+<p>圆形节点：中转节点</p>
+</li>
+</ul>
+<h4 id="Edge-通信链路"><a href="#Edge-通信链路" class="headerlink" title="Edge:通信链路"></a>Edge:通信链路</h4><ul>
+<li>access：主机接入到（最近的交换机）互联网的链路（一方一圆）</li>
+<li>backbone：路由器之间的链路（两个圆的）</li>
+</ul>
+<h4 id="Protocol-对等层实体交换数据所需要遵循的规范"><a href="#Protocol-对等层实体交换数据所需要遵循的规范" class="headerlink" title="Protocol:对等层实体交换数据所需要遵循的规范"></a>Protocol:对等层实体交换数据所需要遵循的规范</h4><p>Protocol Data Unit(PDU)</p>
+<h3 id="互联网包括：网络边缘-网络核心-接入网"><a href="#互联网包括：网络边缘-网络核心-接入网" class="headerlink" title="互联网包括：网络边缘&#x2F;网络核心&#x2F;接入网"></a>互联网包括：网络边缘&#x2F;网络核心&#x2F;接入网</h3><h3 id="1-2-网络边缘"><a href="#1-2-网络边缘" class="headerlink" title="1.2 网络边缘"></a>1.2 网络边缘</h3><p>网络边缘:</p>
+<ul>
+<li>主机</li>
+<li>应用程序</li>
+</ul>
+<h3 id="1-3-Core（用于数据交换）"><a href="#1-3-Core（用于数据交换）" class="headerlink" title="1.3 Core（用于数据交换）"></a>1.3 Core（用于数据交换）</h3><ul>
+<li>相互连接的路由器</li>
+<li>网络的网络</li>
+</ul>
+<h3 id="1-4-Access"><a href="#1-4-Access" class="headerlink" title="1.4 Access"></a>1.4 Access</h3><ul>
+<li>有线或者无线通信链路</li>
+</ul>
+<p>边缘接入核心-&gt;核心连接所有边缘节点-&gt;边缘可以和任意边缘节点交换</p>
+<p>网络核心：相当于全球范围内的切换开关（如果需要交换，就打开）</p>
+<h4 id="应用进程交互模式："><a href="#应用进程交互模式：" class="headerlink" title="应用进程交互模式："></a>应用进程交互模式：</h4><ul>
+<li><p>Client&#x2F;Server模式：</p>
+<ul>
+<li>Client后运行起来，向Server发出请求，资源来自于Server</li>
+<li>问题：如果Client特别多，需要准备很多Server，到达一定程度时性能断崖式下跌</li>
+</ul>
+</li>
+<li><p>Peer-Peer 模式：</p>
+<ul>
+<li>没有专门的服务器</li>
+<li>每个节点既是Client也是Server</li>
+<li>分布式通信，下载文件的时候，相当于多路下载片段</li>
+</ul>
+</li>
+</ul>
+<h4 id="基础设施为网络应用提供的服务："><a href="#基础设施为网络应用提供的服务：" class="headerlink" title="基础设施为网络应用提供的服务："></a>基础设施为网络应用提供的服务：</h4><ul>
+<li>TCP（面向连接（端系统知道&#x2F;路径节点不知道）的通信方式）：Shake Hand方式（数据传输前做好准备）<ul>
+<li>可靠：不重复、不丢、不乱序</li>
+<li>Flow Control:发送方不会淹没接收方</li>
+<li>阻塞控制(Congestion Control)</li>
+<li>要考虑网络+设备</li>
+</ul>
+</li>
+<li>UDP(connectless，直接发送，不需要提前连接)<ul>
+<li>不可靠</li>
+<li>没有流量控制</li>
+<li>没有阻塞控制</li>
+<li>适合实时多媒体应用</li>
+<li>事务性很强的应用（）</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <categories>
-        <category>Computer Graphics, Rendering</category>
+        <category>Programming</category>
       </categories>
       <tags>
-        <tag>C/C++</tag>
-        <tag>Rendering</tag>
-        <tag>CG</tag>
+        <tag>Computer Networks</tag>
       </tags>
   </entry>
   <entry>
@@ -1569,105 +1501,19 @@
       </tags>
   </entry>
   <entry>
-    <title>Notes on transitioning from RT in One Weeknd to PBRT</title>
-    <url>/2025/04/30/Transition%20from%20RT%20in%20one%20Weeknd%20to%20PBRT/</url>
-    <content><![CDATA[<p>So recently I was thinking reading PBRT for volumetric path-tracing stuff, as well as bunch of other detailed BxDFs. I did write a MIS path-trace based on Ray tracing in One Weeknd series before, and extended some features. However, some design choices &#x2F; conventions are different. While I was going to implement some materials from PBRT to my path-tracer, I took quite some time to adapt the PBRT’s code to my codebase. </p>
-<p>I don’t really want to rewrite everything from scratch though, I would rather do adaption and refactor. So here are some of my findings on the differences between these two resources and their correspondence (Covering Ch. 9 in PBRT Material for now ). Hope this helps if anyone want to do some similar transition.</p>
-<ol>
-<li>PBRT uses local coordinates for their f (BxDF) interface, i.e. z-axis up, RT in one weeknd uses a global coordinates. This can be easily address using a Orthonormal Basis.</li>
-</ol>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ONB</span> &#123;</span><br><span class="line">	...</span><br><span class="line">  <span class="comment">// local to world</span></span><br><span class="line">  <span class="function">gl::vec3 <span class="title">toWorld</span><span class="params">(gl::vec3 v)</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">at</span>(v); &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function">gl::vec3 <span class="title">toLocal</span><span class="params">(gl::vec3 v)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> gl::<span class="built_in">vec3</span>(<span class="built_in">dot</span>(v, axis[<span class="number">0</span>]), <span class="built_in">dot</span>(v, axis[<span class="number">1</span>]), <span class="built_in">dot</span>(v, axis[<span class="number">2</span>]));</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//in scatter function, you would do something like this if you want to use PBRT&#x27;s f function directly. </span></span><br><span class="line"><span class="function">ONB <span class="title">basis</span><span class="params">(rec.normal)</span></span>;</span><br><span class="line">vec3 wo = basis.<span class="built_in">toLocal</span>(wo_world.<span class="built_in">normalize</span>());</span><br><span class="line">vec3 wi = basis.<span class="built_in">toLocal</span>(wi_world.<span class="built_in">normalize</span>());</span><br><span class="line"><span class="keyword">auto</span> f = <span class="built_in">f</span>(wo, wi);</span><br></pre></td></tr></table></figure>
-
-<p>And note that PBRT defines many trigonometric functions &#x2F; geometric with above convention, the corresponding functions are give below. It’s just the difference of calculation in local coordinates and global coordinates, but you have to be aware of that. since PBRT uses these functions heavily, I would recommend to just convert to local coordinates before passing in directions, and uses the math functions that PBRT defines.</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">namespace</span> pbrt&#123;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cosTheta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> w.<span class="built_in">z</span>(); &#125;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cos2Theta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">square</span>(w.<span class="built_in">z</span>()); &#125;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">absCosTheta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> std::<span class="built_in">abs</span>(w.<span class="built_in">z</span>()); &#125;</span><br><span class="line">    <span class="comment">//note that it&#x27;s -wo</span></span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> vec3 <span class="title">reflect</span><span class="params">(<span class="type">const</span> vec3 &amp;wo, <span class="type">const</span> vec3 &amp;n)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> -wo + <span class="number">2</span> * <span class="built_in">dot</span>(wo, n) * n;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> rtOneWeeknd&#123;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cosTheta</span><span class="params">(vec3 w, vec3 n)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">dot</span>(w,n);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> vec3 <span class="title">reflect</span><span class="params">(<span class="type">const</span> vec3 &amp;v, <span class="type">const</span> vec3 &amp;n)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">auto</span> _v = v.<span class="built_in">normalize</span>();</span><br><span class="line">      <span class="keyword">auto</span> _n = n.<span class="built_in">normalize</span>();</span><br><span class="line">      <span class="keyword">auto</span> dt = <span class="built_in">dot</span>(_v, _n);</span><br><span class="line">      <span class="keyword">return</span> (_v - <span class="number">2</span> * dt * _n).<span class="built_in">normalize</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>PBRT assumes $w_i, w_o$ are both starting from the surface, pointing outwards. And $w_o$ is the camera ray in local coordinates (since we trace backwards). Whereas in RT in one weeknd, the variable name <code>ray</code> and <code>scattered</code> suggests the other way around (i.e. global coordinates, <code>ray</code> points into the surface).</li>
-</ol>
-<ul>
-<li><p>The correspondence works like this,</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//suppose the interface in RT in one weeknd is like this</span></span><br><span class="line"><span class="function">color <span class="title">ray_color</span><span class="params">(<span class="type">const</span> ray&amp; ray_in, <span class="type">int</span> depth, <span class="type">const</span> hittable&amp; world)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If the ray hits nothing, return the background color.</span></span><br><span class="line">        <span class="keyword">if</span> (!world.<span class="built_in">hit</span>(ray_in, <span class="built_in">interval</span>(<span class="number">0.001</span>, infinity), rec))</span><br><span class="line">            <span class="keyword">return</span> background;</span><br><span class="line"></span><br><span class="line">        ray scattered;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// then the correspondence is like this, w_o points outwards the surface whereas ray_in points into the surface.</span></span><br><span class="line">w_o_world = -ray_in.<span class="built_in">direction</span>().<span class="built_in">normalize</span>();</span><br><span class="line">w_i_world = scattered.direction.<span class="built_in">normalize</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">//convert to local coordinate </span></span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
-</ul>
-<ol start="3">
-<li>PBRT’s specular rays are handled with delta function and <code>BxDFFlags</code>. For specular cases’ <code>f</code> function, you’ll need to divide by <code>cos(theta)</code> and later it cancels out in the estimator. In RT in one weeknd, you don’t need that divide by <code>cos(theta)</code>, it’s directly handled with <code>if (srec.is_specular)</code> branch.</li>
-</ol>
-<ul>
-<li>The example below illustrates the idea</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//PBRT, Conductor BRDF</span></span><br><span class="line"><span class="keyword">if</span> (mfDistrib.<span class="built_in">EffectivelySmooth</span>()) &#123;</span><br><span class="line">   <span class="comment">//Sample perfect specular conductor BRDF, delta-branch</span></span><br><span class="line">      <span class="function">Vector3f <span class="title">wi</span><span class="params">(-wo.x, -wo.y, wo.z)</span></span>;</span><br><span class="line">    <span class="comment">//note the division by cos(theta)</span></span><br><span class="line">      SampledSpectrum f = <span class="built_in">FrComplex</span>(<span class="built_in">AbsCosTheta</span>(wi), eta, k) / <span class="built_in">AbsCosTheta</span>(wi);</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">BSDFSample</span>(f, wi, <span class="number">1</span>, BxDFFlags::SpecularReflection);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//RT in one weeknd, conductor BRDF</span></span><br><span class="line"><span class="keyword">if</span> (mfDistribution.<span class="built_in">effectivelySmooth</span>()) &#123;</span><br><span class="line"></span><br><span class="line">  gl::vec3 wi = gl::pbrt::<span class="built_in">reflect</span>(wo, rec.normal).<span class="built_in">normalize</span>();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">dot</span>(rec.normal, wi) &lt;= <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  srec.sampled_ray = <span class="built_in">Ray</span>(rec.position, wi);</span><br><span class="line">  <span class="comment">// Fresnel reflectance at this angle:</span></span><br><span class="line">  <span class="type">float</span> absCosThetaI = <span class="built_in">fabs</span>(<span class="built_in">dot</span>(rec.normal, wi));</span><br><span class="line">  vec3 f = <span class="built_in">fresnelComplex</span>(absCosThetaI, eta, k);</span><br><span class="line">  <span class="comment">// Note that no divide by absCosThetaI!</span></span><br><span class="line">  srec.attenuation = f;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>If you accidentally divide by <code>absCosTheta</code> in your specular <code>srec.attenutaion</code>, you would get something like this. The left surface of the box is very bright (which is wrong).</p>
-<img src="https://s2.loli.net/2025/05/01/Tpm5fl9D1CgnYuo.png" alt="image-20250430133039598" style="zoom:33%;" />
-
-
-
-<ol start="4">
-<li>The design of <code>scattering_pdf</code> in RT in one weeknd is just out of convenience to my understanding. Since we already pass in the <code>pdf_ptr</code> to the <code>scatter record</code>, we can simply call the pointer in the integrator. Alternatively, you can implement an interface like this.</li>
-</ol>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">scatter_pdf</span><span class="params">(<span class="type">const</span> ScatterRecord &amp;srec, <span class="type">const</span> Ray &amp;wi)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (srec.pdf_ptr != <span class="literal">nullptr</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> srec.pdf_ptr-&gt;<span class="built_in">at</span>(wi.<span class="built_in">getDirection</span>().<span class="built_in">normalize</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="5">
-<li>The integrator from Ray tracing in one weeknd doesn’t requires an <code>f</code> function (BxDF evaluation) for each material, since the <code>attenuation</code> value is stored in <code>scatter_record</code>, there’s no need to recalculate the <code>attenuation</code> with <code>material_ptr-&gt;f()</code>. However, the <code>f()</code> and <code>scatter_record.attenuation</code> are bit different.</li>
-</ol>
-<blockquote>
-<p>It’s also mentioned in RT in one weeknd.</p>
-</blockquote>
-<p><img src="https://s2.loli.net/2025/05/01/XDriEN2qMjoOpvs.png" alt="image-20250430134118001"></p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//RT in one weeknd, Lambertian example</span></span><br><span class="line">srec.attenuation = tex-&gt;<span class="built_in">value</span>(rec.u, rec.v, rec.p);</span><br><span class="line">color sample_color = <span class="built_in">ray_color</span>(scattered, depth<span class="number">-1</span>, world, lights);</span><br><span class="line">color color_from_scatter =</span><br><span class="line">            (srec.attenuation * scattering_pdf * sample_color) / pdf_value;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//BxDF style, f*Li*cos(theta) / pdf</span></span><br><span class="line">srec.attenuation = albedo-&gt;<span class="built_in">getTexelColor</span>(rec.texCoords) * (<span class="number">1.0f</span> / M_PI);</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> f = mat-&gt;<span class="built_in">f</span>(wo, wi, hit_record);</span><br><span class="line"><span class="keyword">auto</span> pdf_val = mix_pdf.<span class="built_in">at</span>(wi.<span class="built_in">toWorld</span>());</span><br><span class="line"><span class="type">float</span> cos_theta = std::<span class="built_in">max</span>(<span class="built_in">dot</span>(hit_record.normal, wi.<span class="built_in">toWorld</span>()), <span class="number">0.0f</span>);</span><br><span class="line">color sample_color = <span class="built_in">getRayColor</span>(wi.<span class="built_in">toWorld</span>(), depth<span class="number">-1</span>, world, lights);</span><br><span class="line">color color_from_scatter = f * sample_color * cos_theta / pdf_Val</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="6">
-<li><code>f()</code> is required for direct light sampling with NEE,  the <code>srec.attenutaion</code> stores the <code>f</code> value for the material sampling path, not the light sampling path. When we sample the light, we cannot reuse <code>srec.attenutation</code> as our <code>f</code>, we must perform another  BxDF evaluation on light path.</li>
-</ol>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">generate light direction: </span><br><span class="line"><span class="built_in">f</span>(wi) * Li * G * V / p_light.</span><br><span class="line">    </span><br><span class="line"><span class="comment">//in your material interface, you can do something like to avoid code redundancy</span></span><br><span class="line"><span class="comment">// --- rough (microfacet) case ---</span></span><br><span class="line"><span class="function">OrthoBasis <span class="title">basis</span><span class="params">(rec.normal)</span></span>;</span><br><span class="line"><span class="keyword">auto</span> pdf_ptr = std::<span class="built_in">make_shared</span>&lt;MicrofacetPDF&gt;(mfDistribution, basis, wo);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2) sample an incoming direction `wi`</span></span><br><span class="line">vec3 wi = pdf_ptr-&gt;<span class="built_in">get</span>().<span class="built_in">normalize</span>();</span><br><span class="line"><span class="comment">// 3) reject if it’s below the geometric normal</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">dot</span>(rec.normal, wi) &lt;= <span class="number">0</span>)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//directly calling the bxdf function</span></span><br><span class="line">srec.attenuation = <span class="built_in">f</span>(wo, wi, rec);</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="7">
-<li>Now let’s get to the <code>Material</code> interface difference between these two books. The correspondence is rather straightforward, and you’ll probably need some small tweaks to your RT in one weeknd interface.</li>
-</ol>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// these two functions are equivalent, both do one sampling in the material&#x27;s lobe, and then returns necessary information for this sample.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//PBRT</span></span><br><span class="line"><span class="built_in">Sample_f</span>(Vector3f wo, Float uc, Point2f u, TransportMode mode,</span><br><span class="line">                BxDFReflTransFlags sampleFlags = BxDFReflTransFlags::All) </span><br><span class="line"><span class="type">const</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//returns BRDF, direction, pdf, and the type of BxDF</span></span><br><span class="line"><span class="keyword">return</span> <span class="built_in">BSDFSample</span>(R * InvPi, wi, pdf, BxDFFlags::DiffuseReflection);</span><br><span class="line"></span><br><span class="line"><span class="comment">//RT 1wk</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">scatter</span><span class="params">(<span class="type">const</span> Ray &amp;ray_in, HitRecord &amp;rec,</span></span></span><br><span class="line"><span class="params"><span class="function">               ScatterRecord &amp;srec)</span> <span class="type">const</span> <span class="keyword">override</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//extend the scatter_record interface</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ScatterRecord</span> &#123;</span><br><span class="line">  Ray sampled_ray;</span><br><span class="line">  <span class="type">bool</span> is_specular;</span><br><span class="line">  <span class="type">float</span> pdf_val = <span class="number">0.0f</span>;</span><br><span class="line">  gl::vec3 attenuation;</span><br><span class="line">  std::shared_ptr&lt;PDF&gt; pdf_ptr;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">srec.is_specular = <span class="literal">false</span>;</span><br><span class="line">srec.attenuation = albedo-&gt;<span class="built_in">getTexelColor</span>(rec.texCoords) * (<span class="number">1.0f</span> / M_PI);</span><br><span class="line">srec.pdf_ptr = std::<span class="built_in">make_shared</span>&lt;CosinePDF&gt;(rec.normal);</span><br><span class="line">srec.sampled_ray = <span class="built_in">Ray</span>(rec.position, srec.pdf_ptr-&gt;<span class="built_in">get</span>());</span><br><span class="line">srec.pdf_val = srec.pdf_ptr-&gt;<span class="built_in">at</span>(srec.sampled_ray.<span class="built_in">direction</span>());</span><br><span class="line"></span><br><span class="line"><span class="comment">//This is missing in Rt 1wk, required for NEE</span></span><br><span class="line"><span class="function">SampledSpectrum <span class="title">f</span><span class="params">(Vector3f wo, Vector3f wi, TransportMode mode)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">SameHemisphere</span>(wo, wi))</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">SampledSpectrum</span>(<span class="number">0.f</span>);</span><br><span class="line">    <span class="keyword">return</span> R * InvPi;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//Both does pdf evaluation</span></span><br><span class="line"><span class="comment">//PBRT</span></span><br><span class="line"><span class="function">Float <span class="title">PDF</span><span class="params">(Vector3f wo, Vector3f wi, TransportMode mode,</span></span></span><br><span class="line"><span class="params"><span class="function">          BxDFReflTransFlags sampleFlags = BxDFReflTransFlags::All)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"><span class="comment">//Rt 1wk</span></span></span><br><span class="line"><span class="function"><span class="type">float</span> <span class="title">scatter_pdf</span><span class="params">(<span class="type">const</span> Ray &amp;ray_in, <span class="type">const</span> HitRecord &amp;rec,</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="type">const</span> Ray &amp;scattered)</span> <span class="type">const</span> <span class="keyword">override</span></span></span><br></pre></td></tr></table></figure>
-
+    <title>Portfolio Site</title>
+    <url>/2022/01/19/Portfolio%20Site%20Online/</url>
+    <content><![CDATA[<p>Recently I began my Master application for 2022 Fall, and some of the universities, require the applicants to submit their portfolio in the form of personal website. I was intended to submit this site, however, this site only contains daily logs and technical topic posts. So I would rather create another website for my portfolio works.</p>
+<p>After one afternoon’s work, new Portfolio Website was online, powering by Wix. Actually I found the Wix tool quite easy to use, only drags and drops are needed, just like what they’ve shown in the Youtube ads. The problem is, it’s not suitable for me to contantly update the contents since it tooks a lot more to render a single site in Wix. You have to drag and drop each paragraph yourself. However, it’s pretty easy to publish a post in Hexo. I can just use Typora and markdown to upload a post in seconds. Also, Wix doesn’t have good support for code snippets as the Markdown does. So I‘m just gonna post most of my daily thoughts and progresses here. And major works on the portfolio site.</p>
+<p>I actually want to merge these two sites, this site and the portfolio site, into one. However, I find the two sites’ styles are quite different and I’m not interested in writing pieces of CSS code anyway. Maybe I will merge them someday.</p>
+<p>Finally, if you are interested in my portfolio, check  <a href = "https://zhaonzh.wixsite.com/mysite-1">Portfolio Site</a>.</p>
 ]]></content>
       <categories>
-        <category>Computer Graphics, Rendering, textbook</category>
+        <category>Design</category>
       </categories>
       <tags>
-        <tag>C/C++</tag>
-        <tag>Rendering</tag>
-        <tag>CG</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Why Tuple?</title>
-    <url>/2021/09/21/WhyTuple?/</url>
-    <content><![CDATA[<p>C++ 11 introduces a template Tuple, similar to the one in Python, allows you to store data of different types in a single entity. But you may ask, in C&#x2F;C++,we already have some mechaism called struct allows us to do the same thing, then why do we need tuple?</p>
-<h3 id="Case-1-One-Time-Structure-to-Transfer-Data"><a href="#Case-1-One-Time-Structure-to-Transfer-Data" class="headerlink" title="Case 1: One-Time Structure to Transfer Data"></a>Case 1: One-Time Structure to Transfer Data</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">tuple&lt;string,<span class="type">int</span>&gt; <span class="title">getNameAge</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//do something</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">make_tuple</span>(<span class="string">&quot;Bob&quot;</span>,<span class="number">34</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Person</span>&#123;string name;<span class="type">int</span> age;&#125;p;</span><br><span class="line">    tuple&lt;string,<span class="type">int</span>&gt; t;</span><br><span class="line">    </span><br><span class="line">    string name;</span><br><span class="line">    <span class="type">int</span> age;</span><br><span class="line">    <span class="built_in">tie</span>(name,age) = <span class="built_in">getNameAge</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>If we want to transfer a group of data for only one time, we may not want to define a struct, and using tuple get us away from these definitions.</p>
-<h3 id="Case-2-Fast-Comparison-Using-Tuple-Operators"><a href="#Case-2-Fast-Comparison-Using-Tuple-Operators" class="headerlink" title="Case 2: Fast Comparison Using Tuple Operators"></a>Case 2: Fast Comparison Using Tuple Operators</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">tuple&lt;<span class="type">int</span>,<span class="type">int</span>,<span class="type">int</span>&gt; time1,time2;</span><br><span class="line"><span class="keyword">if</span>(time1&gt;time2)</span><br><span class="line">    cout&lt;&lt;<span class="string">&quot;time1 is later&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Case-3-Multi-Index-Map-Unordered-Map"><a href="#Case-3-Multi-Index-Map-Unordered-Map" class="headerlink" title="Case 3: Multi-Index Map&#x2F;Unordered Map"></a>Case 3: Multi-Index Map&#x2F;Unordered Map</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//define</span></span><br><span class="line">map&lt;tuple&lt;<span class="type">int</span>,<span class="type">char</span>,<span class="type">float</span>&gt;,string&gt; m;</span><br><span class="line"><span class="comment">//indexing</span></span><br><span class="line">m[<span class="built_in">make_tuple</span>(<span class="number">2</span>,<span class="string">&#x27;a&#x27;</span>,<span class="number">1.0</span>)] = <span class="string">&quot;Test&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Case-4-Fast-Swap"><a href="#Case-4-Fast-Swap" class="headerlink" title="Case 4: Fast Swap"></a>Case 4: Fast Swap</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a,b,c;</span><br><span class="line"><span class="built_in">tie</span>(b,c,a) = <span class="built_in">make_tuple</span>(a,b,c);</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion:"></a>Conclusion:</h3><p>Tuple is not recommended to be overused. If needed, use struct instead.</p>
-]]></content>
-      <categories>
-        <category>Programming</category>
-      </categories>
-      <tags>
-        <tag>C/C++</tag>
-        <tag>Data_Structure</tag>
+        <tag>Design</tag>
+        <tag>About Me</tag>
       </tags>
   </entry>
   <entry>
@@ -1762,65 +1608,140 @@
       </tags>
   </entry>
   <entry>
-    <title>最近半年的生活状态（上）</title>
-    <url>/2022/06/19/%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E5%8D%8A%E5%B9%B4%E5%8F%91%E7%94%9F%E7%9A%84%E4%BA%8B(%E4%B8%8A)/</url>
-    <content><![CDATA[<h3 id="最近半年的生活状态（上）"><a href="#最近半年的生活状态（上）" class="headerlink" title="最近半年的生活状态（上）"></a>最近半年的生活状态（上）</h3><p>​	说起来，自从大四之后就很久很久没有为自己写一些东西，也许是太忙？但也有可能是“我没有把这当作是最重要的事情”，所以一直搁置了。不过临近毕业，总算是稍微有点机会写点什么了，就稍微写一点吧。我想先写一些关于大四上学期的内容，不然就太长了。</p>
-<h3 id="大四上"><a href="#大四上" class="headerlink" title="大四上"></a>大四上</h3><p>​	整个大四上发生了很多事情，分手，上课，作品集，申请学校。一直非常焦头烂额，不过好在我在作品集的机构认识了一些朋友，后来11月的时候，还因为疫情的原因在校外酒店住了一个多月。我的整个大四上学期是在忙碌和焦虑中度过的，不过我猜大家都是这样。</p>
-<ul>
-<li>分手</li>
-</ul>
-<p>​	学期的一开始，前任就和我提了分手，不过我太想再回忆这些。分手的时候ta撒了一个谎，后来找我复合，我拒绝了。既然已经过去这么久，就这样吧。</p>
-<ul>
-<li>数据结构基础</li>
-</ul>
-<p>​	大四上才上数据结构确实挺晚了，甚至申请的时候都不一定会出现在成绩单上，但就当是学知识吧—我是这么想的。学校的数据结构课一开始要分班考，基础还行的同学可以选择困难模式，也就是平时的3个实验课作业题目会变难，好处是评分最多可以比其他同学高5分。我选择了困难模式，当然也为此花了一些时间，现在想想，却也不是那么有必要，尽管确实从一些题目中获得了更深的思考。</p>
-<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0gq6kzmj21yq0tsgrj.jpg" alt="image-20220620001929249" style="zoom:33%;" />
+    <title>Why Tuple?</title>
+    <url>/2021/09/21/WhyTuple?/</url>
+    <content><![CDATA[<p>C++ 11 introduces a template Tuple, similar to the one in Python, allows you to store data of different types in a single entity. But you may ask, in C&#x2F;C++,we already have some mechaism called struct allows us to do the same thing, then why do we need tuple?</p>
+<h3 id="Case-1-One-Time-Structure-to-Transfer-Data"><a href="#Case-1-One-Time-Structure-to-Transfer-Data" class="headerlink" title="Case 1: One-Time Structure to Transfer Data"></a>Case 1: One-Time Structure to Transfer Data</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">tuple&lt;string,<span class="type">int</span>&gt; <span class="title">getNameAge</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//do something</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">make_tuple</span>(<span class="string">&quot;Bob&quot;</span>,<span class="number">34</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Person</span>&#123;string name;<span class="type">int</span> age;&#125;p;</span><br><span class="line">    tuple&lt;string,<span class="type">int</span>&gt; t;</span><br><span class="line">    </span><br><span class="line">    string name;</span><br><span class="line">    <span class="type">int</span> age;</span><br><span class="line">    <span class="built_in">tie</span>(name,age) = <span class="built_in">getNameAge</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当时为了练手，日常还会做一些LeetCode补充一下，传到GitHub记录一下？</p>
-</blockquote>
-<p>​	这门课臭名昭著的地方在于实验课作业的互评制度，也就是大家要互相给代码和实验报告打分。大部分选课的同学应该都是刚上大二，仅校内课程来说，是没有接触过较为现代的Editor或者LaTex&#x2F;Markdown之类的工具的，于是相当多的同学（至少在我互评的范围内）用Dev C++（大一的时候学校推荐大家使用）写代码，用Word写文档。我觉得他们之中的很多人应该是在这些方面吃了亏，而我可能也只是因为在这些方面（指使用VSCode &#x2F; Typora）有点接触，在互评上稍微多了点美观分—这其实还挺不公平的…</p>
-<p>​	印象比较深的有几件事，一件是期中考试好像只考了69分，还没有到班级平均线。一件是第二个实验课题目比较困难，当时写了有800行代码，较为头疼。不过比较开心的是，那次我实现了一个类似Trie的结构，还是用了比较基础的multithreading和rvalue reference，尽管最后效率非常低…</p>
-<p>​	至于这门课的结果还不错，期末考试的800个人里面考了130几名，算是给期中考试挽回了一点颜面吧。</p>
-<ul>
-<li>作品集</li>
-</ul>
-<p>​	老实说提起作品集挺汗颜的，只要一想起它我就会非常紧张，但它又是我申请设计&#x2F;游戏类学校必不可少的一环。暑假因为忙着谈恋爱，浪费（？）了许多时间。我是一个挺恋爱脑的人，所以一旦进入一段关系，效率就会很低下。导致开学的时候，还没有完成多少作品集的内容。从这个意义上来说，幸好分手了，不然以我之前的效率，作品集应该是做不完了吧。</p>
-<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0ekdizkj21750u00wp.jpg" alt="image-20220620001722163" style="zoom:33%;" />
+<p>If we want to transfer a group of data for only one time, we may not want to define a struct, and using tuple get us away from these definitions.</p>
+<h3 id="Case-2-Fast-Comparison-Using-Tuple-Operators"><a href="#Case-2-Fast-Comparison-Using-Tuple-Operators" class="headerlink" title="Case 2: Fast Comparison Using Tuple Operators"></a>Case 2: Fast Comparison Using Tuple Operators</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">tuple&lt;<span class="type">int</span>,<span class="type">int</span>,<span class="type">int</span>&gt; time1,time2;</span><br><span class="line"><span class="keyword">if</span>(time1&gt;time2)</span><br><span class="line">    cout&lt;&lt;<span class="string">&quot;time1 is later&quot;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>一张产品渲染图，Blender水平提高了许多</p>
-</blockquote>
-<p>​	我在作品集机构完成了自己的第一个游戏的Demo，也因此认识了几个好朋友，后来做产品渲染的时候提高了自己的Blender技巧，这些都是我实实在在的收获。果然还是和游戏相关的事情最容易让人获得快乐啊！</p>
-<ul>
-<li>申请学校</li>
-</ul>
-<p>​	我这个人申请学校的策略完全就是个超级大海王，或许是怕没有书读，我一共申请了23个项目，光是送分加上申请费用就花了差不多2万块。一开始还会反复检查信息是否有误，到后来麻木了，就不太检查了。而选校的事情本身也不甚严谨，当时甚至是昨天刚听说一个项目，今天就决定申请这个项目。实际上我最终决定去的项目，也是我申请结束前10天听说的。不过，反正多申请一个学校也不会缺斤少两，多申请总不会后悔！</p>
-<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0kqwfmcj214y0ti41g.jpg" alt="image-20220620002158278" style="zoom:33%;" />
 
-<blockquote>
-<p>最后打算去这里了，加州见！</p>
-</blockquote>
-<ul>
-<li>关于日常生活</li>
-</ul>
-<p>​	上个学期最喜欢的事情是因为临时封校，在外面的酒店住了一个多月。一个多月里我能够每天吃麦当劳，每天喝喜茶。每天都只需要步行去机构，坐在人体工学椅上。晚上洗澡，躺在酒店超级软的床上面。真幸福啊…</p>
-<p>​	考GRE那天是万圣节，我当时上午没吃饭就去考试，结果一直到14:30才吃上饭。考完试后去机构继续做作品集，而后回到学校换上我的万圣节costume，扮成迈尔斯来吓人！</p>
-<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0kp8ijpj20sm12s43z.jpg" alt="image-20220620002245778" style="zoom:33%;" />
 
-<blockquote>
-<p>Happy Halloween~</p>
-</blockquote>
-<p>​	12月的时候我去吃了一个人均500的日料自助。值得一提的是，套餐里有一只大虾，但是是生的。我不喜欢吃刺身，却又不敢说“能不能帮我烤一下”（这太不符合高级日料店的风格了！），于是就只能硬着头皮吃下去。一句题外话，日料的omakase（大概就是自助吧）似乎都挺贵的，好像人均会是4位数，那么看来我吃的这一家店还算比较实惠（？），也不能这么想啦！</p>
-<p>​	最后一件事是关于生日，大学四年我过生日都还算比较有仪式感。唯独21岁这次生日，因为忙着做作品集，从早忙到了晚，就没有考虑过生日怎么过。后来，和舍友（他也要做作品集）一起在机构附近简单吃了个饭，就当是过了生日，希望明年一定要补上。还有一点是，虚幻4在我生日这天崩溃了4次，确实挺让我崩溃的。</p>
-<p>​	我想这就是我对大四上生活的一些简单回顾吧。哦对了，还有一件事，在学期末找了一些同学组队参加了GameJam，还是挺开心的！大四上在一片忙碌中就这样结束了。</p>
+<h3 id="Case-3-Multi-Index-Map-Unordered-Map"><a href="#Case-3-Multi-Index-Map-Unordered-Map" class="headerlink" title="Case 3: Multi-Index Map&#x2F;Unordered Map"></a>Case 3: Multi-Index Map&#x2F;Unordered Map</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//define</span></span><br><span class="line">map&lt;tuple&lt;<span class="type">int</span>,<span class="type">char</span>,<span class="type">float</span>&gt;,string&gt; m;</span><br><span class="line"><span class="comment">//indexing</span></span><br><span class="line">m[<span class="built_in">make_tuple</span>(<span class="number">2</span>,<span class="string">&#x27;a&#x27;</span>,<span class="number">1.0</span>)] = <span class="string">&quot;Test&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Case-4-Fast-Swap"><a href="#Case-4-Fast-Swap" class="headerlink" title="Case 4: Fast Swap"></a>Case 4: Fast Swap</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> a,b,c;</span><br><span class="line"><span class="built_in">tie</span>(b,c,a) = <span class="built_in">make_tuple</span>(a,b,c);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion:"></a>Conclusion:</h3><p>Tuple is not recommended to be overused. If needed, use struct instead.</p>
 ]]></content>
       <categories>
-        <category>Life, Journal</category>
+        <category>Programming</category>
       </categories>
       <tags>
-        <tag>日常生活</tag>
-        <tag>碎碎念</tag>
+        <tag>C/C++</tag>
+        <tag>Data_Structure</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Missing triangle in BVH</title>
+    <url>/2023/05/22/Little%20Caveat%20in%20BVH%20of%20Triangles/</url>
+    <content><![CDATA[<p>Recently I was applying Bounding Volume Hierachy to a Whitted-style Raytracing system. The idea of BVH and implementation are well described in <strong>Ray Tracing in the Next Week</strong> by Peter Shirly. It’s a really great book. And here’s the link <a href="https://raytracing.github.io/books/RayTracingTheNextWeek.html">https://raytracing.github.io/books/RayTracingTheNextWeek.html</a></p>
+<p>One key component in BVH is AABB (Axis-Aligned-Bounding-Box) intersects with ray. People usually adopt Slab method to address this problem. To be more specific, computing the ray-AABB intersection along 3 different axis, if these intervals produces an overlapping region, then the ray intersects with AABB and vice versa.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">compute (tx0, tx1)</span><br><span class="line">compute (ty0, ty1)</span><br><span class="line">compute (tz0, tz1)</span><br><span class="line">return overlap?( (tx0, tx1), (ty0, ty1), (tz0, tz1))</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="https://s2.loli.net/2023/05/23/vhnUw7z6Z1xqeHg.png" alt="image-20230522223149832" style="zoom:33%;" />
+
+<p>After applying this method to the scene rendering, I lost some of the triangles in the scene. However, all spheres are kept intact. For example, here’s what I got after applying BVH and the latter is before BVH.</p>
+<img src="https://s2.loli.net/2023/05/23/dN6TeBRK4MjtzSm.png" alt="image-20230522224231933" style="zoom:33%;" />
+
+<img src="https://s2.loli.net/2023/05/23/xQ8LMCgjAqoVWPw.png" alt="image-20230522224256173" style="zoom:33%;" />
+
+<p> After couple hours of <code>step_into</code> debugging, I found the reason to be as follows:</p>
+<blockquote>
+<p>For spheres, the Bouding box will always have some length along 3 axis. However, this isn’t necessarily the case for AABB of triangles. &#x3D;&#x3D;Bounding Box of triangles can fall back to plane if the triangle is parallel to either xy, yz or xz plane&#x3D;&#x3D; . </p>
+<p>Let’s say a triangle is parallel to the <code>xz</code> plane, so the 3 vertices has the same <code>y</code> value. And this makes <code>ty0</code> and <code>ty1</code> to be the same in above computation, and thus resulting no overlapping region for other 2 axis. i.e. The bounding box doesn’t intersect with the triangle (which is a false statement)</p>
+</blockquote>
+<p>To address this, simply add some thickness to each axis while building bounding box for triangles. In my case, I use <code>1e-3</code>, and boom, problem solved!</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//in triangle class  </span></span><br><span class="line"><span class="function">AABB <span class="title">getAABB</span><span class="params">(<span class="type">float</span> t0, <span class="type">float</span> t1)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> min_x = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">x</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> min_y = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">y</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> min_z = std::<span class="built_in">min</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">z</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_x = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">x</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">x</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_y = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">y</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">y</span>()&#125;);</span><br><span class="line">    <span class="keyword">auto</span> max_z = std::<span class="built_in">max</span>(</span><br><span class="line">        &#123;<span class="keyword">this</span>-&gt;v<span class="number">0.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">1.</span>position.<span class="built_in">z</span>(), <span class="keyword">this</span>-&gt;v<span class="number">2.</span>position.<span class="built_in">z</span>()&#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">AABB</span>(gl::<span class="built_in">vec3</span>(min_x<span class="number">-1e3</span>, min_y<span class="number">-1e3</span>, min_z<span class="number">-1e3</span>), gl::<span class="built_in">vec3</span>(max_x, max_y, max_z));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Notes on transitioning from RT in One Weeknd to PBRT</title>
+    <url>/2025/04/30/Transition%20from%20RT%20in%20one%20Weeknd%20to%20PBRT/</url>
+    <content><![CDATA[<p>So recently I was thinking reading PBRT for volumetric path-tracing stuff, as well as bunch of other detailed BxDFs. I did write a MIS path-trace based on Ray tracing in One Weeknd series before, and extended some features. However, some design choices &#x2F; conventions are different. While I was going to implement some materials from PBRT to my path-tracer, I took quite some time to adapt the PBRT’s code to my codebase. </p>
+<p>I don’t really want to rewrite everything from scratch though, I would rather do adaption and refactor. So here are some of my findings on the differences between these two resources and their correspondence (Covering Ch. 9 in PBRT Material for now ). Hope this helps if anyone want to do some similar transition.</p>
+<ol>
+<li>PBRT uses local coordinates for their f (BxDF) interface, i.e. z-axis up, RT in one weeknd uses a global coordinates. This can be easily address using a Orthonormal Basis.</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ONB</span> &#123;</span><br><span class="line">	...</span><br><span class="line">  <span class="comment">// local to world</span></span><br><span class="line">  <span class="function">gl::vec3 <span class="title">toWorld</span><span class="params">(gl::vec3 v)</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">at</span>(v); &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function">gl::vec3 <span class="title">toLocal</span><span class="params">(gl::vec3 v)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> gl::<span class="built_in">vec3</span>(<span class="built_in">dot</span>(v, axis[<span class="number">0</span>]), <span class="built_in">dot</span>(v, axis[<span class="number">1</span>]), <span class="built_in">dot</span>(v, axis[<span class="number">2</span>]));</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//in scatter function, you would do something like this if you want to use PBRT&#x27;s f function directly. </span></span><br><span class="line"><span class="function">ONB <span class="title">basis</span><span class="params">(rec.normal)</span></span>;</span><br><span class="line">vec3 wo = basis.<span class="built_in">toLocal</span>(wo_world.<span class="built_in">normalize</span>());</span><br><span class="line">vec3 wi = basis.<span class="built_in">toLocal</span>(wi_world.<span class="built_in">normalize</span>());</span><br><span class="line"><span class="keyword">auto</span> f = <span class="built_in">f</span>(wo, wi);</span><br></pre></td></tr></table></figure>
+
+<p>And note that PBRT defines many trigonometric functions &#x2F; geometric with above convention, the corresponding functions are give below. It’s just the difference of calculation in local coordinates and global coordinates, but you have to be aware of that. since PBRT uses these functions heavily, I would recommend to just convert to local coordinates before passing in directions, and uses the math functions that PBRT defines.</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">namespace</span> pbrt&#123;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cosTheta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> w.<span class="built_in">z</span>(); &#125;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cos2Theta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">square</span>(w.<span class="built_in">z</span>()); &#125;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">absCosTheta</span><span class="params">(vec3 w)</span> </span>&#123; <span class="keyword">return</span> std::<span class="built_in">abs</span>(w.<span class="built_in">z</span>()); &#125;</span><br><span class="line">    <span class="comment">//note that it&#x27;s -wo</span></span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> vec3 <span class="title">reflect</span><span class="params">(<span class="type">const</span> vec3 &amp;wo, <span class="type">const</span> vec3 &amp;n)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> -wo + <span class="number">2</span> * <span class="built_in">dot</span>(wo, n) * n;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> rtOneWeeknd&#123;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">float</span> <span class="title">cosTheta</span><span class="params">(vec3 w, vec3 n)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">dot</span>(w,n);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="keyword">inline</span> vec3 <span class="title">reflect</span><span class="params">(<span class="type">const</span> vec3 &amp;v, <span class="type">const</span> vec3 &amp;n)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">auto</span> _v = v.<span class="built_in">normalize</span>();</span><br><span class="line">      <span class="keyword">auto</span> _n = n.<span class="built_in">normalize</span>();</span><br><span class="line">      <span class="keyword">auto</span> dt = <span class="built_in">dot</span>(_v, _n);</span><br><span class="line">      <span class="keyword">return</span> (_v - <span class="number">2</span> * dt * _n).<span class="built_in">normalize</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>PBRT assumes $w_i, w_o$ are both starting from the surface, pointing outwards. And $w_o$ is the camera ray in local coordinates (since we trace backwards). Whereas in RT in one weeknd, the variable name <code>ray</code> and <code>scattered</code> suggests the other way around (i.e. global coordinates, <code>ray</code> points into the surface).</li>
+</ol>
+<ul>
+<li><p>The correspondence works like this,</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//suppose the interface in RT in one weeknd is like this</span></span><br><span class="line"><span class="function">color <span class="title">ray_color</span><span class="params">(<span class="type">const</span> ray&amp; ray_in, <span class="type">int</span> depth, <span class="type">const</span> hittable&amp; world)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If the ray hits nothing, return the background color.</span></span><br><span class="line">        <span class="keyword">if</span> (!world.<span class="built_in">hit</span>(ray_in, <span class="built_in">interval</span>(<span class="number">0.001</span>, infinity), rec))</span><br><span class="line">            <span class="keyword">return</span> background;</span><br><span class="line"></span><br><span class="line">        ray scattered;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// then the correspondence is like this, w_o points outwards the surface whereas ray_in points into the surface.</span></span><br><span class="line">w_o_world = -ray_in.<span class="built_in">direction</span>().<span class="built_in">normalize</span>();</span><br><span class="line">w_i_world = scattered.direction.<span class="built_in">normalize</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">//convert to local coordinate </span></span><br><span class="line">...</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol start="3">
+<li>PBRT’s specular rays are handled with delta function and <code>BxDFFlags</code>. For specular cases’ <code>f</code> function, you’ll need to divide by <code>cos(theta)</code> and later it cancels out in the estimator. In RT in one weeknd, you don’t need that divide by <code>cos(theta)</code>, it’s directly handled with <code>if (srec.is_specular)</code> branch.</li>
+</ol>
+<ul>
+<li>The example below illustrates the idea</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//PBRT, Conductor BRDF</span></span><br><span class="line"><span class="keyword">if</span> (mfDistrib.<span class="built_in">EffectivelySmooth</span>()) &#123;</span><br><span class="line">   <span class="comment">//Sample perfect specular conductor BRDF, delta-branch</span></span><br><span class="line">      <span class="function">Vector3f <span class="title">wi</span><span class="params">(-wo.x, -wo.y, wo.z)</span></span>;</span><br><span class="line">    <span class="comment">//note the division by cos(theta)</span></span><br><span class="line">      SampledSpectrum f = <span class="built_in">FrComplex</span>(<span class="built_in">AbsCosTheta</span>(wi), eta, k) / <span class="built_in">AbsCosTheta</span>(wi);</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">BSDFSample</span>(f, wi, <span class="number">1</span>, BxDFFlags::SpecularReflection);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//RT in one weeknd, conductor BRDF</span></span><br><span class="line"><span class="keyword">if</span> (mfDistribution.<span class="built_in">effectivelySmooth</span>()) &#123;</span><br><span class="line"></span><br><span class="line">  gl::vec3 wi = gl::pbrt::<span class="built_in">reflect</span>(wo, rec.normal).<span class="built_in">normalize</span>();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">dot</span>(rec.normal, wi) &lt;= <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  srec.sampled_ray = <span class="built_in">Ray</span>(rec.position, wi);</span><br><span class="line">  <span class="comment">// Fresnel reflectance at this angle:</span></span><br><span class="line">  <span class="type">float</span> absCosThetaI = <span class="built_in">fabs</span>(<span class="built_in">dot</span>(rec.normal, wi));</span><br><span class="line">  vec3 f = <span class="built_in">fresnelComplex</span>(absCosThetaI, eta, k);</span><br><span class="line">  <span class="comment">// Note that no divide by absCosThetaI!</span></span><br><span class="line">  srec.attenuation = f;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>If you accidentally divide by <code>absCosTheta</code> in your specular <code>srec.attenutaion</code>, you would get something like this. The left surface of the box is very bright (which is wrong).</p>
+<img src="https://s2.loli.net/2025/05/01/Tpm5fl9D1CgnYuo.png" alt="image-20250430133039598" style="zoom:33%;" />
+
+
+
+<ol start="4">
+<li>The design of <code>scattering_pdf</code> in RT in one weeknd is just out of convenience to my understanding. Since we already pass in the <code>pdf_ptr</code> to the <code>scatter record</code>, we can simply call the pointer in the integrator. Alternatively, you can implement an interface like this.</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">scatter_pdf</span><span class="params">(<span class="type">const</span> ScatterRecord &amp;srec, <span class="type">const</span> Ray &amp;wi)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (srec.pdf_ptr != <span class="literal">nullptr</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> srec.pdf_ptr-&gt;<span class="built_in">at</span>(wi.<span class="built_in">getDirection</span>().<span class="built_in">normalize</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="5">
+<li>The integrator from Ray tracing in one weeknd doesn’t requires an <code>f</code> function (BxDF evaluation) for each material, since the <code>attenuation</code> value is stored in <code>scatter_record</code>, there’s no need to recalculate the <code>attenuation</code> with <code>material_ptr-&gt;f()</code>. However, the <code>f()</code> and <code>scatter_record.attenuation</code> are bit different.</li>
+</ol>
+<blockquote>
+<p>It’s also mentioned in RT in one weeknd.</p>
+</blockquote>
+<p><img src="https://s2.loli.net/2025/05/01/XDriEN2qMjoOpvs.png" alt="image-20250430134118001"></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//RT in one weeknd, Lambertian example</span></span><br><span class="line">srec.attenuation = tex-&gt;<span class="built_in">value</span>(rec.u, rec.v, rec.p);</span><br><span class="line">color sample_color = <span class="built_in">ray_color</span>(scattered, depth<span class="number">-1</span>, world, lights);</span><br><span class="line">color color_from_scatter =</span><br><span class="line">            (srec.attenuation * scattering_pdf * sample_color) / pdf_value;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//BxDF style, f*Li*cos(theta) / pdf</span></span><br><span class="line">srec.attenuation = albedo-&gt;<span class="built_in">getTexelColor</span>(rec.texCoords) * (<span class="number">1.0f</span> / M_PI);</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> f = mat-&gt;<span class="built_in">f</span>(wo, wi, hit_record);</span><br><span class="line"><span class="keyword">auto</span> pdf_val = mix_pdf.<span class="built_in">at</span>(wi.<span class="built_in">toWorld</span>());</span><br><span class="line"><span class="type">float</span> cos_theta = std::<span class="built_in">max</span>(<span class="built_in">dot</span>(hit_record.normal, wi.<span class="built_in">toWorld</span>()), <span class="number">0.0f</span>);</span><br><span class="line">color sample_color = <span class="built_in">getRayColor</span>(wi.<span class="built_in">toWorld</span>(), depth<span class="number">-1</span>, world, lights);</span><br><span class="line">color color_from_scatter = f * sample_color * cos_theta / pdf_Val</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="6">
+<li><code>f()</code> is required for direct light sampling with NEE,  the <code>srec.attenutaion</code> stores the <code>f</code> value for the material sampling path, not the light sampling path. When we sample the light, we cannot reuse <code>srec.attenutation</code> as our <code>f</code>, we must perform another  BxDF evaluation on light path.</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">generate light direction: </span><br><span class="line"><span class="built_in">f</span>(wi) * Li * G * V / p_light.</span><br><span class="line">    </span><br><span class="line"><span class="comment">//in your material interface, you can do something like to avoid code redundancy</span></span><br><span class="line"><span class="comment">// --- rough (microfacet) case ---</span></span><br><span class="line"><span class="function">OrthoBasis <span class="title">basis</span><span class="params">(rec.normal)</span></span>;</span><br><span class="line"><span class="keyword">auto</span> pdf_ptr = std::<span class="built_in">make_shared</span>&lt;MicrofacetPDF&gt;(mfDistribution, basis, wo);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2) sample an incoming direction `wi`</span></span><br><span class="line">vec3 wi = pdf_ptr-&gt;<span class="built_in">get</span>().<span class="built_in">normalize</span>();</span><br><span class="line"><span class="comment">// 3) reject if it’s below the geometric normal</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">dot</span>(rec.normal, wi) &lt;= <span class="number">0</span>)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//directly calling the bxdf function</span></span><br><span class="line">srec.attenuation = <span class="built_in">f</span>(wo, wi, rec);</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="7">
+<li>Now let’s get to the <code>Material</code> interface difference between these two books. The correspondence is rather straightforward, and you’ll probably need some small tweaks to your RT in one weeknd interface.</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// these two functions are equivalent, both do one sampling in the material&#x27;s lobe, and then returns necessary information for this sample.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//PBRT</span></span><br><span class="line"><span class="built_in">Sample_f</span>(Vector3f wo, Float uc, Point2f u, TransportMode mode,</span><br><span class="line">                BxDFReflTransFlags sampleFlags = BxDFReflTransFlags::All) </span><br><span class="line"><span class="type">const</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//returns BRDF, direction, pdf, and the type of BxDF</span></span><br><span class="line"><span class="keyword">return</span> <span class="built_in">BSDFSample</span>(R * InvPi, wi, pdf, BxDFFlags::DiffuseReflection);</span><br><span class="line"></span><br><span class="line"><span class="comment">//RT 1wk</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">scatter</span><span class="params">(<span class="type">const</span> Ray &amp;ray_in, HitRecord &amp;rec,</span></span></span><br><span class="line"><span class="params"><span class="function">               ScatterRecord &amp;srec)</span> <span class="type">const</span> <span class="keyword">override</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//extend the scatter_record interface</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ScatterRecord</span> &#123;</span><br><span class="line">  Ray sampled_ray;</span><br><span class="line">  <span class="type">bool</span> is_specular;</span><br><span class="line">  <span class="type">float</span> pdf_val = <span class="number">0.0f</span>;</span><br><span class="line">  gl::vec3 attenuation;</span><br><span class="line">  std::shared_ptr&lt;PDF&gt; pdf_ptr;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">srec.is_specular = <span class="literal">false</span>;</span><br><span class="line">srec.attenuation = albedo-&gt;<span class="built_in">getTexelColor</span>(rec.texCoords) * (<span class="number">1.0f</span> / M_PI);</span><br><span class="line">srec.pdf_ptr = std::<span class="built_in">make_shared</span>&lt;CosinePDF&gt;(rec.normal);</span><br><span class="line">srec.sampled_ray = <span class="built_in">Ray</span>(rec.position, srec.pdf_ptr-&gt;<span class="built_in">get</span>());</span><br><span class="line">srec.pdf_val = srec.pdf_ptr-&gt;<span class="built_in">at</span>(srec.sampled_ray.<span class="built_in">direction</span>());</span><br><span class="line"></span><br><span class="line"><span class="comment">//This is missing in Rt 1wk, required for NEE</span></span><br><span class="line"><span class="function">SampledSpectrum <span class="title">f</span><span class="params">(Vector3f wo, Vector3f wi, TransportMode mode)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">SameHemisphere</span>(wo, wi))</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">SampledSpectrum</span>(<span class="number">0.f</span>);</span><br><span class="line">    <span class="keyword">return</span> R * InvPi;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//Both does pdf evaluation</span></span><br><span class="line"><span class="comment">//PBRT</span></span><br><span class="line"><span class="function">Float <span class="title">PDF</span><span class="params">(Vector3f wo, Vector3f wi, TransportMode mode,</span></span></span><br><span class="line"><span class="params"><span class="function">          BxDFReflTransFlags sampleFlags = BxDFReflTransFlags::All)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"><span class="comment">//Rt 1wk</span></span></span><br><span class="line"><span class="function"><span class="type">float</span> <span class="title">scatter_pdf</span><span class="params">(<span class="type">const</span> Ray &amp;ray_in, <span class="type">const</span> HitRecord &amp;rec,</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="type">const</span> Ray &amp;scattered)</span> <span class="type">const</span> <span class="keyword">override</span></span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering, textbook</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>CG</tag>
       </tags>
   </entry>
   <entry>
@@ -1926,6 +1847,150 @@
       </tags>
   </entry>
   <entry>
+    <title>折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise</title>
+    <url>/2022/01/01/%E6%8A%98%E5%8F%A0%E8%A1%A8%E8%BE%BE%E5%BC%8F(Fold%20Expression)%EF%BC%9A%E4%BD%8E%E9%80%9F%E4%B8%8B%E8%84%9A%E7%8E%B0%E4%BB%A3C++%20Chapter%202%20Exercise/</url>
+    <content><![CDATA[<p>最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使得这门语言本身更好地支持例如函数式编程的范式。</p>
+<p>每一章的结尾作者都会提供一些简单的小题目，其中第二章的小题目cover了折叠表达式(Fold Expression, since C++17)和结构化绑定（Structured Binding, since C++17）。在自己闲着摸索的时候发现了一个有意思的小事情，于是稍微写点东西记录一下。</p>
+<blockquote>
+<p>感觉光看这本书和课后的题的话，内容还是不太能掌握，可能跟着其他博客看一看会比较好。</p>
+</blockquote>
+<h3 id="为什么需要Fold-Expression"><a href="#为什么需要Fold-Expression" class="headerlink" title="为什么需要Fold Expression?"></a>为什么需要Fold Expression?</h3><p>模版是C++比较重要的一个板块之一，但是C++11之前，模版的参数数量是固定的。自从C++11之后，新引入的表示方法允许声明时引入任意数量的参数，即如下形式:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br></pre></td></tr></table></figure>
+
+<p>有了可变长模版，我们就可以写一个允许任意长度参数的函数模版了。一个显而易见的好处是，我们可用这样的语法实现以下函数功能，并且只要写一个函数模版。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一个函数模版 mean_val，接受任意长度的参数，返回平均值</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// return 2</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>) <span class="comment">// return 3.5</span></span><br></pre></td></tr></table></figure>
+
+<p>不过在C++17之前，这样的函数模版在解包(unpack)的时候会比较麻烦，因为我们在写函数模版的时候并不知道究竟会传几个参数进来，而参数包又不像是std::vector之类的容器有简单的方式进行遍历，因此我们对于函数参数的实际操作就变得比较麻烦。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//比如说我想实现max_val，但是我并没有直观的方式遍历args的内容</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//我该怎么获得args的内容呢？</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过目前来说，我们可以通过sizeof… 来计算参数的个数:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	std::cout&lt;&lt;<span class="keyword">sizeof</span>...(args)&lt;&lt;std::endl</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">foo</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// cout:3</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="一个比较常见的做法是利用递归来进行参数解包"><a href="#一个比较常见的做法是利用递归来进行参数解包" class="headerlink" title="一个比较常见的做法是利用递归来进行参数解包:"></a>一个比较常见的做法是利用递归来进行参数解包:</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//书中的案例</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span> </span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T0&gt; <span class="type">void</span> <span class="title">printf1</span><span class="params">(T0 value)</span> </span>&#123;</span><br><span class="line">std::cout &lt;&lt; value &lt;&lt; std::endl;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span>... Ts&gt; </span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">printf1</span><span class="params">(T value, Ts... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; value &lt;&lt; std::endl;<span class="comment">//每次取出一个T，然后递归再取出一个T</span></span><br><span class="line">    <span class="built_in">printf1</span>(args...);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">printf1</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="string">&quot;123&quot;</span>, <span class="number">1.1</span>); <span class="comment">//输出所有参数</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这么做的确比较繁琐，而C++17中引入了一种比较简洁的方式来实现这种功能需求，这就是标题里的折叠表达式。</p>
+<ul>
+<li>考虑下面的代码，下面的函数模版可以实现任意长度立即数的求和。</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">sum</span><span class="params">(T ... t)</span> <span class="comment">//C++14，函数返回值自动推断</span></span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">	<span class="keyword">return</span> (t + ...); <span class="comment">//折叠表达式</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">sum</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过书中没有仔细讲这个折叠表达式的内容，因此原理上就有些不清晰，这里做一些补充。</p>
+<h3 id="折叠表达式的语法："><a href="#折叠表达式的语法：" class="headerlink" title="折叠表达式的语法："></a>折叠表达式的语法：</h3><ul>
+<li><code>pack op ...</code> (一元右折叠 &#x2F; unary right fold)</li>
+<li><code>... op pack</code> (一元左折叠 &#x2F; unary right fold)</li>
+<li><code>pack op ... op init</code> (二元右折叠 &#x2F; binary right fold)</li>
+<li><code>init op ... op pack</code> (二元左折叠 &#x2F; binary left fold)</li>
+</ul>
+<p>其中，<code>pack</code>是参数包，即上述代码中的t，op即operator，支持32种二元运算符，例如<code>+,-,*,/</code> , <code>init</code>表示最后一层展开时二元运算符的另一个操作数。 其中在二元折叠中两个operator要保持一致。</p>
+<h3 id="以上四个表达式和以下内容等价："><a href="#以上四个表达式和以下内容等价：" class="headerlink" title="以上四个表达式和以下内容等价："></a>以上四个表达式和以下内容等价：</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">(args op ...) &lt;-&gt; (arg1 op (arg2 op (arg3 op (... op (arg_n-1 op arg_n)))))</span><br><span class="line">(... op args) &lt;-&gt; (((arg1 op arg2) op ...) op arg_n)</span><br><span class="line">(args op ... op init) &lt;-&gt; (arg1 op (... op (arg_n−1 op (arg_n op init))))</span><br><span class="line">(init args op ... op ) &lt;-&gt; ((((init op arg1) op arg2) op ...) op arg_n)</span><br></pre></td></tr></table></figure>
+
+<p>这么写可能还是有点晕，举两个例子可能更好:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">args = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">(args - ...) &lt;-&gt; (<span class="number">1</span> - (<span class="number">2</span> - <span class="number">3</span>))</span><br><span class="line">(<span class="number">3</span> - ... - args) &lt;-&gt; (((<span class="number">3</span><span class="number">-1</span>)<span class="number">-2</span>)<span class="number">-3</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Ref: <a href="https://en.cppreference.com/w/cpp/language/fold">https://en.cppreference.com/w/cpp/language/fold</a></p>
+</blockquote>
+<p>下面是一个注意点，由于运算符优先级问题，第一种备注是掉的写法并不被接受，需要写成第二种写法</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ...Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//  return (args + ... + 1 * 2);   // Error: operator with precedence below cast</span></span><br><span class="line">    <span class="keyword">return</span> (args + ... + (<span class="number">1</span> * <span class="number">2</span>)); <span class="comment">// OK</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="作业题："><a href="#作业题：" class="headerlink" title="作业题："></a>作业题：</h3><p>利用折叠表达式写一个计算求均值的函数模版:</p>
+<p>答案如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">mean</span><span class="params">(T... t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">mean</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//output: 3</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="但是…"><a href="#但是…" class="headerlink" title="但是…"></a>但是…</h3><p>不知道为什么我突然想试着把 <code>+</code> 改成 <code>-</code></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(t - ...)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; (<span class="number">1</span>-(<span class="number">2</span>-(<span class="number">3</span>-(<span class="number">4</span><span class="number">-5</span>)))) = (<span class="type">int</span>)<span class="number">3</span>/<span class="number">5</span> = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子倒是没有问题，如果我改成左折叠:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">return</span> (... - t) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//output: 3689348814741910320</span></span><br></pre></td></tr></table></figure>
+
+<p>这个一长串数字并不是随机数，运行了好几次都是同一个结果。但是:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(... - t)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; ((((<span class="number">1</span><span class="number">-2</span>)<span class="number">-3</span>)<span class="number">-4</span>)<span class="number">-5</span>)/<span class="number">5</span> = <span class="number">-13</span>/<span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>本应该输出-2才对，那么究竟是哪里出问题了呢？</p>
+<h3 id="探索"><a href="#探索" class="headerlink" title="探索"></a>探索</h3><p>首先我查看了折叠表达式和<code>sizeof…(t)</code>的返回值，用lldb调试后发现数值没有问题，那么应该是除法这一步出了问题。</p>
+<p><img src="https://s2.loli.net/2022/01/01/v2aCilBbDmuOLEj.png" alt="image-20220101230639043"></p>
+<p>当我将p的类型从auto改为int之后，返回值就变成-2了：</p>
+<p><img src="https://s2.loli.net/2022/01/01/16UWplfXmMLCNTv.png" alt="image-20220101230834880"></p>
+<p>那么看来应该是<code>sizeof…</code>返回值的问题。</p>
+<h3 id="解释："><a href="#解释：" class="headerlink" title="解释："></a>解释：</h3><p>询问学长之后发现，<code>sizeof...</code>返回的是一个<code>size_t</code>类型的值，在64-bit操作系统中类型是<code>uint64_t</code>，即64位无符号整型。然后折叠表达式自动推断返回为int（<code>int32_t</code>), 二者做除法的时候int被提升到<code>uint64_t</code>，然后又因为负数的符号位在最高位，被转换成unsigned的时候，数值就变得非常大了。</p>
+<p>可以具体算一下这个<code>3689348814741910320</code>的由来，结果是一致的。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-13 = (hex) FFFFFFFFFFFFFFF3 -&gt; 18,446,744,073,709,551,603</span><br><span class="line">int(18,446,744,073,709,551,603 / 5) = 3689348814741910320</span><br></pre></td></tr></table></figure>
+
+<p>所以需要注意的是，一行的表达式，其实包含了一次类型推断和一次隐式类型转换，所以使用的时候需要比较小心一些。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//equivalent as below</span></span><br><span class="line"><span class="keyword">auto</span> p = (t + ...);</span><br><span class="line"><span class="type">size_t</span> i = <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="keyword">return</span> p/i;</span><br></pre></td></tr></table></figure>
+
+<p>等我看完Chapter 4的时候可能会再来写一点内容，感觉还是得一边看一边跟着例子写一点才好。</p>
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>最近半年的生活状态（上）</title>
+    <url>/2022/06/19/%E4%B8%80%E4%BA%9B%E6%9C%80%E8%BF%91%E5%8D%8A%E5%B9%B4%E5%8F%91%E7%94%9F%E7%9A%84%E4%BA%8B(%E4%B8%8A)/</url>
+    <content><![CDATA[<h3 id="最近半年的生活状态（上）"><a href="#最近半年的生活状态（上）" class="headerlink" title="最近半年的生活状态（上）"></a>最近半年的生活状态（上）</h3><p>​	说起来，自从大四之后就很久很久没有为自己写一些东西，也许是太忙？但也有可能是“我没有把这当作是最重要的事情”，所以一直搁置了。不过临近毕业，总算是稍微有点机会写点什么了，就稍微写一点吧。我想先写一些关于大四上学期的内容，不然就太长了。</p>
+<h3 id="大四上"><a href="#大四上" class="headerlink" title="大四上"></a>大四上</h3><p>​	整个大四上发生了很多事情，分手，上课，作品集，申请学校。一直非常焦头烂额，不过好在我在作品集的机构认识了一些朋友，后来11月的时候，还因为疫情的原因在校外酒店住了一个多月。我的整个大四上学期是在忙碌和焦虑中度过的，不过我猜大家都是这样。</p>
+<ul>
+<li>分手</li>
+</ul>
+<p>​	学期的一开始，前任就和我提了分手，不过我太想再回忆这些。分手的时候ta撒了一个谎，后来找我复合，我拒绝了。既然已经过去这么久，就这样吧。</p>
+<ul>
+<li>数据结构基础</li>
+</ul>
+<p>​	大四上才上数据结构确实挺晚了，甚至申请的时候都不一定会出现在成绩单上，但就当是学知识吧—我是这么想的。学校的数据结构课一开始要分班考，基础还行的同学可以选择困难模式，也就是平时的3个实验课作业题目会变难，好处是评分最多可以比其他同学高5分。我选择了困难模式，当然也为此花了一些时间，现在想想，却也不是那么有必要，尽管确实从一些题目中获得了更深的思考。</p>
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0gq6kzmj21yq0tsgrj.jpg" alt="image-20220620001929249" style="zoom:33%;" />
+
+<blockquote>
+<p>当时为了练手，日常还会做一些LeetCode补充一下，传到GitHub记录一下？</p>
+</blockquote>
+<p>​	这门课臭名昭著的地方在于实验课作业的互评制度，也就是大家要互相给代码和实验报告打分。大部分选课的同学应该都是刚上大二，仅校内课程来说，是没有接触过较为现代的Editor或者LaTex&#x2F;Markdown之类的工具的，于是相当多的同学（至少在我互评的范围内）用Dev C++（大一的时候学校推荐大家使用）写代码，用Word写文档。我觉得他们之中的很多人应该是在这些方面吃了亏，而我可能也只是因为在这些方面（指使用VSCode &#x2F; Typora）有点接触，在互评上稍微多了点美观分—这其实还挺不公平的…</p>
+<p>​	印象比较深的有几件事，一件是期中考试好像只考了69分，还没有到班级平均线。一件是第二个实验课题目比较困难，当时写了有800行代码，较为头疼。不过比较开心的是，那次我实现了一个类似Trie的结构，还是用了比较基础的multithreading和rvalue reference，尽管最后效率非常低…</p>
+<p>​	至于这门课的结果还不错，期末考试的800个人里面考了130几名，算是给期中考试挽回了一点颜面吧。</p>
+<ul>
+<li>作品集</li>
+</ul>
+<p>​	老实说提起作品集挺汗颜的，只要一想起它我就会非常紧张，但它又是我申请设计&#x2F;游戏类学校必不可少的一环。暑假因为忙着谈恋爱，浪费（？）了许多时间。我是一个挺恋爱脑的人，所以一旦进入一段关系，效率就会很低下。导致开学的时候，还没有完成多少作品集的内容。从这个意义上来说，幸好分手了，不然以我之前的效率，作品集应该是做不完了吧。</p>
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0ekdizkj21750u00wp.jpg" alt="image-20220620001722163" style="zoom:33%;" />
+
+<blockquote>
+<p>一张产品渲染图，Blender水平提高了许多</p>
+</blockquote>
+<p>​	我在作品集机构完成了自己的第一个游戏的Demo，也因此认识了几个好朋友，后来做产品渲染的时候提高了自己的Blender技巧，这些都是我实实在在的收获。果然还是和游戏相关的事情最容易让人获得快乐啊！</p>
+<ul>
+<li>申请学校</li>
+</ul>
+<p>​	我这个人申请学校的策略完全就是个超级大海王，或许是怕没有书读，我一共申请了23个项目，光是送分加上申请费用就花了差不多2万块。一开始还会反复检查信息是否有误，到后来麻木了，就不太检查了。而选校的事情本身也不甚严谨，当时甚至是昨天刚听说一个项目，今天就决定申请这个项目。实际上我最终决定去的项目，也是我申请结束前10天听说的。不过，反正多申请一个学校也不会缺斤少两，多申请总不会后悔！</p>
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0kqwfmcj214y0ti41g.jpg" alt="image-20220620002158278" style="zoom:33%;" />
+
+<blockquote>
+<p>最后打算去这里了，加州见！</p>
+</blockquote>
+<ul>
+<li>关于日常生活</li>
+</ul>
+<p>​	上个学期最喜欢的事情是因为临时封校，在外面的酒店住了一个多月。一个多月里我能够每天吃麦当劳，每天喝喜茶。每天都只需要步行去机构，坐在人体工学椅上。晚上洗澡，躺在酒店超级软的床上面。真幸福啊…</p>
+<p>​	考GRE那天是万圣节，我当时上午没吃饭就去考试，结果一直到14:30才吃上饭。考完试后去机构继续做作品集，而后回到学校换上我的万圣节costume，扮成迈尔斯来吓人！</p>
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3e0kp8ijpj20sm12s43z.jpg" alt="image-20220620002245778" style="zoom:33%;" />
+
+<blockquote>
+<p>Happy Halloween~</p>
+</blockquote>
+<p>​	12月的时候我去吃了一个人均500的日料自助。值得一提的是，套餐里有一只大虾，但是是生的。我不喜欢吃刺身，却又不敢说“能不能帮我烤一下”（这太不符合高级日料店的风格了！），于是就只能硬着头皮吃下去。一句题外话，日料的omakase（大概就是自助吧）似乎都挺贵的，好像人均会是4位数，那么看来我吃的这一家店还算比较实惠（？），也不能这么想啦！</p>
+<p>​	最后一件事是关于生日，大学四年我过生日都还算比较有仪式感。唯独21岁这次生日，因为忙着做作品集，从早忙到了晚，就没有考虑过生日怎么过。后来，和舍友（他也要做作品集）一起在机构附近简单吃了个饭，就当是过了生日，希望明年一定要补上。还有一点是，虚幻4在我生日这天崩溃了4次，确实挺让我崩溃的。</p>
+<p>​	我想这就是我对大四上生活的一些简单回顾吧。哦对了，还有一件事，在学期末找了一些同学组队参加了GameJam，还是挺开心的！大四上在一片忙碌中就这样结束了。</p>
+]]></content>
+      <categories>
+        <category>Life, Journal</category>
+      </categories>
+      <tags>
+        <tag>日常生活</tag>
+        <tag>碎碎念</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>雨滴合成器/A Raindrop Synthesizer</title>
     <url>/2023/03/23/%E9%9B%A8%E6%BB%B4%E5%90%88%E6%88%90%E5%99%A8/</url>
     <content><![CDATA[<p>​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，如此也就有了这篇博客。</p>
@@ -2026,88 +2091,6 @@
         <tag>C/C++</tag>
         <tag>Audio Programming</tag>
         <tag>JUCE</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise</title>
-    <url>/2022/01/01/%E6%8A%98%E5%8F%A0%E8%A1%A8%E8%BE%BE%E5%BC%8F(Fold%20Expression)%EF%BC%9A%E4%BD%8E%E9%80%9F%E4%B8%8B%E8%84%9A%E7%8E%B0%E4%BB%A3C++%20Chapter%202%20Exercise/</url>
-    <content><![CDATA[<p>最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使得这门语言本身更好地支持例如函数式编程的范式。</p>
-<p>每一章的结尾作者都会提供一些简单的小题目，其中第二章的小题目cover了折叠表达式(Fold Expression, since C++17)和结构化绑定（Structured Binding, since C++17）。在自己闲着摸索的时候发现了一个有意思的小事情，于是稍微写点东西记录一下。</p>
-<blockquote>
-<p>感觉光看这本书和课后的题的话，内容还是不太能掌握，可能跟着其他博客看一看会比较好。</p>
-</blockquote>
-<h3 id="为什么需要Fold-Expression"><a href="#为什么需要Fold-Expression" class="headerlink" title="为什么需要Fold Expression?"></a>为什么需要Fold Expression?</h3><p>模版是C++比较重要的一个板块之一，但是C++11之前，模版的参数数量是固定的。自从C++11之后，新引入的表示方法允许声明时引入任意数量的参数，即如下形式:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br></pre></td></tr></table></figure>
-
-<p>有了可变长模版，我们就可以写一个允许任意长度参数的函数模版了。一个显而易见的好处是，我们可用这样的语法实现以下函数功能，并且只要写一个函数模版。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一个函数模版 mean_val，接受任意长度的参数，返回平均值</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// return 2</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>) <span class="comment">// return 3.5</span></span><br></pre></td></tr></table></figure>
-
-<p>不过在C++17之前，这样的函数模版在解包(unpack)的时候会比较麻烦，因为我们在写函数模版的时候并不知道究竟会传几个参数进来，而参数包又不像是std::vector之类的容器有简单的方式进行遍历，因此我们对于函数参数的实际操作就变得比较麻烦。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//比如说我想实现max_val，但是我并没有直观的方式遍历args的内容</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//我该怎么获得args的内容呢？</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>不过目前来说，我们可以通过sizeof… 来计算参数的个数:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	std::cout&lt;&lt;<span class="keyword">sizeof</span>...(args)&lt;&lt;std::endl</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">foo</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// cout:3</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="一个比较常见的做法是利用递归来进行参数解包"><a href="#一个比较常见的做法是利用递归来进行参数解包" class="headerlink" title="一个比较常见的做法是利用递归来进行参数解包:"></a>一个比较常见的做法是利用递归来进行参数解包:</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//书中的案例</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span> </span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T0&gt; <span class="type">void</span> <span class="title">printf1</span><span class="params">(T0 value)</span> </span>&#123;</span><br><span class="line">std::cout &lt;&lt; value &lt;&lt; std::endl;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span>... Ts&gt; </span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">printf1</span><span class="params">(T value, Ts... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; value &lt;&lt; std::endl;<span class="comment">//每次取出一个T，然后递归再取出一个T</span></span><br><span class="line">    <span class="built_in">printf1</span>(args...);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">printf1</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="string">&quot;123&quot;</span>, <span class="number">1.1</span>); <span class="comment">//输出所有参数</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这么做的确比较繁琐，而C++17中引入了一种比较简洁的方式来实现这种功能需求，这就是标题里的折叠表达式。</p>
-<ul>
-<li>考虑下面的代码，下面的函数模版可以实现任意长度立即数的求和。</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">sum</span><span class="params">(T ... t)</span> <span class="comment">//C++14，函数返回值自动推断</span></span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">	<span class="keyword">return</span> (t + ...); <span class="comment">//折叠表达式</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">sum</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>不过书中没有仔细讲这个折叠表达式的内容，因此原理上就有些不清晰，这里做一些补充。</p>
-<h3 id="折叠表达式的语法："><a href="#折叠表达式的语法：" class="headerlink" title="折叠表达式的语法："></a>折叠表达式的语法：</h3><ul>
-<li><code>pack op ...</code> (一元右折叠 &#x2F; unary right fold)</li>
-<li><code>... op pack</code> (一元左折叠 &#x2F; unary right fold)</li>
-<li><code>pack op ... op init</code> (二元右折叠 &#x2F; binary right fold)</li>
-<li><code>init op ... op pack</code> (二元左折叠 &#x2F; binary left fold)</li>
-</ul>
-<p>其中，<code>pack</code>是参数包，即上述代码中的t，op即operator，支持32种二元运算符，例如<code>+,-,*,/</code> , <code>init</code>表示最后一层展开时二元运算符的另一个操作数。 其中在二元折叠中两个operator要保持一致。</p>
-<h3 id="以上四个表达式和以下内容等价："><a href="#以上四个表达式和以下内容等价：" class="headerlink" title="以上四个表达式和以下内容等价："></a>以上四个表达式和以下内容等价：</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">(args op ...) &lt;-&gt; (arg1 op (arg2 op (arg3 op (... op (arg_n-1 op arg_n)))))</span><br><span class="line">(... op args) &lt;-&gt; (((arg1 op arg2) op ...) op arg_n)</span><br><span class="line">(args op ... op init) &lt;-&gt; (arg1 op (... op (arg_n−1 op (arg_n op init))))</span><br><span class="line">(init args op ... op ) &lt;-&gt; ((((init op arg1) op arg2) op ...) op arg_n)</span><br></pre></td></tr></table></figure>
-
-<p>这么写可能还是有点晕，举两个例子可能更好:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">args = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">(args - ...) &lt;-&gt; (<span class="number">1</span> - (<span class="number">2</span> - <span class="number">3</span>))</span><br><span class="line">(<span class="number">3</span> - ... - args) &lt;-&gt; (((<span class="number">3</span><span class="number">-1</span>)<span class="number">-2</span>)<span class="number">-3</span>)</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Ref: <a href="https://en.cppreference.com/w/cpp/language/fold">https://en.cppreference.com/w/cpp/language/fold</a></p>
-</blockquote>
-<p>下面是一个注意点，由于运算符优先级问题，第一种备注是掉的写法并不被接受，需要写成第二种写法</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ...Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//  return (args + ... + 1 * 2);   // Error: operator with precedence below cast</span></span><br><span class="line">    <span class="keyword">return</span> (args + ... + (<span class="number">1</span> * <span class="number">2</span>)); <span class="comment">// OK</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="作业题："><a href="#作业题：" class="headerlink" title="作业题："></a>作业题：</h3><p>利用折叠表达式写一个计算求均值的函数模版:</p>
-<p>答案如下：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">mean</span><span class="params">(T... t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">mean</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//output: 3</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="但是…"><a href="#但是…" class="headerlink" title="但是…"></a>但是…</h3><p>不知道为什么我突然想试着把 <code>+</code> 改成 <code>-</code></p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(t - ...)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; (<span class="number">1</span>-(<span class="number">2</span>-(<span class="number">3</span>-(<span class="number">4</span><span class="number">-5</span>)))) = (<span class="type">int</span>)<span class="number">3</span>/<span class="number">5</span> = <span class="number">0</span></span><br></pre></td></tr></table></figure>
-
-<p>这个例子倒是没有问题，如果我改成左折叠:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">return</span> (... - t) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//output: 3689348814741910320</span></span><br></pre></td></tr></table></figure>
-
-<p>这个一长串数字并不是随机数，运行了好几次都是同一个结果。但是:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(... - t)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; ((((<span class="number">1</span><span class="number">-2</span>)<span class="number">-3</span>)<span class="number">-4</span>)<span class="number">-5</span>)/<span class="number">5</span> = <span class="number">-13</span>/<span class="number">5</span></span><br></pre></td></tr></table></figure>
-
-<p>本应该输出-2才对，那么究竟是哪里出问题了呢？</p>
-<h3 id="探索"><a href="#探索" class="headerlink" title="探索"></a>探索</h3><p>首先我查看了折叠表达式和<code>sizeof…(t)</code>的返回值，用lldb调试后发现数值没有问题，那么应该是除法这一步出了问题。</p>
-<p><img src="https://s2.loli.net/2022/01/01/v2aCilBbDmuOLEj.png" alt="image-20220101230639043"></p>
-<p>当我将p的类型从auto改为int之后，返回值就变成-2了：</p>
-<p><img src="https://s2.loli.net/2022/01/01/16UWplfXmMLCNTv.png" alt="image-20220101230834880"></p>
-<p>那么看来应该是<code>sizeof…</code>返回值的问题。</p>
-<h3 id="解释："><a href="#解释：" class="headerlink" title="解释："></a>解释：</h3><p>询问学长之后发现，<code>sizeof...</code>返回的是一个<code>size_t</code>类型的值，在64-bit操作系统中类型是<code>uint64_t</code>，即64位无符号整型。然后折叠表达式自动推断返回为int（<code>int32_t</code>), 二者做除法的时候int被提升到<code>uint64_t</code>，然后又因为负数的符号位在最高位，被转换成unsigned的时候，数值就变得非常大了。</p>
-<p>可以具体算一下这个<code>3689348814741910320</code>的由来，结果是一致的。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-13 = (hex) FFFFFFFFFFFFFFF3 -&gt; 18,446,744,073,709,551,603</span><br><span class="line">int(18,446,744,073,709,551,603 / 5) = 3689348814741910320</span><br></pre></td></tr></table></figure>
-
-<p>所以需要注意的是，一行的表达式，其实包含了一次类型推断和一次隐式类型转换，所以使用的时候需要比较小心一些。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">(t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//equivalent as below</span></span><br><span class="line"><span class="keyword">auto</span> p = (t + ...);</span><br><span class="line"><span class="type">size_t</span> i = <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="keyword">return</span> p/i;</span><br></pre></td></tr></table></figure>
-
-<p>等我看完Chapter 4的时候可能会再来写一点内容，感觉还是得一边看一边跟着例子写一点才好。</p>
-]]></content>
-      <categories>
-        <category>Programming</category>
-      </categories>
-      <tags>
-        <tag>C/C++</tag>
       </tags>
   </entry>
 </search>
