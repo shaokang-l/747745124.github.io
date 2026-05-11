@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CPU Profiling a Small Path Tracer on M1 Max - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full rend,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="CPU Profiling a Small Path Tracer on M1 Max - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full rend,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="CPU Profiling a Small Path Tracer on M1 Max - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full rend,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">CPU Profiling a Small Path Tracer on M1 Max</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            CPU Profiling a Small Path Tracer on M1 Max
+        </h1>
+        <div class="stuff">
+            <span>
+                May 10, 2026
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Rendering/" rel="tag">Rendering</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full renderer rewrite, but to use Instruments to identify real bottlenecks and make small, measurable improvements.</p>
+<p>The profiling setup was intentionally simple:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// disable scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
+
+<p>I used single-threaded runs first, with <code>useBVH=false</code>, so the profile focused on the bunny mesh’s internal BVH, i.e. the BLAS. The scene-level BVH was intentionally disabled because this scene only has a few top-level objects, so the TLAS overhead can hide the mesh traversal cost.</p>
+<h2 id="Baseline"><a href="#Baseline" class="headerlink" title="Baseline"></a>Baseline</h2><p>Initial timing:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rendering time: 15.2775 seconds</span><br><span class="line">Total hit count: 717420294</span><br></pre></td></tr></table></figure>
+
+<p>The first surprising hotspot was not BVH traversal. It was the sampler. Owen-scrambled Halton sampling dominated the single-threaded profile through <code>gl::permutationElement()</code> and <code>gl::owenScrambledRadicalInverse()</code>.</p>
+<p>Disabling Owen scrambling gave a much cleaner CPU baseline:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rendering time: 11.3048 seconds</span><br><span class="line">Total hit count: 193636618</span><br></pre></td></tr></table></figure>
+
+<p>This is not necessarily the best final image-quality setting. <code>RandomStrategy::None</code> can introduce visible banding&#x2F;noise patterns. But for CPU profiling, removing the expensive sampler made the geometry&#x2F;intersection bottlenecks much easier to see.</p>
+<h2 id="Ray-and-AABB-Optimizations"><a href="#Ray-and-AABB-Optimizations" class="headerlink" title="Ray and AABB Optimizations"></a>Ray and AABB Optimizations</h2><p>The next hotspot was <code>AABB::intersect()</code>, with a lot of time attributed to <code>gl::vec3::operator[]</code>. The original AABB slab test repeatedly called <code>ray.getOrigin()</code> and <code>ray.getDirection()</code> inside a loop. Earlier, those getters returned by value, so the hot path was doing unnecessary vector copies.</p>
+<p>The first cleanup was to return ray origin&#x2F;direction by const reference and cache per-ray inverse direction:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Ray stores:</span><br><span class="line">  origin</span><br><span class="line">  direction</span><br><span class="line">  inv_direction</span><br></pre></td></tr></table></figure>
+
+<p>This matters because one ray can test many BVH nodes, but <code>1.0f / direction</code> is invariant for that ray. Moving that work into <code>Ray::setDirection()</code> avoids recomputing it for every AABB.</p>
+<p>After this ray-side optimization:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rendering time: 10.7534 seconds</span><br><span class="line">Total hit count: 193642185</span><br></pre></td></tr></table></figure>
+
+<p>Then I unrolled the AABB slab test from a small <code>for (i = 0; i &lt; 3; ++i)</code> loop into explicit x&#x2F;y&#x2F;z code. This reduced the sampled cost of <code>operator[]</code> substantially, roughly from about <code>1.0s</code> to about <code>0.5s</code> in the tested trace. Total render time only moved slightly, but the profile became cleaner and the indexed vector access hotspot was reduced.</p>
+<h2 id="TLAS-vs-BLAS"><a href="#TLAS-vs-BLAS" class="headerlink" title="TLAS vs BLAS"></a>TLAS vs BLAS</h2><p>One useful observation: enabling the scene-level BVH was not always faster for this scene.</p>
+<p>With a single bunny plus a few walls&#x2F;lights, the top-level object count is small. The bunny mesh already has its own internal BVH. So:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">useBVH=false:</span><br><span class="line">  ObjectList linearly tests a few scene objects</span><br><span class="line">  TriangleMesh still uses internal MeshBVH</span><br><span class="line"></span><br><span class="line">useBVH=true:</span><br><span class="line">  ray first traverses a scene-level BVH</span><br><span class="line">  then TriangleMesh still uses internal MeshBVH</span><br></pre></td></tr></table></figure>
+
+<p>For this scene, the scene-level BVH can reduce primitive hit counts while still being slower, because its AABB traversal and pointer chasing overhead outweigh the savings at such a small top-level object count.</p>
+<h2 id="Near-First-BVH-Traversal"><a href="#Near-First-BVH-Traversal" class="headerlink" title="Near-First BVH Traversal"></a>Near-First BVH Traversal</h2><p>The mesh BVH originally traversed children in a fixed order:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">intersect left subtree</span><br><span class="line">then intersect right subtree</span><br></pre></td></tr></table></figure>
+
+<p>This is correct, but not always efficient. If the ray hits something close in the right subtree, traversing the left subtree first may do unnecessary work.</p>
+<p>The traversal was changed to test both child AABBs first, collect their <code>t_enter</code>, and visit the nearer child first:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">left_t  = ray enters left child box</span><br><span class="line">right_t = ray enters right child box</span><br><span class="line"></span><br><span class="line">visit the smaller t_enter first</span><br><span class="line">if it finds a closer triangle, skip far child when far_t &gt; closest</span><br></pre></td></tr></table></figure>
+
+<p>This is a heuristic: entering a box earlier does not guarantee the closest triangle is inside that box, but it often finds a closer hit earlier and makes pruning more effective.</p>
+<h2 id="Flattening-the-Mesh-BVH"><a href="#Flattening-the-Mesh-BVH" class="headerlink" title="Flattening the Mesh BVH"></a>Flattening the Mesh BVH</h2><p>The original mesh BVH is a pointer tree:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; left;</span><br><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; right;</span><br></pre></td></tr></table></figure>
+
+<p>This causes recursive calls and pointer chasing. To improve locality, the recursive BVH was flattened into an array:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">LinearMeshBVHNode</span> &#123;</span><br><span class="line">  AABB box;</span><br><span class="line">  <span class="type">int</span> left;</span><br><span class="line">  <span class="type">int</span> right;</span><br><span class="line">  <span class="type">int</span> first_tri;</span><br><span class="line">  <span class="type">int</span> tri_count;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>This is not a heap layout. The children are not addressed by <code>2*i+1</code> and <code>2*i+2</code>, because the BVH is not a perfect binary tree. Instead, each linear node explicitly stores the array index of its children.</p>
+<p>Leaf triangles are stored separately:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">linear_bvh_tri_indices</span><br></pre></td></tr></table></figure>
+
+<p>A leaf stores:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">first_tri</span><br><span class="line">tri_count</span><br></pre></td></tr></table></figure>
+
+<p>which points to a contiguous segment of <code>linear_bvh_tri_indices</code>. Those values are triangle indices into the actual mesh data.</p>
+<p>The runtime traversal then became iterative:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">push root node index</span><br><span class="line">while stack not empty:</span><br><span class="line">  pop node index</span><br><span class="line">  test AABB</span><br><span class="line">  if leaf: test triangles</span><br><span class="line">  else: push children</span><br></pre></td></tr></table></figure>
+
+<p>At first, using <code>std::vector</code> as the traversal stack introduced allocation overhead. After switching to a fixed local stack:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">std::array&lt;StackEntry, 128&gt; stack;</span><br></pre></td></tr></table></figure>
+
+<p>the flat traversal became slightly faster. The improvement was modest, but it reduced recursive overhead and made the BVH representation more suitable for future SIMD or SoA experiments.</p>
+<h2 id="Where-the-Time-Went"><a href="#Where-the-Time-Went" class="headerlink" title="Where the Time Went"></a>Where the Time Went</h2><p>After these changes, the main hotspots were still:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">TriangleMesh::intersectFlat</span><br><span class="line">AABB::intersect</span><br><span class="line">gl::vec3::operator[]</span><br><span class="line">TriangleMesh::hitTriangleFlat</span><br></pre></td></tr></table></figure>
+
+<p>This makes sense. The current flat BVH improves node traversal locality, but triangle data is still indirect:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">leaf -&gt; linear_bvh_tri_indices -&gt; mesh.indices -&gt; mesh.positions</span><br></pre></td></tr></table></figure>
+
+<p>So the next meaningful step is probably triangle data precomputation rather than more traversal micro-optimizations.</p>
+<h2 id="Next-Steps"><a href="#Next-Steps" class="headerlink" title="Next Steps"></a>Next Steps</h2><p>Potential future work:</p>
+<ol>
+<li>Precompute triangle data:</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">p0</span><br><span class="line">e1 = p1 - p0</span><br><span class="line">e2 = p2 - p0</span><br><span class="line">geometric normal</span><br></pre></td></tr></table></figure>
+
+<p>This would reduce repeated work inside <code>hitTriangleFlat()</code>.</p>
+<ol start="2">
+<li>Reorder triangles by BVH leaf order:</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">leaf triangles become contiguous in memory</span><br></pre></td></tr></table></figure>
+
+<p>This improves cache locality for leaf intersection.</p>
+<ol start="3">
+<li>Consider SIMD after the data layout is ready.</li>
+</ol>
+<p>Single AABB SIMD, i.e. one ray vs one box over x&#x2F;y&#x2F;z, is possible but probably not very profitable. A better SIMD target is one ray vs multiple boxes, such as a 4-wide BVH node layout (QBVH). That would require grouping child AABBs in a more SIMD-friendly structure.</p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>The main lesson from this pass: profiling first mattered. The initial hotspot was the sampler, not BVH. After removing that profiling noise, the actual geometry work showed up clearly. Small changes like ray inverse-direction caching, near-first traversal, flat BVH layout, fixed traversal stack, and AABB unrolling gave incremental wins and made the code better prepared for future layout&#x2F;SIMD work.</p>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>

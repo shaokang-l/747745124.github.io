@@ -1908,4 +1908,206 @@
         <tag>Rendering</tag>
       </tags>
   </entry>
+  <entry>
+    <title>在 M1 Max 上 Profiling 一个小型 Path Tracer</title>
+    <url>/2026/05/11/Profiling_CPU_zh/</url>
+    <content><![CDATA[<p>这篇记录整理了一次针对 bunny 场景的 CPU profiling 和优化过程。目标不是把渲染器彻底重写，而是用 Instruments 找到真实瓶颈，然后做一些小而可验证的改动。</p>
+<p>当时使用的 profiling 配置尽量保持简单：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// 关闭 scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
+
+<p>我先从单线程开始，并且把 <code>useBVH</code> 设为 <code>false</code>。这样 profile 主要集中在 bunny mesh 自己的内部 BVH，也就是 BLAS。这个场景的顶层 object 数量很少，如果打开 scene-level BVH，TLAS 的遍历开销反而可能掩盖真正想看的 mesh traversal 成本。</p>
+<h2 id="Baseline"><a href="#Baseline" class="headerlink" title="Baseline"></a>Baseline</h2><p>初始结果：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 15.2775 seconds</span><br><span class="line">Total hit count: 717420294</span><br></pre></td></tr></table></figure>
+
+<p>第一个意外发现是，最热的部分并不是 BVH traversal，而是 sampler。Owen-scrambled Halton sampling 在单线程 profile 里占了很大比例，热点主要来自 <code>gl::permutationElement()</code> 和 <code>gl::owenScrambledRadicalInverse()</code>。</p>
+<p>把 Owen scrambling 关掉之后，CPU baseline 干净了很多：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 11.3048 seconds</span><br><span class="line">Total hit count: 193636618</span><br></pre></td></tr></table></figure>
+
+<p>这不代表 <code>RandomStrategy::None</code> 适合作为最终画质设置。它会带来一些 banding 或 structured noise。但对性能分析来说，先移除昂贵的 sampler，可以更清楚地看到几何求交和 BVH traversal 的瓶颈。</p>
+<h2 id="Ray-和-AABB-优化"><a href="#Ray-和-AABB-优化" class="headerlink" title="Ray 和 AABB 优化"></a>Ray 和 AABB 优化</h2><p>接下来明显的热点是 <code>AABB::intersect()</code>，其中不少时间被归因到 <code>gl::vec3::operator[]</code>。原始的 AABB slab test 在循环里反复调用 <code>ray.getOrigin()</code> 和 <code>ray.getDirection()</code>。早期这些 getter 是按值返回的，所以 hot path 里会发生不必要的 <code>vec3</code> 拷贝。</p>
+<p>第一步 cleanup 是让 ray 的 origin &#x2F; direction 按 const reference 返回，并且在 <code>Ray</code> 里缓存每条 ray 的 inverse direction：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Ray stores:</span><br><span class="line">  origin</span><br><span class="line">  direction</span><br><span class="line">  inv_direction</span><br></pre></td></tr></table></figure>
+
+<p>这个优化有效的原因是：一条 ray 会测试很多 BVH node，但 <code>1.0f / direction</code> 对这条 ray 来说是不变的。把 inverse direction 放到 <code>Ray::setDirection()</code> 里维护，就可以避免每次 AABB intersect 都重新做除法。</p>
+<p>这个 ray-side 优化之后：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 10.7534 seconds</span><br><span class="line">Total hit count: 193642185</span><br></pre></td></tr></table></figure>
+
+<p>之后我又把 AABB slab test 从：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">for (int i = 0; i &lt; 3; ++i)</span><br></pre></td></tr></table></figure>
+
+<p>展开成显式的 x&#x2F;y&#x2F;z 三段计算。这个改动主要减少 <code>operator[]</code> 的采样成本。在测试 trace 里，<code>operator[]</code> 大概从 <code>1.0s</code> 降到了 <code>0.5s</code> 左右。总时间变化不算大，但 profile 变得更干净，indexed vector access 的热点也明显降低了。</p>
+<h2 id="TLAS-和-BLAS"><a href="#TLAS-和-BLAS" class="headerlink" title="TLAS 和 BLAS"></a>TLAS 和 BLAS</h2><p>这次 profiling 里一个很有用的观察是：对当前这个 bunny 场景来说，打开 scene-level BVH 不一定更快。</p>
+<p>因为场景顶层只有一个 bunny，再加几个墙面和灯。bunny mesh 自己内部已经有 BVH。所以：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">useBVH=false:</span><br><span class="line">  ObjectList 线性测试少量 scene objects</span><br><span class="line">  TriangleMesh 内部仍然使用 MeshBVH</span><br><span class="line"></span><br><span class="line">useBVH=true:</span><br><span class="line">  ray 先遍历 scene-level BVH</span><br><span class="line">  然后 TriangleMesh 内部仍然使用 MeshBVH</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，<code>useBVH</code> 控制的是 TLAS，而 <code>TriangleMesh</code> 内部的 MeshBVH 是 BLAS。对于这个小场景，TLAS 虽然能减少 primitive hit count，但额外的 AABB traversal 和 pointer chasing 可能抵消掉收益，甚至变慢。</p>
+<h2 id="Near-First-BVH-Traversal"><a href="#Near-First-BVH-Traversal" class="headerlink" title="Near-First BVH Traversal"></a>Near-First BVH Traversal</h2><p>原来的 mesh BVH traversal 是固定顺序：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">先 intersect left subtree</span><br><span class="line">再 intersect right subtree</span><br></pre></td></tr></table></figure>
+
+<p>这个顺序是正确的，但不一定高效。如果 ray 实际上先命中右边 subtree 里更近的 triangle，那么先遍历左边就可能做很多无用工作。</p>
+<p>于是 traversal 改成先测试左右 child 的 AABB，拿到各自的 <code>t_enter</code>，再优先访问更近的 child：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">left_t  = ray 进入 left child box 的 t</span><br><span class="line">right_t = ray 进入 right child box 的 t</span><br><span class="line"></span><br><span class="line">优先访问 t_enter 更小的 child</span><br><span class="line">如果先找到更近 triangle，则 far_t &gt; closest 的 child 可以跳过</span><br></pre></td></tr></table></figure>
+
+<p>这只是一个 heuristic。更早进入某个 box，并不保证最近 triangle 一定在那个 box 里。但它经常能更早找到较小的 <code>closest</code>，从而让后面的 subtree 更容易被剪枝。</p>
+<h2 id="Flatten-Mesh-BVH"><a href="#Flatten-Mesh-BVH" class="headerlink" title="Flatten Mesh BVH"></a>Flatten Mesh BVH</h2><p>原来的 mesh BVH 是 pointer tree：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; left;</span><br><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; right;</span><br></pre></td></tr></table></figure>
+
+<p>这种结构会带来递归函数调用和 pointer chasing。为了改善 locality，我把 recursive BVH flatten 成一个数组：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">LinearMeshBVHNode</span> &#123;</span><br><span class="line">  AABB box;</span><br><span class="line">  <span class="type">int</span> left;</span><br><span class="line">  <span class="type">int</span> right;</span><br><span class="line">  <span class="type">int</span> first_tri;</span><br><span class="line">  <span class="type">int</span> tri_count;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这不是 heap layout。也就是说 child 不是通过 <code>2*i+1</code> 和 <code>2*i+2</code> 找到的，因为 BVH 不是 perfect binary tree。每个 linear node 会显式保存自己 child 在数组里的 index。</p>
+<p>Leaf triangle id 单独存放在：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">linear_bvh_tri_indices</span><br></pre></td></tr></table></figure>
+
+<p>每个 leaf 只保存：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">first_tri</span><br><span class="line">tri_count</span><br></pre></td></tr></table></figure>
+
+<p>它们指向 <code>linear_bvh_tri_indices</code> 里的一段连续区间。这些值仍然只是 triangle index，真正的三角形数据还在 mesh data 里。</p>
+<p>运行时 traversal 也从递归改成 iterative：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">push root node index</span><br><span class="line">while stack not empty:</span><br><span class="line">  pop node index</span><br><span class="line">  test AABB</span><br><span class="line">  if leaf: test triangles</span><br><span class="line">  else: push children</span><br></pre></td></tr></table></figure>
+
+<p>一开始我用 <code>std::vector</code> 作为 traversal stack，但 profile 里出现了明显的 allocation 开销。改成固定大小的 local stack 后：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::array&lt;StackEntry, 128&gt; stack;</span><br></pre></td></tr></table></figure>
+
+<p>flat traversal 变快了一些。这个收益不是质变，但它减少了递归开销和 pointer chasing，也让 BVH 表达更适合后续做 SoA 或 SIMD 实验。</p>
+<h2 id="时间最后花在哪里"><a href="#时间最后花在哪里" class="headerlink" title="时间最后花在哪里"></a>时间最后花在哪里</h2><p>完成这些改动之后，主要热点仍然集中在：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">TriangleMesh::intersectFlat</span><br><span class="line">AABB::intersect</span><br><span class="line">gl::vec3::operator[]</span><br><span class="line">TriangleMesh::hitTriangleFlat</span><br></pre></td></tr></table></figure>
+
+<p>这很合理。当前 flat BVH 改善的是 node traversal locality，但 triangle data 本身仍然是间接访问：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">leaf -&gt; linear_bvh_tri_indices -&gt; mesh.indices -&gt; mesh.positions</span><br></pre></td></tr></table></figure>
+
+<p>所以后面真正有意义的优化，大概率不是继续 micro-opt traversal，而是改善 triangle data 的布局。</p>
+<h2 id="后续方向"><a href="#后续方向" class="headerlink" title="后续方向"></a>后续方向</h2><p>比较自然的下一步有三个。</p>
+<p>第一，预计算 triangle data：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">p0</span><br><span class="line">e1 = p1 - p0</span><br><span class="line">e2 = p2 - p0</span><br><span class="line">geometric normal</span><br></pre></td></tr></table></figure>
+
+<p>这样可以减少 <code>hitTriangleFlat()</code> 里每次重复计算 edge 和 normal 的成本。</p>
+<p>第二，按 BVH leaf 顺序重排 triangle：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">让同一个 leaf 里的 triangles 在内存里连续</span><br></pre></td></tr></table></figure>
+
+<p>这可以减少 leaf intersection 时的随机访问。</p>
+<p>第三，再考虑 SIMD。</p>
+<p>单个 AABB SIMD，也就是 one ray vs one box 的 x&#x2F;y&#x2F;z 三轴并行，是可以做的，但不一定划算。更好的 SIMD 目标通常是 one ray vs multiple boxes，比如 4-wide BVH node，也就是 QBVH。这需要把 child AABB 组织成更适合 SIMD 的布局。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次优化最大的收获是：先 profile 很重要。一开始真正的 hotspot 是 sampler，不是 BVH。把 profiling noise 移除后，几何求交的成本才变得清楚。之后的 ray inverse-direction cache、near-first traversal、flat BVH、fixed stack、AABB unroll 都是小步优化，但它们让代码更接近适合后续 data layout 和 SIMD 优化的形态。</p>
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>CG</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CPU Profiling a Small Path Tracer on M1 Max</title>
+    <url>/2026/05/10/Profiling_CPU/</url>
+    <content><![CDATA[<p>This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full renderer rewrite, but to use Instruments to identify real bottlenecks and make small, measurable improvements.</p>
+<p>The profiling setup was intentionally simple:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// disable scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
+
+<p>I used single-threaded runs first, with <code>useBVH=false</code>, so the profile focused on the bunny mesh’s internal BVH, i.e. the BLAS. The scene-level BVH was intentionally disabled because this scene only has a few top-level objects, so the TLAS overhead can hide the mesh traversal cost.</p>
+<h2 id="Baseline"><a href="#Baseline" class="headerlink" title="Baseline"></a>Baseline</h2><p>Initial timing:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 15.2775 seconds</span><br><span class="line">Total hit count: 717420294</span><br></pre></td></tr></table></figure>
+
+<p>The first surprising hotspot was not BVH traversal. It was the sampler. Owen-scrambled Halton sampling dominated the single-threaded profile through <code>gl::permutationElement()</code> and <code>gl::owenScrambledRadicalInverse()</code>.</p>
+<p>Disabling Owen scrambling gave a much cleaner CPU baseline:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 11.3048 seconds</span><br><span class="line">Total hit count: 193636618</span><br></pre></td></tr></table></figure>
+
+<p>This is not necessarily the best final image-quality setting. <code>RandomStrategy::None</code> can introduce visible banding&#x2F;noise patterns. But for CPU profiling, removing the expensive sampler made the geometry&#x2F;intersection bottlenecks much easier to see.</p>
+<h2 id="Ray-and-AABB-Optimizations"><a href="#Ray-and-AABB-Optimizations" class="headerlink" title="Ray and AABB Optimizations"></a>Ray and AABB Optimizations</h2><p>The next hotspot was <code>AABB::intersect()</code>, with a lot of time attributed to <code>gl::vec3::operator[]</code>. The original AABB slab test repeatedly called <code>ray.getOrigin()</code> and <code>ray.getDirection()</code> inside a loop. Earlier, those getters returned by value, so the hot path was doing unnecessary vector copies.</p>
+<p>The first cleanup was to return ray origin&#x2F;direction by const reference and cache per-ray inverse direction:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Ray stores:</span><br><span class="line">  origin</span><br><span class="line">  direction</span><br><span class="line">  inv_direction</span><br></pre></td></tr></table></figure>
+
+<p>This matters because one ray can test many BVH nodes, but <code>1.0f / direction</code> is invariant for that ray. Moving that work into <code>Ray::setDirection()</code> avoids recomputing it for every AABB.</p>
+<p>After this ray-side optimization:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Rendering time: 10.7534 seconds</span><br><span class="line">Total hit count: 193642185</span><br></pre></td></tr></table></figure>
+
+<p>Then I unrolled the AABB slab test from a small <code>for (i = 0; i &lt; 3; ++i)</code> loop into explicit x&#x2F;y&#x2F;z code. This reduced the sampled cost of <code>operator[]</code> substantially, roughly from about <code>1.0s</code> to about <code>0.5s</code> in the tested trace. Total render time only moved slightly, but the profile became cleaner and the indexed vector access hotspot was reduced.</p>
+<h2 id="TLAS-vs-BLAS"><a href="#TLAS-vs-BLAS" class="headerlink" title="TLAS vs BLAS"></a>TLAS vs BLAS</h2><p>One useful observation: enabling the scene-level BVH was not always faster for this scene.</p>
+<p>With a single bunny plus a few walls&#x2F;lights, the top-level object count is small. The bunny mesh already has its own internal BVH. So:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">useBVH=false:</span><br><span class="line">  ObjectList linearly tests a few scene objects</span><br><span class="line">  TriangleMesh still uses internal MeshBVH</span><br><span class="line"></span><br><span class="line">useBVH=true:</span><br><span class="line">  ray first traverses a scene-level BVH</span><br><span class="line">  then TriangleMesh still uses internal MeshBVH</span><br></pre></td></tr></table></figure>
+
+<p>For this scene, the scene-level BVH can reduce primitive hit counts while still being slower, because its AABB traversal and pointer chasing overhead outweigh the savings at such a small top-level object count.</p>
+<h2 id="Near-First-BVH-Traversal"><a href="#Near-First-BVH-Traversal" class="headerlink" title="Near-First BVH Traversal"></a>Near-First BVH Traversal</h2><p>The mesh BVH originally traversed children in a fixed order:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">intersect left subtree</span><br><span class="line">then intersect right subtree</span><br></pre></td></tr></table></figure>
+
+<p>This is correct, but not always efficient. If the ray hits something close in the right subtree, traversing the left subtree first may do unnecessary work.</p>
+<p>The traversal was changed to test both child AABBs first, collect their <code>t_enter</code>, and visit the nearer child first:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">left_t  = ray enters left child box</span><br><span class="line">right_t = ray enters right child box</span><br><span class="line"></span><br><span class="line">visit the smaller t_enter first</span><br><span class="line">if it finds a closer triangle, skip far child when far_t &gt; closest</span><br></pre></td></tr></table></figure>
+
+<p>This is a heuristic: entering a box earlier does not guarantee the closest triangle is inside that box, but it often finds a closer hit earlier and makes pruning more effective.</p>
+<h2 id="Flattening-the-Mesh-BVH"><a href="#Flattening-the-Mesh-BVH" class="headerlink" title="Flattening the Mesh BVH"></a>Flattening the Mesh BVH</h2><p>The original mesh BVH is a pointer tree:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; left;</span><br><span class="line">std::unique_ptr&lt;MeshBVHNode&gt; right;</span><br></pre></td></tr></table></figure>
+
+<p>This causes recursive calls and pointer chasing. To improve locality, the recursive BVH was flattened into an array:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">LinearMeshBVHNode</span> &#123;</span><br><span class="line">  AABB box;</span><br><span class="line">  <span class="type">int</span> left;</span><br><span class="line">  <span class="type">int</span> right;</span><br><span class="line">  <span class="type">int</span> first_tri;</span><br><span class="line">  <span class="type">int</span> tri_count;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>This is not a heap layout. The children are not addressed by <code>2*i+1</code> and <code>2*i+2</code>, because the BVH is not a perfect binary tree. Instead, each linear node explicitly stores the array index of its children.</p>
+<p>Leaf triangles are stored separately:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">linear_bvh_tri_indices</span><br></pre></td></tr></table></figure>
+
+<p>A leaf stores:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">first_tri</span><br><span class="line">tri_count</span><br></pre></td></tr></table></figure>
+
+<p>which points to a contiguous segment of <code>linear_bvh_tri_indices</code>. Those values are triangle indices into the actual mesh data.</p>
+<p>The runtime traversal then became iterative:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">push root node index</span><br><span class="line">while stack not empty:</span><br><span class="line">  pop node index</span><br><span class="line">  test AABB</span><br><span class="line">  if leaf: test triangles</span><br><span class="line">  else: push children</span><br></pre></td></tr></table></figure>
+
+<p>At first, using <code>std::vector</code> as the traversal stack introduced allocation overhead. After switching to a fixed local stack:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::array&lt;StackEntry, 128&gt; stack;</span><br></pre></td></tr></table></figure>
+
+<p>the flat traversal became slightly faster. The improvement was modest, but it reduced recursive overhead and made the BVH representation more suitable for future SIMD or SoA experiments.</p>
+<h2 id="Where-the-Time-Went"><a href="#Where-the-Time-Went" class="headerlink" title="Where the Time Went"></a>Where the Time Went</h2><p>After these changes, the main hotspots were still:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">TriangleMesh::intersectFlat</span><br><span class="line">AABB::intersect</span><br><span class="line">gl::vec3::operator[]</span><br><span class="line">TriangleMesh::hitTriangleFlat</span><br></pre></td></tr></table></figure>
+
+<p>This makes sense. The current flat BVH improves node traversal locality, but triangle data is still indirect:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">leaf -&gt; linear_bvh_tri_indices -&gt; mesh.indices -&gt; mesh.positions</span><br></pre></td></tr></table></figure>
+
+<p>So the next meaningful step is probably triangle data precomputation rather than more traversal micro-optimizations.</p>
+<h2 id="Next-Steps"><a href="#Next-Steps" class="headerlink" title="Next Steps"></a>Next Steps</h2><p>Potential future work:</p>
+<ol>
+<li>Precompute triangle data:</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">p0</span><br><span class="line">e1 = p1 - p0</span><br><span class="line">e2 = p2 - p0</span><br><span class="line">geometric normal</span><br></pre></td></tr></table></figure>
+
+<p>This would reduce repeated work inside <code>hitTriangleFlat()</code>.</p>
+<ol start="2">
+<li>Reorder triangles by BVH leaf order:</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">leaf triangles become contiguous in memory</span><br></pre></td></tr></table></figure>
+
+<p>This improves cache locality for leaf intersection.</p>
+<ol start="3">
+<li>Consider SIMD after the data layout is ready.</li>
+</ol>
+<p>Single AABB SIMD, i.e. one ray vs one box over x&#x2F;y&#x2F;z, is possible but probably not very profitable. A better SIMD target is one ray vs multiple boxes, such as a 4-wide BVH node layout (QBVH). That would require grouping child AABBs in a more SIMD-friendly structure.</p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>The main lesson from this pass: profiling first mattered. The initial hotspot was the sampler, not BVH. After removing that profiling noise, the actual geometry work showed up clearly. Small changes like ray inverse-direction caching, near-first traversal, flat BVH layout, fixed traversal stack, and AABB unrolling gave incremental wins and made the code better prepared for future layout&#x2F;SIMD work.</p>
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>CG</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2025/05/07/Performance%20Diff/</url>
+    <content><![CDATA[<p>BIASED:</p>
+<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 3.35209 seconds<br>Total hit count: 69321088</p>
+<p>DISCARD:</p>
+<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 3.19591 seconds<br>Total hit count: 92402356</p>
+<p>DISCARD (old):</p>
+<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 34.357 seconds<br>Total hit count: 2095764284</p>
+<p>Biased (old)</p>
+<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 6.01832 seconds<br>Total hit count: 193249724</p>
+<p>BIASED (new)</p>
+<p>write to file: ..&#x2F;..&#x2F;..&#x2F;Offline&#x2F;output.png<br>write to file success<br>Rendering time: 6.17927 seconds<br>Total hit count: 198975950</p>
+<p>DISCARD (new)</p>
+<p>Rendering time: 5.97217 seconds<br>Total hit count: 192974678<br>31210</p>
+]]></content>
+  </entry>
 </search>
