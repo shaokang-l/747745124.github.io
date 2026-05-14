@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ReSTIR DI - 01 - 无复用版本 - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。
+长话短说，ReST,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="ReSTIR DI - 01 - 无复用版本 - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。
+长话短说，ReST,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="ReSTIR DI - 01 - 无复用版本 - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。
+长话短说，ReST,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">ReSTIR DI - 01 - 无复用版本</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            ReSTIR DI - 01 - 无复用版本
+        </h1>
+        <div class="stuff">
+            <span>
+                May 13, 2026
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/ReSTIR/" rel="tag">ReSTIR</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Rendering/" rel="tag">Rendering</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。</p>
+<p>长话短说，ReSTIR DI我个人认为是改进NEE直接光源采样的过程中，光源样本可能不佳的问题。解决方式是通过额外的信息（不管是预先计算每个sample的预期贡献，还是样本复用也好），来尽量让我们采样到更好的光源sample。</p>
+<h4 id="1-Direct-lighting-本来要求什么？"><a href="#1-Direct-lighting-本来要求什么？" class="headerlink" title="1. Direct lighting 本来要求什么？"></a>1. Direct lighting 本来要求什么？</h4><h1 id="对一个-shading-point-x-，direct-lighting-可以写成：-L-o-x-int-mathcal-Y-f-x-y-dy-这里-y-可以理解成一个-light-sample，例如：-y-text-light-id-text-point-on-light-而-f-x-y-包含：-f-x-y"><a href="#对一个-shading-point-x-，direct-lighting-可以写成：-L-o-x-int-mathcal-Y-f-x-y-dy-这里-y-可以理解成一个-light-sample，例如：-y-text-light-id-text-point-on-light-而-f-x-y-包含：-f-x-y" class="headerlink" title="对一个 shading point $x$，direct lighting 可以写成：$$L_o(x) &#x3D; \int_{\mathcal{Y}} f(x, y),dy$$这里 $y$ 可以理解成一个 light sample，例如：$$y &#x3D; (\text{light id},\ \text{point on light})$$而 $f(x,y)$ 包含：$$f(x,y)"></a>对一个 shading point $x$，direct lighting 可以写成：<br>$$<br>L_o(x) &#x3D; \int_{\mathcal{Y}} f(x, y),dy<br>$$<br>这里 $y$ 可以理解成一个 light sample，例如：<br>$$<br>y &#x3D; (\text{light id},\ \text{point on light})<br>$$<br>而 $f(x,y)$ 包含：<br>$$<br>f(x,y)</h1><p>L_e(y)<br>\cdot f_r(x,\omega_i,\omega_o)<br>\cdot G(x,y)<br>\cdot V(x,y)<br>$$<br>也就是 emission、BRDF、geometry term、visibility。</p>
+<h1 id="普通-NEE-如果从某个-proposal-distribution-p-y-采样，就估计：-hat-L"><a href="#普通-NEE-如果从某个-proposal-distribution-p-y-采样，就估计：-hat-L" class="headerlink" title="普通 NEE 如果从某个 proposal distribution $p(y)$ 采样，就估计：$$\hat{L}"></a>普通 NEE 如果从某个 proposal distribution $p(y)$ 采样，就估计：<br>$$<br>\hat{L}</h1><p>\frac{f(x,y)}{p(y)}<br>$$<br>问题是：如果场景里有很多灯，均匀选 light 会非常 noisy。因为大部分 sampled light 对当前 shading point 都贡献很小，甚至被遮挡。</p>
+<h4 id="2-ReSTIR-DI-的核心：不要直接相信第一次采到的-light"><a href="#2-ReSTIR-DI-的核心：不要直接相信第一次采到的-light" class="headerlink" title="2. ReSTIR DI 的核心：不要直接相信第一次采到的 light"></a>2. ReSTIR DI 的核心：不要直接相信第一次采到的 light</h4><p>ReSTIR 的想法不是“采一个 light 就用它”，而是：</p>
+<blockquote>
+<p>先以较低成本采样很多 candidate light，然后从里面挑一个更像“重要样本”的 candidate 保存下来。</p>
+</blockquote>
+<p>这个过程就是 <strong>Resampled Importance Sampling &#x2F; RIS</strong>。</p>
+<p>假设你从 source distribution $p_{\text{src}}(y)$ 采了 $M$ 个 candidates：<br>$$<br>y_1, y_2, …, y_M<br>$$<br>然后给每个 candidate 算一个 importance weight：<br>$$<br>w_i &#x3D; \frac{\hat{p}(y_i)}{p_{\text{src}}(y_i)}<br>$$<br>这里 $\hat{p}(y)$ 是希望靠近的 target importance，通常和贡献大小相关。对 ReSTIR DI 来说，常见选择是：<br>$$<br>\hat{p}(y) \approx |f(x,y)|<br>$$<br>实际实现里可能用 luminance：<br>$$<br>\hat{p}(y) &#x3D; \operatorname{luminance}(f_{\text{unshadowed}}(x,y))<br>$$<br>也就是说，越亮、BRDF 越对、geometry term 越大，candidate 越容易被 reservoir 选中。</p>
+<blockquote>
+<p>这里的$p_{src}$就是你一般情况下从light list里获取一个light sample的概率。<br>这个概率分为1.选中指定light source的概率（看你选用的heuristic，论文里每个光源的权重应该是基于power）2.在指定光源上采样一个light sample的概率，一般是uniform sampling per surface area.</p>
+</blockquote>
+<h1 id="这里的-unshadowed-contribution-通常包含：-f-text-unshadowed-x-y"><a href="#这里的-unshadowed-contribution-通常包含：-f-text-unshadowed-x-y" class="headerlink" title="这里的 unshadowed contribution 通常包含：$$f_{\text{unshadowed}}(x,y)"></a>这里的 unshadowed contribution 通常包含：<br>$$<br>f_{\text{unshadowed}}(x,y)</h1><h1 id="L-e-y-cdotf-r-x-omega-i-omega-o-cdotG-x-y-其中：-G-x-y"><a href="#L-e-y-cdotf-r-x-omega-i-omega-o-cdotG-x-y-其中：-G-x-y" class="headerlink" title="L_e(y)\cdotf_r(x,\omega_i,\omega_o)\cdotG(x,y)$$其中：$$G(x,y)"></a>L_e(y)<br>\cdot<br>f_r(x,\omega_i,\omega_o)<br>\cdot<br>G(x,y)<br>$$<br>其中：<br>$$<br>G(x,y)</h1><p>\frac{|\cos\theta_x| |\cos\theta_y|}{|x-y|^2}<br>$$<br>如果光源是 directional light 或 environment light，geometry term 的形式会不一样；但核心思想一样：<strong>用一个便宜（不需要trace shadow ray）的估计判断这个 sample 值不值得保留。</strong></p>
+<h3 id="从采样来说："><a href="#从采样来说：" class="headerlink" title="从采样来说："></a>从采样来说：</h3><p>从采样角度看，ReSTIR DI 的核心不是直接构建一个理想采样分布，而是做一次基于 candidates 的近似重采样。理想情况下，我们希望从<br>$$<br>p^*(y|x) \propto |f(x,y)|<br>$$<br>中采样，但这个分布依赖当前 shading point、BRDF、geometry term 和 visibility，难以直接构建、归一化和采样。相比之下，$p_{\text{src}}(y)$ 例如基于 light power 或面积的 light sampling 分布虽然粗糙，但容易采样。</p>
+<p>因此 ReSTIR DI 先从 $p_{\text{src}}$ 生成有限个 candidates，再对这些 candidates 计算更接近真实贡献的 target importance $\hat p(x,y)$，并用<br>$$<br>w_i &#x3D; \frac{\hat p(x,y_i)}{p_{\text{src}}(y_i)}<br>$$<br>进行重采样。这样做的直觉是：我们不需要能直接从 $\hat p$ 采样，只需要能对已经生成的 candidates 评估 $\hat p$，就可以让最终被保留的 sample distribution 更接近理想贡献分布。</p>
+<blockquote>
+<p>这里并不是换了一个采样空间；sample space 仍然是所有可能的 light samples $\mathcal{Y}$，变化的是我们在这个空间上的采样分布。</p>
+</blockquote>
+<h2 id="3-Initial-reservoir：从多个-candidates-中压缩出一个-light-sample"><a href="#3-Initial-reservoir：从多个-candidates-中压缩出一个-light-sample" class="headerlink" title="3. Initial reservoir：从多个 candidates 中压缩出一个 light sample"></a>3. Initial reservoir：从多个 candidates 中压缩出一个 light sample</h2><p>现在对当前 shading point $x$，我们不只采一个 light sample，而是采 $M$ 个 candidates：<br>$$<br>y_1, y_2, …, y_M<br>$$<br>每个 candidate 都来自同一个或者不同的 source distribution：<br>$$<br>p_{\text{src}}(y_i)<br>$$<br>对每个 candidate，我们计算一个 importance weight：<br>$$<br>w_i &#x3D; \frac{\hat{p}(x,y_i)}{p_{\text{src}}(y_i)}<br>$$<br>这里把 $\hat{p}$ 写成 $\hat{p}(x,y_i)$，是为了强调：<strong>target importance 是相对于当前 shading point 的。</strong></p>
+<h1 id="常见做法是：-hat-p-x-y-i"><a href="#常见做法是：-hat-p-x-y-i" class="headerlink" title="常见做法是：$$\hat{p}(x,y_i)"></a>常见做法是：<br>$$<br>\hat{p}(x,y_i)</h1><p>\operatorname{luminance}<br>\left(<br>f_{\text{unshadowed}}(x,y_i)<br>\right)<br>$$<br>也就是先不考虑 visibility，只看如果这个 light sample 没被挡住，它对当前点大概有多重要。</p>
+<h1 id="这里的-unshadowed-contribution-通常包含：-f-text-unshadowed-x-y-1"><a href="#这里的-unshadowed-contribution-通常包含：-f-text-unshadowed-x-y-1" class="headerlink" title="这里的 unshadowed contribution 通常包含：$$f_{\text{unshadowed}}(x,y)"></a>这里的 unshadowed contribution 通常包含：<br>$$<br>f_{\text{unshadowed}}(x,y)</h1><h1 id="L-e-y-cdotf-r-x-omega-i-omega-o-cdotG-x-y-其中：-G-x-y-1"><a href="#L-e-y-cdotf-r-x-omega-i-omega-o-cdotG-x-y-其中：-G-x-y-1" class="headerlink" title="L_e(y)\cdotf_r(x,\omega_i,\omega_o)\cdotG(x,y)$$其中：$$G(x,y)"></a>L_e(y)<br>\cdot<br>f_r(x,\omega_i,\omega_o)<br>\cdot<br>G(x,y)<br>$$<br>其中：<br>$$<br>G(x,y)</h1><p>\frac{|\cos\theta_x| |\cos\theta_y|}{|x-y|^2}<br>$$<br>如果光源是 directional light 或 environment light，geometry term 的形式会不一样；但核心思想一样：<strong>用一个便宜的估计判断这个 sample 值不值得保留。</strong></p>
+<hr>
+<h3 id="3-1-Reservoir-update-的流程"><a href="#3-1-Reservoir-update-的流程" class="headerlink" title="3.1 Reservoir update 的流程"></a>3.1 Reservoir update 的流程</h3><p>reservoir 初始化：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Reservoir r;</span><br><span class="line">r.y = invalid; <span class="comment">// 具体的light sample</span></span><br><span class="line">r.wSum = <span class="number">0</span>; <span class="comment">// candidate weight的和</span></span><br><span class="line">r.M = <span class="number">0</span>; <span class="comment">// 这个sample代表了多少个candidate</span></span><br><span class="line">r.W = <span class="number">0</span>; <span class="comment">// 最终的reservoir weight</span></span><br></pre></td></tr></table></figure>
+
+<p>对每个 candidate：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">LightSample y = <span class="built_in">sampleLightSource</span>(); <span class="comment">// 采样光源</span></span><br><span class="line"><span class="type">float</span> sourcePdf = <span class="built_in">computeSourcePdf</span>(y);<span class="comment">// 原本采样到这个light sample的pdf</span></span><br><span class="line"></span><br><span class="line">Vec3 contrib = <span class="built_in">evalUnshadowedContribution</span>(x, y);</span><br><span class="line"><span class="type">float</span> target = <span class="built_in">luminance</span>(contrib); <span class="comment">// // 预估贡献，作为 target importance function，不一定是归一化 pdf</span></span><br><span class="line"></span><br><span class="line"><span class="type">float</span> w = target / sourcePdf; <span class="comment">// 分配的权重</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 以下为 reservoir sampling流程</span></span><br><span class="line">r.wSum += w;</span><br><span class="line">r.M += <span class="number">1</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">rand</span>() &lt; w / r.wSum) &#123;</span><br><span class="line">    r.y = y;</span><br><span class="line">    r.target = target;</span><br><span class="line">    r.sourcePdf = sourcePdf;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后计算 reservoir weight：<br>$$<br>W &#x3D; \frac{w_{\text{sum}}}{M \cdot \hat{p}(x,y)}<br>$$<br>也就是：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (r.target &gt; <span class="number">0</span> &amp;&amp; r.M &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 修正后的reservoir weight</span></span><br><span class="line">    r.W = r.wSum / (r.M * r.target);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    r.W = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终 shading 时：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Vec3 f = <span class="built_in">evalFullContributionWithVisibility</span>(x, r.y);</span><br><span class="line">Vec3 Lo = f * r.W;</span><br></pre></td></tr></table></figure>
+
+<p>如果最后选中的 sample 不可见：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Lo = <span class="built_in">Vec3</span>(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="3-2-为什么要算-w-i-hat-p-p-text-src-？"><a href="#3-2-为什么要算-w-i-hat-p-p-text-src-？" class="headerlink" title="3.2 为什么要算 $w_i &#x3D; \hat{p} &#x2F; p_{\text{src}}$？"></a>3.2 为什么要算 $w_i &#x3D; \hat{p} &#x2F; p_{\text{src}}$？</h3><p>候选样本是从 (p_{\text{src}}) 生成的，但 reservoir 希望最终保留的样本分布更接近 target importance (\hat p)。如果只用 (\hat p) 作为权重，就会忽略 candidate 本身出现的概率；那些本来就容易被 proposal 采到的样本会被重复偏袒。因此 RIS 使用<br>$$<br>w_i&#x3D;\frac{\hat p(x,y_i)}{p_{\text{src}}(y_i)}<br>$$<br>来补偿 source distribution 的影响。</p>
+<h1 id="直觉上，一个-sample-先以-p-text-src-y-的概率出现在-candidate-pool-中，然后-reservoir-再用-hat-p-x-y-p-text-src-y-作为保留倾向。两者相乘后：-p-text-src-y-cdot-frac-hat-p-x-y-p-text-src-y"><a href="#直觉上，一个-sample-先以-p-text-src-y-的概率出现在-candidate-pool-中，然后-reservoir-再用-hat-p-x-y-p-text-src-y-作为保留倾向。两者相乘后：-p-text-src-y-cdot-frac-hat-p-x-y-p-text-src-y" class="headerlink" title="直觉上，一个 sample 先以 (p_{\text{src}}(y)) 的概率出现在 candidate pool 中，然后 reservoir 再用 (\hat p(x,y)&#x2F;p_{\text{src}}(y)) 作为保留倾向。两者相乘后：$$p_{\text{src}}(y)\cdot\frac{\hat p(x,y)}{p_{\text{src}}(y)}"></a>直觉上，一个 sample 先以 (p_{\text{src}}(y)) 的概率出现在 candidate pool 中，然后 reservoir 再用 (\hat p(x,y)&#x2F;p_{\text{src}}(y)) 作为保留倾向。两者相乘后：<br>$$<br>p_{\text{src}}(y)<br>\cdot<br>\frac{\hat p(x,y)}{p_{\text{src}}(y)}</h1><p>\hat p(x,y)<br>$$<br>因此最终被保留的趋势近似正比于 target importance。</p>
+<p>例如，一个小但很亮、离当前 shading point 很近的 area light，可能因为面积小或 light selection probability 低而很难被 (p_{\text{src}}) 采到；但一旦它出现在 candidate pool 中，它的 (\hat p(x,y)) 很高，所以 (\hat p&#x2F;p_{\text{src}}) 会让它有更高概率被 reservoir 保留。</p>
+<hr>
+<h3 id="3-3-为什么最后要除以-hat-p-x-y-？"><a href="#3-3-为什么最后要除以-hat-p-x-y-？" class="headerlink" title="3.3 为什么最后要除以 $\hat{p}(x,y)$？"></a>3.3 为什么最后要除以 $\hat{p}(x,y)$？</h3><p>因为 reservoir 选中的样本已经经过了一次按 target importance 倾斜的重采样。</p>
+<p>如果最后直接返回 $f(x,y)$，就相当于重复奖励了高 $\hat p$ 的 sample，结果通常会偏亮。</p>
+<h1 id="所以需要做校正：-W-frac-w-text-sum-M-cdot-hat-p-x-y-最终：-hat-L"><a href="#所以需要做校正：-W-frac-w-text-sum-M-cdot-hat-p-x-y-最终：-hat-L" class="headerlink" title="所以需要做校正：$$W &#x3D; \frac{w_{\text{sum}}}{M \cdot \hat{p}(x,y)}$$最终：$$\hat{L}"></a>所以需要做校正：<br>$$<br>W &#x3D; \frac{w_{\text{sum}}}{M \cdot \hat{p}(x,y)}<br>$$<br>最终：<br>$$<br>\hat{L}</h1><h1 id="f-x-y-W-代入：-W"><a href="#f-x-y-W-代入：-W" class="headerlink" title="f(x,y) W$$代入：$$W"></a>f(x,y) W<br>$$<br>代入：<br>$$<br>W</h1><p>\frac{1}{\hat{p}(x,y)}<br>\cdot<br>\frac{1}{M}<br>\sum_{i&#x3D;1}^{M}<br>\frac{\hat{p}(x,y_i)}{p_{\text{src}}(y_i)}<br>$$<br>直觉是：</p>
+<blockquote>
+<p>Reservoir 用 $\hat{p}$ 让好 sample 更容易被选中； $W$ 再把这种偏向性抵消掉，让 estimator 尽量保持正确。</p>
+</blockquote>
+<h3 id="4-为什么reservoir能降-variance？"><a href="#4-为什么reservoir能降-variance？" class="headerlink" title="4. 为什么reservoir能降 variance？"></a>4. 为什么reservoir能降 variance？</h3><p>因为做了一个 local light selection。</p>
+<p>假设有 16 盏灯，均匀 NEE 每次随机选一盏。某个 shading point 可能主要被其中 1–2 盏灯照亮。普通 NEE 选中重要灯的概率很低。</p>
+<p>但 no reuse ReSTIR &#x2F; RIS 做的是：</p>
+<ol>
+<li>一次拿 $N$ 个 candidates；</li>
+<li>对每个估计 importance；</li>
+<li>更大概率保留重要 candidate；</li>
+<li>用 $W$ 修正选择偏差。</li>
+</ol>
+<p>所以 $N&#x3D;4$ 时，你等于每个 shading point 看了 4 次 light proposal，再选一个更好的。这自然会比 $N&#x3D;1$ 稳定很多。</p>
+<h3 id="无复用情况下的预期表现："><a href="#无复用情况下的预期表现：" class="headerlink" title="无复用情况下的预期表现："></a>无复用情况下的预期表现：</h3><ul>
+<li>$M&#x3D;1$ 退化到 NEE；</li>
+</ul>
+<h1 id="M-1时：-w-text-sum-frac-hat-p-x-y-p-text-src-y-所以：-W"><a href="#M-1时：-w-text-sum-frac-hat-p-x-y-p-text-src-y-所以：-W" class="headerlink" title="M&#x3D;1时：$$w_{\text{sum}} &#x3D; \frac{\hat p(x,y)}{p_{\text{src}}(y)}$$所以：$$W"></a>M&#x3D;1时：<br>$$<br>w_{\text{sum}} &#x3D; \frac{\hat p(x,y)}{p_{\text{src}}(y)}<br>$$<br>所以：<br>$$<br>W</h1><h1 id="frac-w-text-sum-M-hat-p-x-y"><a href="#frac-w-text-sum-M-hat-p-x-y" class="headerlink" title="\frac{w_{\text{sum}}}{M\hat p(x,y)}"></a>\frac{w_{\text{sum}}}{M\hat p(x,y)}</h1><h1 id="frac-hat-p-x-y-p-text-src-y-hat-p-x-y"><a href="#frac-hat-p-x-y-p-text-src-y-hat-p-x-y" class="headerlink" title="\frac{\hat p(x,y)&#x2F;p_{\text{src}}(y)}{\hat p(x,y)}"></a>\frac{\hat p(x,y)&#x2F;p_{\text{src}}(y)}<br>{\hat p(x,y)}</h1><p>\frac{1}{p_{\text{src}}(y)}<br>$$<br>最终退化到普通的NEE<br>$$<br>\hat L &#x3D; f(x,y)W &#x3D; \frac{f(x,y)}{p_{\text{src}}(y)}<br>$$</p>
+<ul>
+<li>多光源场景下，随着initial sample上升，variance 明显下降;</li>
+</ul>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>
