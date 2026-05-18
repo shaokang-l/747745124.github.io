@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ReSTIR DI - 02 - Temporal Reuse - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,The previous post covered no-reuse ReSTIR DI &amp;#x2F; RIS: for the current shading point, we sample s,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="ReSTIR DI - 02 - Temporal Reuse - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,The previous post covered no-reuse ReSTIR DI &amp;#x2F; RIS: for the current shading point, we sample s,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="ReSTIR DI - 02 - Temporal Reuse - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,The previous post covered no-reuse ReSTIR DI &amp;#x2F; RIS: for the current shading point, we sample s,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">ReSTIR DI - 02 - Temporal Reuse</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            ReSTIR DI - 02 - Temporal Reuse
+        </h1>
+        <div class="stuff">
+            <span>
+                May 17, 2026
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/ReSTIR/" rel="tag">ReSTIR</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Rendering/" rel="tag">Rendering</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>The previous post covered <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>: for the current shading point, we sample several light candidates and use a reservoir to keep one sample that is more likely to contribute.</p>
+<p>This note continues with <strong>temporal reuse</strong>.</p>
+<p>The short intuition is:</p>
+<blockquote>
+<p>No-reuse means “pick a good light sample again this frame.” Temporal reuse asks, “the previous frame already picked a decent sample; after validation and reweighting, can the current frame keep using it?”</p>
+</blockquote>
+<p>What we reuse here is not the radiance computed in the previous frame. We reuse the <strong>light sample</strong> stored in the previous reservoir.</p>
+<hr>
+<h4 id="0-What-This-Note-Tries-To-Answer"><a href="#0-What-This-Note-Tries-To-Answer" class="headerlink" title="0. What This Note Tries To Answer"></a>0. What This Note Tries To Answer</h4><p>This note focuses on three questions:</p>
+<ol>
+<li>If no-reuse selects light samples from scratch every frame, why can temporal reuse keep using a sample from the previous frame?</li>
+<li>Why can’t we copy the previous result directly? Why do we need to recompute the target?</li>
+<li>When merging a previous reservoir into the current reservoir, why is the merge weight:</li>
+</ol>
+<p>$$<br>\mathrm{weight} :&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>\mathrm{prevReservoir.W}<br>\cdot<br>\mathrm{representedM}<br>$$</p>
+<p>As an analogy:</p>
+<blockquote>
+<p>A no-reuse reservoir is like holding a small interview in the current frame: a few light candidates show up, and we pick the one that looks most useful.<br>Temporal reuse is like inviting last frame’s accepted candidate back for another interview. But the job has changed, meaning the shading point changed, so we must evaluate whether the candidate is still suitable.</p>
+</blockquote>
+<hr>
+<h4 id="1-A-One-Sentence-Recap-Of-No-Reuse"><a href="#1-A-One-Sentence-Recap-Of-No-Reuse" class="headerlink" title="1. A One-Sentence Recap Of No-Reuse"></a>1. A One-Sentence Recap Of No-Reuse</h4><p>No-reuse ReSTIR DI can be summarized as:</p>
+<blockquote>
+<p>Look at several candidates, pick one that is more likely to contribute, trace only one final shadow ray, and use <code>W</code> to correct the sampling bias.</p>
+</blockquote>
+<p>For the current shading point <code>x</code>, a light sample can be written as:</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>The direct lighting contribution is:</p>
+<p>$$<br>\begin{aligned}<br>f(x, y) &amp;:&#x3D;<br>L_e(y)<br>\cdot<br>f_r(x, \omega_i, \omega_o)<br>\cdot<br>G(x, y)<br>\cdot<br>V(x, y)<br>\end{aligned}<br>$$</p>
+<p>Here <code>V(x, y)</code> is visibility, the part that needs a shadow ray.</p>
+<p>During candidate selection, however, we usually do not want to trace a shadow ray for every candidate. So we first use a cheap unshadowed target:</p>
+<p>$$<br>\hat{p}(x, y) :&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y)<br>  \cdot<br>  f_r(x, \omega_i, \omega_o)<br>  \cdot<br>  G(x, y)<br>\right)<br>$$</p>
+<p>Intuitively:</p>
+<blockquote>
+<p><code>target</code> means “how worth keeping this candidate appears to be.” It does not have to be a normalized pdf; it only needs to represent relative importance.</p>
+</blockquote>
+<p>If we draw <code>M</code> candidates from the source distribution <code>p_src(y)</code>:</p>
+<p>$$<br>y_1, y_2, \ldots, y_M<br>$$</p>
+<p>The RIS weight for each candidate is:</p>
+<p>$$<br>w_i &#x3D; \frac{\hat{p}(x, y_i)}{p_{\mathrm{src}}(y_i)}<br>$$</p>
+<p>In other words:</p>
+<blockquote>
+<p><code>p_src</code> describes how likely the sample was under the original proposal. <code>target</code> describes how important the sample is for the current point.<br>Using <code>target / sourcePdf</code> compensates for the bias in the original proposal distribution.</p>
+</blockquote>
+<p>The reservoir update pseudocode looks like this:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Reservoir r;</span><br><span class="line">r.y = invalid; <span class="comment">// the currently selected light sample</span></span><br><span class="line">r.wSum = <span class="number">0.0f</span>; <span class="comment">// sum of all candidate weights so far</span></span><br><span class="line">r.M = <span class="number">0</span>;       <span class="comment">// how many candidates this reservoir represents</span></span><br><span class="line">r.W = <span class="number">0.0f</span>;    <span class="comment">// correction weight used after finalization</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; initialCandidates; ++i) &#123;</span><br><span class="line">    LightSample y = <span class="built_in">sampleLight</span>();           <span class="comment">// sample a light sample from p_src(y)</span></span><br><span class="line">    <span class="type">float</span> sourcePdf = <span class="built_in">computeSourcePdf</span>(y);   <span class="comment">// probability density of sampling this y</span></span><br><span class="line"></span><br><span class="line">    Vec3 unshadowed = <span class="built_in">evalUnshadowed</span>(x, y);  <span class="comment">// estimate potential contribution without a shadow ray</span></span><br><span class="line">    <span class="type">float</span> target = <span class="built_in">luminance</span>(unshadowed);    <span class="comment">// how important this sample appears to be</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> w = target / sourcePdf;            <span class="comment">// RIS candidate weight</span></span><br><span class="line"></span><br><span class="line">    r.wSum += w;</span><br><span class="line">    r.M += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The larger the weight, the more likely it replaces the reservoir sample.</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">rand</span>() &lt; w / r.wSum) &#123;</span><br><span class="line">        r.y = y;</span><br><span class="line">        r.y.target = target;</span><br><span class="line">        r.y.sourcePdf = sourcePdf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Finally, the reservoir is finalized:</p>
+<p>$$<br>W &#x3D; \frac{w_{\mathrm{sum}}}{M \cdot \hat{p}(x, y)}<br>$$</p>
+<p>In code:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (r.M &gt; <span class="number">0</span> &amp;&amp; r.wSum &gt; <span class="number">0.0f</span> &amp;&amp; r.y.target &gt; <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="comment">// W cancels the bias introduced by target-weighted reservoir selection.</span></span><br><span class="line">    r.W = r.wSum / (<span class="built_in">float</span>(r.M) * r.y.target);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    r.W = <span class="number">0.0f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Only during final shading do we trace the visibility of the selected sample:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Vec3 visibleContribution = <span class="built_in">evalContributionWithVisibility</span>(x, r.y);</span><br><span class="line"></span><br><span class="line"><span class="comment">// r.W is the reservoir probability correction.</span></span><br><span class="line">Vec3 Lo = visibleContribution * r.W;</span><br></pre></td></tr></table></figure>
+
+<p>The key point is:</p>
+<blockquote>
+<p>The reservoir did not trace <code>M</code> shadow rays for free. It only used <code>M</code> cheap unshadowed evaluations to make a better decision about where the final shadow ray should go.</p>
+</blockquote>
+<hr>
+<h4 id="2-Why-Temporal-Reuse-Can-Reuse-Anything"><a href="#2-Why-Temporal-Reuse-Can-Reuse-Anything" class="headerlink" title="2. Why Temporal Reuse Can Reuse Anything"></a>2. Why Temporal Reuse Can Reuse Anything</h4><p>The problem with no-reuse is that every frame starts from zero.</p>
+<p>If this frame already spent <code>K</code> candidates to find a decent light sample, and the next frame has a similar camera and surface point, throwing that sample away completely can be wasteful.</p>
+<p>The core question is: <strong>why is a sample from the previous frame valid in the current frame?</strong></p>
+<p>The reason is that the direct lighting sample space is the set of all possible light samples:</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>For neighboring frames and neighboring surface points, this sample space usually does not change. The <code>y_prev</code> stored in the previous reservoir is still a valid light sample. It is not the previous frame’s color, and it is not the final radiance from the previous frame. It is just “a sampled point on some light.”</p>
+<p>So if the current frame and previous frame correspond to the same surface or shading neighborhood, <code>y_prev</code> can be treated as one more candidate for the current point.</p>
+<p>Put differently:</p>
+<blockquote>
+<p>Temporal reuse does not expand the mathematical sample space; the sample space was already all light samples.<br>It expands the candidate set that participates in current-frame reservoir selection: in addition to fresh candidates from the current frame, we also get one history candidate filtered by the previous frame.</p>
+</blockquote>
+<p>The temporal reuse idea is:</p>
+<blockquote>
+<p>The previous reservoir is like a compressed candidate pool. It stores only one selected sample, but that selected sample represents a group of candidates that were already considered and filtered in the previous frame.</p>
+</blockquote>
+<p>The current frame first looks at its own initial candidates:</p>
+<p>$$<br>y_1, y_2, \ldots, y_K<br>$$</p>
+<p>Temporal reuse adds one sample from the previous frame:</p>
+<p>$$<br>y_{\mathrm{prev}}<br>$$</p>
+<p>Then it merges this sample into the current reservoir as an extra candidate.</p>
+<p>But it is not an ordinary candidate. A fresh initial candidate represents one sample. The previous reservoir’s selected sample represents a set of previous candidates. So the implementation records:</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>Here <code>restirMaxHistory</code> is an upper bound that prevents history from becoming too heavy.</p>
+<p>Intuitively:</p>
+<blockquote>
+<p>An initial candidate is like a candidate who just arrived.<br>A temporal candidate is someone who already passed the previous round. It did not appear out of nowhere; it carries information from previous filtering.</p>
+</blockquote>
+<p>But this needs an immediate caveat: <strong>being able to reuse a light sample does not mean we can copy the previous reservoir unchanged.</strong></p>
+<p>Many fields in the previous reservoir are not properties of the light sample itself. They were computed under the previous frame’s shading point. For example, <code>target</code>, final visible contribution, and the interpretation of the finalized reservoir are all tied to <code>x_prev</code>. Therefore temporal reuse must do two things:</p>
+<ol>
+<li>Use reprojection and validation to check that the previous reservoir likely came from the same surface neighborhood.</li>
+<li>Evaluate <code>y_prev</code> again under the current shading point, then merge it as a current-frame candidate.</li>
+</ol>
+<hr>
+<h4 id="3-What-Temporal-Reuse-Actually-Reuses"><a href="#3-What-Temporal-Reuse-Actually-Reuses" class="headerlink" title="3. What Temporal Reuse Actually Reuses"></a>3. What Temporal Reuse Actually Reuses</h4><p>Temporal reuse reuses the light sample, not radiance.</p>
+<p>The easy-to-miss detail is that before using a previous reservoir, we first need to make sure it comes from the same surface or shading neighborhood as the current pixel. The reservoir is shading-point specific: <code>target</code>, the selected sample’s importance, and the final contribution are all defined relative to one shading point.</p>
+<p>That is why reprojection and validation are needed. Section 5 covers the checks.</p>
+<p>This naturally raises another question: if reprojection says the previous reservoir comes from the same shading neighborhood, can we merge it directly?</p>
+<p>Still no.</p>
+<p>Even when reprojection succeeds, the <code>target</code> stored in the previous reservoir is:</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<p>But the current frame needs:</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>The simplest example is camera motion. Even if the hit point is still near the same surface, the outgoing direction <code>wo</code> may have changed. For glossy or anisotropic BSDFs, the BSDF evaluation changes with <code>wo</code>. Therefore the selected light sample from the previous reservoir can be reused, but its target for the current shading point must be recomputed.</p>
+<p>In other words: <code>y_prev</code> can be kept, and <code>prevReservoir.W</code> plus <code>M</code> can participate in history correction, but <code>y_prev.target</code> cannot be trusted directly. It must be replaced by the current target.</p>
+<p>This step does not resample a light. It takes the same light sample left by the previous frame and scores it again under the current shading point.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// yPrev is the light sample selected by the previous reservoir.</span></span><br><span class="line"><span class="comment">// Only the sample information is reused: light position, normal, emission, etc.</span></span><br><span class="line"></span><br><span class="line">Vec3 wi = <span class="built_in">normalize</span>(yPrev.position - currentHitP);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> NoI = <span class="built_in">max</span>(<span class="built_in">dot</span>(currentNormal, wi), <span class="number">0.0f</span>);</span><br><span class="line"><span class="type">float</span> NoL = <span class="built_in">max</span>(<span class="built_in">dot</span>(yPrev.normal, -wi), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (NoI &lt;= <span class="number">0.0f</span> || NoL &lt;= <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="built_in">rejectTemporalCandidate</span>(); <span class="comment">// the current point cannot geometrically connect to this light sample</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> G = NoI * NoL / <span class="built_in">distanceSquared</span>(currentHitP, yPrev.position);</span><br><span class="line">Vec3 f = <span class="built_in">evalBSDF</span>(currentHitP, wi, wo);</span><br><span class="line"></span><br><span class="line">Vec3 unshadowed = yPrev.emission * f * G;</span><br><span class="line"><span class="type">float</span> currentTarget = <span class="built_in">luminance</span>(unshadowed);</span><br></pre></td></tr></table></figure>
+
+<p>In formulas:</p>
+<p>$$<br>\begin{aligned}<br>\omega_i &amp;&#x3D; \operatorname{normalize}(y_{\mathrm{prev}}.\mathrm{position} - x) \<br>G_{\mathrm{current}} &amp;&#x3D; G(x, y_{\mathrm{prev}}) \<br>f_{r,\mathrm{current}} &amp;&#x3D; f_r(x, \omega_i, \omega_o) \<br>\mathrm{currentTarget}<br>&amp;&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y_{\mathrm{prev}})<br>  \cdot<br>  f_{r,\mathrm{current}}<br>  \cdot<br>  G_{\mathrm{current}}<br>\right)<br>\end{aligned}<br>$$</p>
+<p>If <code>currentTarget &lt;= 0</code>, this temporal sample is not useful for the current point and should be rejected.</p>
+<p>So the rule is:</p>
+<blockquote>
+<p>The previous frame only tells us “this light sample may be good.” The current frame still has to decide “is it good for my current hit point?”</p>
+</blockquote>
+<p>This also explains why temporal reuse is approximate. In the ideal case, if reprojection were an exact one-to-one mapping and all targets and visibility were re-evaluated at the current point, the previous sample would simply be an extra weighted candidate. In practice, reprojection and validation are heuristic checks. Normal thresholds, position thresholds, material id checks, and target ratio clamps reduce bad reuse, but they cannot prove that two pixels correspond to exactly the same integration problem.</p>
+<p>So temporal reuse is best viewed as a variance-bias tradeoff. It uses stronger temporal correlation to reduce single-frame noise and improve stability, but imperfect history matching, validation heuristics, and history clamps may introduce some bias. For real-time rendering this is often acceptable. For offline progressive rendering, it should not be understood as “each frame remains an independent unbiased sample.”</p>
+<hr>
+<h4 id="4-Understanding-The-Previous-Sample-Merge-Weight"><a href="#4-Understanding-The-Previous-Sample-Merge-Weight" class="headerlink" title="4. Understanding The Previous Sample Merge Weight"></a>4. Understanding The Previous Sample Merge Weight</h4><p>The core temporal merge weight is:</p>
+<p>$$<br>\begin{aligned}<br>w_{\mathrm{temporal}} &amp;:&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>W_{\mathrm{prev}}<br>\cdot<br>M_{\mathrm{represented}}<br>\end{aligned}<br>$$</p>
+<p>This corresponds to the current implementation:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint32_t</span> representedM = <span class="built_in">min</span>(prevReservoir.M, restirMaxHistory);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> weight =</span><br><span class="line">    currentTarget       <span class="comment">// how important this sample is for the current shading point</span></span><br><span class="line">  * prevReservoir.W     <span class="comment">// probability correction left by the previous reservoir</span></span><br><span class="line">  * <span class="built_in">float</span>(representedM);<span class="comment">// how many history candidates this sample represents</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">updateReservoirWithRepresentedCandidate</span>(</span><br><span class="line">    currentReservoir,</span><br><span class="line">    temporalSample,</span><br><span class="line">    currentTarget,</span><br><span class="line">    prevReservoir.W,</span><br><span class="line">    representedM,</span><br><span class="line">    <span class="built_in">rng</span>());</span><br></pre></td></tr></table></figure>
+
+<p>We can understand it as three parts.</p>
+<h4 id="4-1-currentTarget-Whether-The-Current-Point-Wants-It"><a href="#4-1-currentTarget-Whether-The-Current-Point-Wants-It" class="headerlink" title="4.1 currentTarget: Whether The Current Point Wants It"></a>4.1 <code>currentTarget</code>: Whether The Current Point Wants It</h4><p>This is the most important “re-interview” in temporal reuse.</p>
+<p>The fact that the previous frame liked <code>y_prev</code> does not mean the current frame likes it too. Therefore the merge must use the target recomputed at the current point:</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>not the stale previous-frame target:</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<h4 id="4-2-W-prev-Correction-From-Previous-Resampling"><a href="#4-2-W-prev-Correction-From-Previous-Resampling" class="headerlink" title="4.2 W_prev: Correction From Previous Resampling"></a>4.2 <code>W_prev</code>: Correction From Previous Resampling</h4><p>The previous sample did not come directly from the raw <code>p_src</code> proposal. It has already been selected by the previous reservoir with a target-biased procedure.</p>
+<p>The previous frame finalization formula is:</p>
+<p>$$<br>W_{\mathrm{prev}} :&#x3D;<br>\frac{<br>  w_{\mathrm{sum,prev}}<br>}{<br>  M_{\mathrm{prev}}<br>  \cdot<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>So <code>W_prev</code> can be understood as:</p>
+<blockquote>
+<p>The selected sample’s probability correction tag from the previous frame. Without it, we forget that this sample was chosen by target-biased resampling.</p>
+</blockquote>
+<h4 id="4-3-representedM-It-Represents-More-Than-One-Sample"><a href="#4-3-representedM-It-Represents-More-Than-One-Sample" class="headerlink" title="4.3 representedM: It Represents More Than One Sample"></a>4.3 <code>representedM</code>: It Represents More Than One Sample</h4><p>A temporal candidate is not an isolated sample. It is the compressed result of the previous reservoir.</p>
+<p>If we do not multiply by <code>representedM</code>, history is treated as only one ordinary candidate, and the information accumulated in the previous frame becomes too weak.</p>
+<p>But if <code>M</code> grows without bound, history becomes too strong and old samples become too hard to replace. So the implementation clamps it:</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>Intuitively:</p>
+<blockquote>
+<p><code>currentTarget</code> decides whether the sample is useful now.<br><code>W_prev</code> says that the sample was previously selected by a reservoir and therefore needs probability correction.<br><code>representedM</code> says how many history candidates are compressed behind it.</p>
+</blockquote>
+<hr>
+<h4 id="5-What-Reprojection-And-Validation-Prevent"><a href="#5-What-Reprojection-And-Validation-Prevent" class="headerlink" title="5. What Reprojection And Validation Prevent"></a>5. What Reprojection And Validation Prevent</h4><p>The biggest problem in temporal reuse is that the same pixel in the previous frame may not correspond to the same surface point in the current frame.</p>
+<p>When the camera moves, or when a surface boundary crosses a pixel, the previous reservoir may come from a different object, material, or normal direction. Directly reusing it can cause:</p>
+<ul>
+<li>ghosting: old lighting lingers in the image.</li>
+<li>leaking: a light sample from one object leaks onto another.</li>
+<li>wrong material reuse: the previous frame was a wall, but the current frame is metal or another material.</li>
+</ul>
+<p>So temporal reuse first performs reprojection and validation:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">current hit point</span><br><span class="line">  -&gt; project into previous camera        # project current hitP into the previous camera</span><br><span class="line">  -&gt; find previous pixel                 # locate the corresponding previous pixel</span><br><span class="line">  -&gt; read previous surface metadata      # read previous hitP / normal / material</span><br><span class="line">  -&gt; validate same surface               # check whether it is the same surface neighborhood</span><br><span class="line">  -&gt; read previous reservoir             # only read the reservoir after validation succeeds</span><br></pre></td></tr></table></figure>
+
+<p>The current validation mainly checks:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">previous pixel inside framebuffer        # reprojection must stay on screen</span><br><span class="line">previous surface valid                   # the previous pixel must have hit something</span><br><span class="line">material id match                        # avoid cross-material reuse</span><br><span class="line">normal agreement                         # avoid crossing geometric boundaries</span><br><span class="line">world-space hit position threshold       # hitP cannot differ too much</span><br><span class="line">previous reservoir valid                 # previous reservoir itself must be valid</span><br><span class="line">current target re-evaluation valid       # current target must be valid</span><br><span class="line">target ratio in range                    # current/previous target cannot change too much</span><br></pre></td></tr></table></figure>
+
+<p>The target ratio clamp is a practical safety valve:</p>
+<p>$$<br>\mathrm{targetRatio} &#x3D;<br>\frac{<br>  \hat{p}(x, y_{\mathrm{prev}})<br>}{<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>If:</p>
+<p>$$<br>\mathrm{targetRatio} &lt; 0.1<br>\quad \text{or} \quad<br>\mathrm{targetRatio} &gt; 10<br>$$</p>
+<p>then reject the temporal sample.</p>
+<p>This is not a strict mathematical requirement. It is more of a guardrail:</p>
+<blockquote>
+<p>If the same sample changes importance by more than 10x between the current and previous point, it is probably no longer the same local problem. Dropping it is safer than risking ghosting.</p>
+</blockquote>
+<hr>
+<h4 id="6-Reading-The-Experiment-Results"><a href="#6-Reading-The-Experiment-Results" class="headerlink" title="6. Reading The Experiment Results"></a>6. Reading The Experiment Results</h4><p>The current experiments mainly look at three metrics:</p>
+<ul>
+<li><strong>per-frame accuracy</strong>: how close a single frame is to the reference.</li>
+<li><strong>per-frame stability</strong>: how stable neighboring frames are.</li>
+<li><strong>accumulated frame accuracy</strong>: how close progressive accumulation is to the reference.</li>
+</ul>
+<p>The results are roughly:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Static per-frame stability:</span><br><span class="line">No temporal LumaRMSE  mean=0.208880</span><br><span class="line">Temporal    LumaRMSE  mean=0.189280</span><br><span class="line"># temporal reduces adjacent-frame differences, so the image is more stable</span><br><span class="line"></span><br><span class="line">Static per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.155184</span><br><span class="line">Temporal    LumaRMSE  mean=0.145915</span><br><span class="line"># with a static camera, temporal is also closer to the reference per frame</span><br><span class="line"></span><br><span class="line">Moving camera per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.162502</span><br><span class="line">Temporal    LumaRMSE  mean=0.155823</span><br><span class="line"># with mild camera motion, reprojection + validation still helps</span><br></pre></td></tr></table></figure>
+
+<p>For a real-time rendering scenario, temporal reuse basically achieves its goal:</p>
+<blockquote>
+<p>The image is cleaner per frame, more stable across frames, and still useful under small camera motion.</p>
+</blockquote>
+<p>But accumulated RMSE is not necessarily better:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">No temporal accumulated:</span><br><span class="line">RGB RMSE = 0.004208</span><br><span class="line">Luma ratio = 1.000001</span><br><span class="line"># no temporal behaves more like independent per-frame samples, which fits progressive averaging better</span><br><span class="line"></span><br><span class="line">Temporal after weight fix:</span><br><span class="line">RGB RMSE = 0.010192</span><br><span class="line">Luma ratio = 0.992809</span><br><span class="line"># temporal is more stable per frame, but adjacent frames are more correlated, so accumulation may not win</span><br></pre></td></tr></table></figure>
+
+<p>The reason is that progressive rendering wants each frame to behave as much as possible like an independent Monte Carlo estimate:</p>
+<p>$$<br>\bar{L}<em>N &#x3D; \frac{1}{N} \sum</em>{t&#x3D;1}^{N} L_t<br>$$</p>
+<p>If the <code>L_t</code> values are independent, variance decreases roughly like:</p>
+<p>$$<br>\frac{1}{N}<br>$$</p>
+<p>But temporal reuse makes the current frame depend on the previous frame:</p>
+<p>$$<br>R_t &#x3D;<br>\operatorname{merge}<br>\left(<br>  \text{initial candidates at } t,<br>  R_{t-1}<br>\right)<br>$$</p>
+<p>So <code>L_t</code> and <code>L_&#123;t-1&#125;</code> are no longer independent. The image looks more stable, but the effective number of independent samples in a progressive average is lower.</p>
+<p>That is why the current conclusion should be:</p>
+<blockquote>
+<p>Temporal reuse is better understood as real-time temporal stabilization, not as a guarantee that offline progressive path tracing converges faster as an unbiased estimator.</p>
+</blockquote>
+<hr>
+<h4 id="7-What-Buffers-The-Implementation-Needs"><a href="#7-What-Buffers-The-Implementation-Needs" class="headerlink" title="7. What Buffers The Implementation Needs"></a>7. What Buffers The Implementation Needs</h4><p>The temporal reuse MVP needs at least four kinds of state:</p>
+<ol>
+<li>current &#x2F; previous reservoir</li>
+<li>current &#x2F; previous surface data</li>
+<li>previous camera</li>
+<li>debug &#x2F; selection-source buffers</li>
+</ol>
+<p>The core structures are:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// The light sample selected by a reservoir.</span></span><br><span class="line"><span class="comment">// Temporal reuse reuses this sample, not the previous frame&#x27;s radiance.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirLightSample</span> &#123;</span><br><span class="line">    <span class="type">int</span> lightId;       <span class="comment">// which light</span></span><br><span class="line">    Vec2f uv;          <span class="comment">// sampled location on the light surface</span></span><br><span class="line">    <span class="type">float</span> sourcePdf;   <span class="comment">// pdf of originally sampling this sample from p_src</span></span><br><span class="line">    <span class="type">float</span> target;      <span class="comment">// target re-evaluated for the current shading point</span></span><br><span class="line"></span><br><span class="line">    Vec3f position;    <span class="comment">// sampled point on light</span></span><br><span class="line">    Vec3f normal;      <span class="comment">// light sample normal</span></span><br><span class="line">    Vec3f emission;    <span class="comment">// light emission</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// A reservoir is a compressed candidate pool.</span></span><br><span class="line"><span class="comment">// It stores only one selected sample, while wSum / W / M keep probability correction information.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirReservoir</span> &#123;</span><br><span class="line">    RestirLightSample y; <span class="comment">// selected candidate</span></span><br><span class="line">    <span class="type">float</span> wSum;          <span class="comment">// sum of candidate weights</span></span><br><span class="line">    <span class="type">float</span> W;             <span class="comment">// correction weight used during final shading</span></span><br><span class="line">    <span class="type">uint32_t</span> M;          <span class="comment">// how many candidates this reservoir represents</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Surface metadata is used for temporal reprojection validation.</span></span><br><span class="line"><span class="comment">// Without it, we cannot tell whether a previous reservoir is valid for the current hit point.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirSurfaceData</span> &#123;</span><br><span class="line">    vec3f hitP;       <span class="comment">// world-space primary hit position for this pixel</span></span><br><span class="line">    vec3f normal;     <span class="comment">// hit surface normal</span></span><br><span class="line">    <span class="type">int</span> materialId;   <span class="comment">// used to avoid cross-material reuse</span></span><br><span class="line">    <span class="type">int</span> valid;        <span class="comment">// whether this pixel has a valid primary hit</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>On the GPU side, these buffers need ping-ponging:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">current reservoir buffer        # written by the current frame</span><br><span class="line">previous reservoir buffer       # read by the current frame as history</span><br><span class="line"></span><br><span class="line">current surface data buffer     # current frame writes hitP / normal / material</span><br><span class="line">previous surface data buffer    # current frame reads this for validation</span><br></pre></td></tr></table></figure>
+
+<p>Each frame roughly does:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">begin frame</span><br><span class="line">  read previous reservoir / surface data</span><br><span class="line">  generate current initial candidates</span><br><span class="line">  optionally merge temporal candidate</span><br><span class="line">  write current reservoir / surface data</span><br><span class="line">end frame</span><br><span class="line"></span><br><span class="line">swap current and previous buffers</span><br></pre></td></tr></table></figure>
+
+<p>We also need to save the previous camera:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Used to project the current hitP back into the previous frame.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CameraFrameGPU</span> &#123;</span><br><span class="line">    vec3f pos;      <span class="comment">// previous camera position</span></span><br><span class="line">    vec3f dir_00;   <span class="comment">// lower-left ray direction in the previous frame</span></span><br><span class="line">    vec3f dir_du;   <span class="comment">// previous frame horizontal ray delta</span></span><br><span class="line">    vec3f dir_dv;   <span class="comment">// previous frame vertical ray delta</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>So the implementation flow can be summarized as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1. Generate a local reservoir normally for the current frame</span><br><span class="line">2. Project current hitP into the previous camera</span><br><span class="line">3. Read previous surface data and validate the same surface neighborhood</span><br><span class="line">4. Read the selected light sample from the previous reservoir</span><br><span class="line">5. Re-evaluate that sample&#x27;s target at the current hit point</span><br><span class="line">6. Merge it using currentTarget * prevW * representedM</span><br><span class="line">7. Finalize the current reservoir</span><br><span class="line">8. Trace a shadow ray for the final selected sample</span><br><span class="line">9. Write current reservoir / surface data for the next frame</span><br></pre></td></tr></table></figure>
+
+<p>Seen this way, temporal reuse is not a mysterious new estimator. It adds one more “validated history candidate” on top of the no-reuse reservoir.</p>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>

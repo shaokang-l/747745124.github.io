@@ -1,0 +1,409 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ReSTIR DI - 02 - Temporal Reuse - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,上一篇主要讲 no-reuse ReSTIR DI &amp;#x2F; RIS：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="ReSTIR DI - 02 - Temporal Reuse - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,上一篇主要讲 no-reuse ReSTIR DI &amp;#x2F; RIS：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="ReSTIR DI - 02 - Temporal Reuse - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,上一篇主要讲 no-reuse ReSTIR DI &amp;#x2F; RIS：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">ReSTIR DI - 02 - Temporal Reuse</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            ReSTIR DI - 02 - Temporal Reuse
+        </h1>
+        <div class="stuff">
+            <span>
+                May 17, 2026
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/ReSTIR/" rel="tag">ReSTIR</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Rendering/" rel="tag">Rendering</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>上一篇主要讲 <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可能有贡献的 sample。</p>
+<p>这一篇继续看 <strong>temporal reuse</strong>。</p>
+<p>先给一个很短的直觉：</p>
+<blockquote>
+<p>no-reuse 是“这一帧重新挑一个好 light sample”；temporal reuse 是“上一帧已经挑过一个不错的 sample，这一帧能不能在检查和重新加权之后继续用？”</p>
+</blockquote>
+<p>注意这里复用的不是上一帧算出来的 radiance，而是上一帧 reservoir 里保存的 <strong>light sample</strong>。</p>
+<hr>
+<h4 id="0-这篇想回答什么？"><a href="#0-这篇想回答什么？" class="headerlink" title="0. 这篇想回答什么？"></a>0. 这篇想回答什么？</h4><p>这篇主要想回答三个问题：</p>
+<ol>
+<li>no-reuse 每帧都重新选 light sample，为什么 temporal reuse 可以拿上一帧的 sample 继续用？</li>
+<li>为什么不能直接把上一帧的结果搬过来，而必须重新计算 target？</li>
+<li>previous reservoir merge 到 current reservoir 时，为什么权重是：</li>
+</ol>
+<p>$$<br>\mathrm{weight} :&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>\mathrm{prevReservoir.W}<br>\cdot<br>\mathrm{representedM}<br>$$</p>
+<p>如果用一个比喻：</p>
+<blockquote>
+<p>no-reuse reservoir 像当前帧临时做的一次“面试”：来了几个 light candidates，我们选一个最像能干活的。<br>temporal reuse 像把上一帧面试通过的人也叫回来复试一次：但因为岗位变了，也就是 shading point 变了，所以必须重新评估它现在还合不合适。</p>
+</blockquote>
+<hr>
+<h4 id="1-用一句话回顾-no-reuse"><a href="#1-用一句话回顾-no-reuse" class="headerlink" title="1. 用一句话回顾 no-reuse"></a>1. 用一句话回顾 no-reuse</h4><p>no-reuse ReSTIR DI 做的事情可以压缩成一句话：</p>
+<blockquote>
+<p>多看几个 candidate，挑一个更可能有贡献的 sample，最后只 trace 一条 shadow ray，再用 <code>W</code> 修正 sampling bias。</p>
+</blockquote>
+<p>对当前 shading point <code>x</code>，一个 light sample 可以写成：</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>direct lighting contribution 是：</p>
+<p>$$<br>\begin{aligned}<br>f(x, y) &amp;:&#x3D;<br>L_e(y)<br>\cdot<br>f_r(x, \omega_i, \omega_o)<br>\cdot<br>G(x, y)<br>\cdot<br>V(x, y)<br>\end{aligned}<br>$$</p>
+<p>其中 <code>V(x, y)</code> 是 visibility，也就是需要 shadow ray 才能知道的部分。</p>
+<p>但在 candidate selection 阶段，我们通常不想对每个 candidate 都 trace shadow ray，所以先用一个便宜的 unshadowed target：</p>
+<p>$$<br>\hat{p}(x, y) :&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y)<br>  \cdot<br>  f_r(x, \omega_i, \omega_o)<br>  \cdot<br>  G(x, y)<br>\right)<br>$$</p>
+<p>直觉上：</p>
+<blockquote>
+<p><code>target</code> 就是这个 candidate 的“看起来有多值得保留”。它不一定是归一化 pdf，只要能表达相对重要性即可。</p>
+</blockquote>
+<p>如果从 source distribution <code>p_src(y)</code> 采了 <code>M</code> 个 candidates：</p>
+<p>$$<br>y_1, y_2, \ldots, y_M<br>$$</p>
+<p>每个 candidate 的 RIS weight 是：</p>
+<p>$$<br>w_i &#x3D; \frac{\hat{p}(x, y_i)}{p_{\mathrm{src}}(y_i)}<br>$$</p>
+<p>也就是说：</p>
+<blockquote>
+<p><code>p_src</code> 负责“这个 sample 本来有多容易被采到”，<code>target</code> 负责“这个 sample 对当前点有多重要”。<br>用 <code>target / sourcePdf</code>，就是在补偿原始 proposal distribution 的偏差。</p>
+</blockquote>
+<p>reservoir update 的伪代码可以写成：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Reservoir r;</span><br><span class="line">r.y = invalid; <span class="comment">// 当前 reservoir 选中的 light sample</span></span><br><span class="line">r.wSum = <span class="number">0.0f</span>; <span class="comment">// 到目前为止所有 candidate weight 的总和</span></span><br><span class="line">r.M = <span class="number">0</span>;       <span class="comment">// reservoir 当前代表了多少个 candidates</span></span><br><span class="line">r.W = <span class="number">0.0f</span>;    <span class="comment">// finalize 后用于 shading 的校正权重</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; initialCandidates; ++i) &#123;</span><br><span class="line">    LightSample y = <span class="built_in">sampleLight</span>();           <span class="comment">// 从 p_src(y) 采一个 light sample</span></span><br><span class="line">    <span class="type">float</span> sourcePdf = <span class="built_in">computeSourcePdf</span>(y);   <span class="comment">// 采到这个 y 的概率密度</span></span><br><span class="line"></span><br><span class="line">    Vec3 unshadowed = <span class="built_in">evalUnshadowed</span>(x, y);  <span class="comment">// 不 trace shadow ray，只估计潜在贡献</span></span><br><span class="line">    <span class="type">float</span> target = <span class="built_in">luminance</span>(unshadowed);    <span class="comment">// target = 这个 sample 看起来有多重要</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> w = target / sourcePdf;            <span class="comment">// RIS candidate weight</span></span><br><span class="line"></span><br><span class="line">    r.wSum += w;</span><br><span class="line">    r.M += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// weight 越大，越有机会替换当前 reservoir 里的 sample</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">rand</span>() &lt; w / r.wSum) &#123;</span><br><span class="line">        r.y = y;</span><br><span class="line">        r.y.target = target;</span><br><span class="line">        r.y.sourcePdf = sourcePdf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后 reservoir 需要 finalize：</p>
+<p>$$<br>W &#x3D; \frac{w_{\mathrm{sum}}}{M \cdot \hat{p}(x, y)}<br>$$</p>
+<p>对应到代码就是：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (r.M &gt; <span class="number">0</span> &amp;&amp; r.wSum &gt; <span class="number">0.0f</span> &amp;&amp; r.y.target &gt; <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="comment">// W 用来抵消 reservoir 按 target 偏向选择 sample 带来的 bias</span></span><br><span class="line">    r.W = r.wSum / (<span class="built_in">float</span>(r.M) * r.y.target);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    r.W = <span class="number">0.0f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终 shading 时才 trace selected sample 的 visibility：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Vec3 visibleContribution = <span class="built_in">evalContributionWithVisibility</span>(x, r.y);</span><br><span class="line"></span><br><span class="line"><span class="comment">// r.W 是 reservoir 的概率校正项</span></span><br><span class="line">Vec3 Lo = visibleContribution * r.W;</span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的是：</p>
+<blockquote>
+<p>reservoir 不是免费算了 <code>M</code> 条 shadow ray。它只是用 <code>M</code> 次便宜的 unshadowed evaluation，帮我们更聪明地决定最后那一条 shadow ray 应该打向哪里。</p>
+</blockquote>
+<hr>
+<h4 id="2-Temporal-reuse-为什么可以复用？"><a href="#2-Temporal-reuse-为什么可以复用？" class="headerlink" title="2. Temporal reuse 为什么可以复用？"></a>2. Temporal reuse 为什么可以复用？</h4><p>no-reuse 的问题是：每一帧都从零开始。</p>
+<p>这一帧已经花了 <code>K</code> 个 candidates 挑出来一个不错的 light sample，下一帧如果 camera 没怎么动、surface point 也差不多，完全丢掉它有点浪费。</p>
+<p>这里先回答一个最核心的问题：<strong>为什么上一帧的 sample 可以拿到当前帧来用？</strong></p>
+<p>原因是 direct lighting 的 sample space 本来就是所有可能的 light samples：</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>对相邻帧、相邻 surface point 来说，这个 sample space 通常没有变。上一帧 reservoir 里保存的 <code>y_prev</code>，本质上仍然是一个合法的 light sample。它不是上一帧的颜色，也不是上一帧最终算出来的 radiance，而是“某个光源上的一个采样点”。</p>
+<p>所以如果 current frame 和 previous frame 对应的是同一个 surface &#x2F; shading neighborhood，那么 <code>y_prev</code> 对当前点来说也可以作为一个额外的 candidate。</p>
+<p>换句话说：</p>
+<blockquote>
+<p>temporal reuse 不是扩大了数学上的 sample space；sample space 本来就是所有 light samples。<br>它扩大的是当前帧实际参与 reservoir selection 的 candidate set：除了当前帧新采的 candidates，还额外拿到了一个经过上一帧筛选的 history candidate。</p>
+</blockquote>
+<p>所以 temporal reuse 的想法是：</p>
+<blockquote>
+<p>上一帧的 reservoir 像一个“压缩过的候选池”。它虽然只存了一个 selected sample，但这个 sample 背后代表了一批已经看过、筛过的 candidates。</p>
+</blockquote>
+<p>当前帧本来只看自己的 initial candidates：</p>
+<p>$$<br>y_1, y_2, \ldots, y_K<br>$$</p>
+<p>temporal reuse 会再加入一个上一帧留下来的 sample：</p>
+<p>$$<br>y_{\mathrm{prev}}<br>$$</p>
+<p>然后把它当成一个额外 candidate merge 进当前 reservoir。</p>
+<p>但它不是普通 candidate。普通 initial candidate 只代表自己一个 sample；上一帧 reservoir 的 selected sample 代表的是上一帧积累过的一批 candidates。所以当前实现里会记录：</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>其中 <code>restirMaxHistory</code> 是一个上限，防止 history 越滚越大。</p>
+<p>可以把它想成：</p>
+<blockquote>
+<p>initial candidate 像“刚刚新来的候选人”。<br>temporal candidate 像“上一轮筛选留下来的候选人”，它不是凭空来的，而是背后带着上一轮筛选的信息。</p>
+</blockquote>
+<p>但这里也要马上补上一句：<strong>可以复用 light sample，不等于可以原封不动复用 previous reservoir。</strong></p>
+<p>previous reservoir 里的很多量并不是 light sample 自己的属性，而是上一帧 shading point 下算出来的属性。比如 <code>target</code>、最终 visible contribution、以及 reservoir finalize 后的解释，都和上一帧的 <code>x_prev</code> 绑定。因此 temporal reuse 必须同时做两件事：</p>
+<ol>
+<li>用 reprojection &#x2F; validation 尽量确认 previous reservoir 来自同一个 surface neighborhood。</li>
+<li>把 <code>y_prev</code> 放到当前 shading point 下重新 evaluate，再作为当前 reservoir 的候选项参与 merge。</li>
+</ol>
+<hr>
+<h4 id="3-Temporal-Reuse复用的是什么？"><a href="#3-Temporal-Reuse复用的是什么？" class="headerlink" title="3. Temporal Reuse复用的是什么？"></a>3. Temporal Reuse复用的是什么？</h4><ul>
+<li>Temporal reuse 复用的是 light sample，不是 radiance。</li>
+</ul>
+<p>这里有一个容易忽略的细节：如果想复用 previous reservoir，首先要尽量保证它来自当前帧对应的同一个 surface &#x2F; shading neighborhood。因为 reservoir 里的信息不是全局的，它是 shading-point specific 的：<code>target</code>、selected sample 的重要性、以及最后的 contribution，都是相对于某个 shading point 定义的。</p>
+<p>所以我们会先用 reprojection 和 validation 来检查这个约束，具体可以看第五部分。</p>
+<p>但这又会带来一个自然的问题：如果 reprojection 之后基本确认 previous reservoir 来自同一个 shading neighborhood，那是不是可以直接把它原封不动 merge 到 current reservoir？</p>
+<p>答案仍然是不行。</p>
+<p>即使 reprojection 成功，previous reservoir 里保存的 <code>target</code> 仍然是上一帧的：</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<p>而当前帧真正需要的是：</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>最简单的例子是 camera motion。即使 hit point 仍然落在同一个 surface 附近，outgoing direction <code>wo</code> 也可能变了；对于 glossy &#x2F; anisotropic BSDF，BSDF evaluation 会随 <code>wo</code> 改变。因此 previous reservoir 里的 selected light sample 可以复用，但它对当前 shading point 的 target 必须重新 evaluate。</p>
+<p>换句话说：<code>y_prev</code> 可以保留，<code>prevReservoir.W</code> 和 <code>M</code> 可以作为 history correction 参与 merge；但 <code>y_prev.target</code> 不能直接相信，必须替换成 current target。</p>
+<p>这一步不是重新 sample light，而是把上一帧留下来的同一个 light sample，放到当前 shading point 下重新打分。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// yPrev 是上一帧 reservoir 选中的 light sample</span></span><br><span class="line"><span class="comment">// 注意：这里只复用 yPrev 的 light position / normal / emission 等 sample 信息</span></span><br><span class="line"></span><br><span class="line">Vec3 wi = <span class="built_in">normalize</span>(yPrev.position - currentHitP);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> NoI = <span class="built_in">max</span>(<span class="built_in">dot</span>(currentNormal, wi), <span class="number">0.0f</span>);</span><br><span class="line"><span class="type">float</span> NoL = <span class="built_in">max</span>(<span class="built_in">dot</span>(yPrev.normal, -wi), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (NoI &lt;= <span class="number">0.0f</span> || NoL &lt;= <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="built_in">rejectTemporalCandidate</span>(); <span class="comment">// 当前点和这个 light sample 几何上连不上</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> G = NoI * NoL / <span class="built_in">distanceSquared</span>(currentHitP, yPrev.position);</span><br><span class="line">Vec3 f = <span class="built_in">evalBSDF</span>(currentHitP, wi, wo);</span><br><span class="line"></span><br><span class="line">Vec3 unshadowed = yPrev.emission * f * G;</span><br><span class="line"><span class="type">float</span> currentTarget = <span class="built_in">luminance</span>(unshadowed);</span><br></pre></td></tr></table></figure>
+
+<p>公式上就是：</p>
+<p>$$<br>\begin{aligned}<br>\omega_i &amp;&#x3D; \operatorname{normalize}(y_{\mathrm{prev}}.\mathrm{position} - x) \<br>G_{\mathrm{current}} &amp;&#x3D; G(x, y_{\mathrm{prev}}) \<br>f_{r,\mathrm{current}} &amp;&#x3D; f_r(x, \omega_i, \omega_o) \<br>\mathrm{currentTarget}<br>&amp;&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y_{\mathrm{prev}})<br>  \cdot<br>  f_{r,\mathrm{current}}<br>  \cdot<br>  G_{\mathrm{current}}<br>\right)<br>\end{aligned}<br>$$</p>
+<p>如果 <code>currentTarget &lt;= 0</code>，这个 temporal sample 对当前点就没有意义，应该 reject。</p>
+<p>所以这一步可以记成：</p>
+<blockquote>
+<p>上一帧只告诉我们“这个 light sample 可能不错”；当前帧必须自己判断“它对我现在这个 hit point 还不错吗？”</p>
+</blockquote>
+<p>这里也可以顺便解释 temporal reuse 的近似性。理想情况下，如果 reprojection 真的是严格的一一对应，且所有 target &#x2F; visibility 都在当前点重新 evaluate，那么 previous sample 就只是一个带权重校正的额外 candidate。但实际工程里，reprojection 和 validation 都是近似检查：normal threshold、position threshold、material id、target ratio clamp 都只能降低错误复用的概率，不能证明两个 pixel 对应完全相同的积分问题。</p>
+<p>所以 temporal reuse 更像一个 variance-bias tradeoff：它用更强的时域相关性换取单帧降噪和稳定性，但也可能因为不完美的 history match、heuristic validation、history clamp 等因素引入一些偏差。对 realtime rendering 来说，这通常是可接受的；但对 offline progressive rendering 来说，它不应该被简单理解成“每帧都是独立无偏 sample”。</p>
+<hr>
+<h4 id="4-previous-sample-merge-weight-怎么理解？"><a href="#4-previous-sample-merge-weight-怎么理解？" class="headerlink" title="4. previous sample merge weight 怎么理解？"></a>4. previous sample merge weight 怎么理解？</h4><p>temporal merge 最核心的权重是：</p>
+<p>$$<br>\begin{aligned}<br>w_{\mathrm{temporal}} &amp;:&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>W_{\mathrm{prev}}<br>\cdot<br>M_{\mathrm{represented}}<br>\end{aligned}<br>$$</p>
+<p>也就是当前实现里的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint32_t</span> representedM = <span class="built_in">min</span>(prevReservoir.M, restirMaxHistory);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> weight =</span><br><span class="line">    currentTarget       <span class="comment">// 当前 shading point 觉得这个 sample 有多重要</span></span><br><span class="line">  * prevReservoir.W     <span class="comment">// 上一帧 reservoir resampling 留下的概率校正</span></span><br><span class="line">  * <span class="built_in">float</span>(representedM);<span class="comment">// 这个 sample 代表了多少个 history candidates</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">updateReservoirWithRepresentedCandidate</span>(</span><br><span class="line">    currentReservoir,</span><br><span class="line">    temporalSample,</span><br><span class="line">    currentTarget,</span><br><span class="line">    prevReservoir.W,</span><br><span class="line">    representedM,</span><br><span class="line">    <span class="built_in">rng</span>());</span><br></pre></td></tr></table></figure>
+
+<p>可以拆成三部分理解。</p>
+<h4 id="4-1-currentTarget：当前点觉得它重不重要"><a href="#4-1-currentTarget：当前点觉得它重不重要" class="headerlink" title="4.1 currentTarget：当前点觉得它重不重要"></a>4.1 <code>currentTarget</code>：当前点觉得它重不重要</h4><p>这是 temporal reuse 最重要的“重新面试”。</p>
+<p>上一帧觉得 <code>y_prev</code> 好，不代表当前帧也觉得它好。所以 merge 时必须用当前点重新算出来的 target：</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>而不是上一帧旧的：</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<h4 id="4-2-W-prev：上一帧-resampling-带来的校正"><a href="#4-2-W-prev：上一帧-resampling-带来的校正" class="headerlink" title="4.2 W_prev：上一帧 resampling 带来的校正"></a>4.2 <code>W_prev</code>：上一帧 resampling 带来的校正</h4><p>previous sample 不是直接从 <code>p_src</code> 原始采样得到的。它已经被上一帧 reservoir 按 target 偏向性地挑选过。</p>
+<p>上一帧 finalize 公式是：</p>
+<p>$$<br>W_{\mathrm{prev}} :&#x3D;<br>\frac{<br>  w_{\mathrm{sum,prev}}<br>}{<br>  M_{\mathrm{prev}}<br>  \cdot<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>所以 <code>W_prev</code> 可以理解成：</p>
+<blockquote>
+<p>上一帧 selected sample 自带的“概率校正标签”。没有它，我们会忘记这个 sample 是被 target-biased resampling 挑出来的。</p>
+</blockquote>
+<h4 id="4-3-representedM：它代表的不只是一个-sample"><a href="#4-3-representedM：它代表的不只是一个-sample" class="headerlink" title="4.3 representedM：它代表的不只是一个 sample"></a>4.3 <code>representedM</code>：它代表的不只是一个 sample</h4><p>temporal candidate 不是一个孤立 sample。它是上一帧 reservoir 压缩后的结果。</p>
+<p>如果完全不乘 <code>representedM</code>，就会把 history 当成普通一个 candidate，上一帧积累的信息会被压得太弱。</p>
+<p>但如果无限累积 <code>M</code>，history 又会越来越重，导致旧 sample 太难被新样本替换。所以实现里会 clamp：</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>直觉上：</p>
+<blockquote>
+<p><code>currentTarget</code> 决定“它现在值不值得用”。<br><code>W_prev</code> 负责“它之前被 reservoir 挑中过，所以要带上校正”。<br><code>representedM</code> 表示“它背后压缩了多少历史候选”。</p>
+</blockquote>
+<hr>
+<h4 id="5-Reprojection-validation-在防什么？"><a href="#5-Reprojection-validation-在防什么？" class="headerlink" title="5. Reprojection &#x2F; validation 在防什么？"></a>5. Reprojection &#x2F; validation 在防什么？</h4><p>temporal reuse 最大的问题是：上一帧同一个 pixel，不一定还是当前帧同一个 surface point。</p>
+<p>camera 一动，或者 surface 边界刚好扫过 pixel，上一帧的 reservoir 可能来自另一个物体、另一个材质、另一个 normal 方向。直接复用就会出现：</p>
+<ul>
+<li>ghosting：旧光照拖影还留在画面里。</li>
+<li>leaking：一个物体上的 light sample 漏到另一个物体上。</li>
+<li>wrong material reuse：上一帧是墙，当前帧是金属或者别的材质。</li>
+</ul>
+<p>所以 temporal reuse 之前要做 reprojection 和 validation：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">current hit point</span><br><span class="line">  -&gt; project into previous camera        # 当前 hitP 投影到上一帧相机</span><br><span class="line">  -&gt; find previous pixel                 # 找到上一帧对应 pixel</span><br><span class="line">  -&gt; read previous surface metadata      # 读取上一帧 hitP / normal / material</span><br><span class="line">  -&gt; validate same surface               # 检查是不是同一类 surface</span><br><span class="line">  -&gt; read previous reservoir             # 验证通过后才读取 reservoir</span><br></pre></td></tr></table></figure>
+
+<p>当前 validation 主要检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">previous pixel inside framebuffer        # 投影不能出屏幕</span><br><span class="line">previous surface valid                   # 上一帧这个 pixel 必须真的 hit 到东西</span><br><span class="line">material id match                        # 材质要一致，避免跨材质复用</span><br><span class="line">normal agreement                         # normal 方向要接近，避免跨几何边界</span><br><span class="line">world-space hit position threshold       # hitP 不能差太远</span><br><span class="line">previous reservoir valid                 # 上一帧 reservoir 本身要有效</span><br><span class="line">current target re-evaluation valid       # 当前点重新评估 target 要有效</span><br><span class="line">target ratio in range                    # 当前/上一帧 target 变化不能太夸张</span><br></pre></td></tr></table></figure>
+
+<p>其中 target ratio clamp 是一个很实用的工程安全阀：</p>
+<p>$$<br>\mathrm{targetRatio} &#x3D;<br>\frac{<br>  \hat{p}(x, y_{\mathrm{prev}})<br>}{<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>如果：</p>
+<p>$$<br>\mathrm{targetRatio} &lt; 0.1<br>\quad \text{or} \quad<br>\mathrm{targetRatio} &gt; 10<br>$$</p>
+<p>就 reject。</p>
+<p>这不是严格数学上必须的项，更像一个防呆规则：</p>
+<blockquote>
+<p>如果同一个 sample 在当前点和上一帧点的重要性差了十倍以上，那很可能不是“同一个局部问题”了。与其冒 ghosting 的风险，不如丢掉。</p>
+</blockquote>
+<hr>
+<h4 id="6-实验结果怎么解读？"><a href="#6-实验结果怎么解读？" class="headerlink" title="6. 实验结果怎么解读？"></a>6. 实验结果怎么解读？</h4><p>目前实验里主要看了三类指标：</p>
+<ul>
+<li><strong>per-frame accuracy</strong>：单帧和 reference 有多接近。</li>
+<li><strong>per-frame stability</strong>：相邻帧之间有多稳定。</li>
+<li><strong>accumulated frame accuracy</strong>：progressive accumulation 后和 reference 有多接近。</li>
+</ul>
+<p>结果大致是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Static per-frame stability:</span><br><span class="line">No temporal LumaRMSE  mean=0.208880</span><br><span class="line">Temporal    LumaRMSE  mean=0.189280</span><br><span class="line"># temporal 降低了相邻帧差异，画面更稳</span><br><span class="line"></span><br><span class="line">Static per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.155184</span><br><span class="line">Temporal    LumaRMSE  mean=0.145915</span><br><span class="line"># static camera 下，temporal 单帧也更接近 reference</span><br><span class="line"></span><br><span class="line">Moving camera per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.162502</span><br><span class="line">Temporal    LumaRMSE  mean=0.155823</span><br><span class="line"># 小幅 camera motion 下，reprojection + validation 仍然有收益</span><br></pre></td></tr></table></figure>
+
+<p>所以如果是实时渲染场景，可以说 temporal reuse 的目标基本达到了：</p>
+<blockquote>
+<p>单帧更干净，帧间更稳定，小幅 moving camera 下也没有完全失效。</p>
+</blockquote>
+<p>但 accumulated RMSE 不一定更好：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">No temporal accumulated:</span><br><span class="line">RGB RMSE = 0.004208</span><br><span class="line">Luma ratio = 1.000001</span><br><span class="line"># no temporal 每帧更接近独立 sample，progressive average 更符合 MC 直觉</span><br><span class="line"></span><br><span class="line">Temporal after weight fix:</span><br><span class="line">RGB RMSE = 0.010192</span><br><span class="line">Luma ratio = 0.992809</span><br><span class="line"># temporal 单帧更稳，但相邻帧相关性更强，累积时不一定占优</span><br></pre></td></tr></table></figure>
+
+<p>原因是 progressive rendering 希望每一帧尽量像独立 Monte Carlo estimate：</p>
+<p>$$<br>\bar{L}<em>N &#x3D; \frac{1}{N} \sum</em>{t&#x3D;1}^{N} L_t<br>$$</p>
+<p>如果 <code>L_t</code> 之间相互独立，variance 大致按：</p>
+<p>$$<br>\frac{1}{N}<br>$$</p>
+<p>下降。</p>
+<p>但 temporal reuse 让当前帧依赖上一帧：</p>
+<p>$$<br>R_t &#x3D;<br>\operatorname{merge}<br>\left(<br>  \text{initial candidates at } t,<br>  R_{t-1}<br>\right)<br>$$</p>
+<p>所以 <code>L_t</code> 和 <code>L_&#123;t-1&#125;</code> 不再独立。画面看起来更稳，但 progressive average 的有效独立样本数下降了。</p>
+<p>这也是为什么当前结论应该写成：</p>
+<blockquote>
+<p>temporal reuse 更适合理解为 real-time temporal stabilization，而不是让 offline progressive path tracing 一定更快收敛的 unbiased estimator。</p>
+</blockquote>
+<hr>
+<h4 id="7-实现上需要什么-buffer？"><a href="#7-实现上需要什么-buffer？" class="headerlink" title="7. 实现上需要什么 buffer？"></a>7. 实现上需要什么 buffer？</h4><p>当前 temporal reuse MVP 至少需要四类状态：</p>
+<ol>
+<li>current &#x2F; previous reservoir</li>
+<li>current &#x2F; previous surface data</li>
+<li>previous camera</li>
+<li>一些 debug &#x2F; selection source buffer</li>
+</ol>
+<p>核心结构大概是：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 被 reservoir 选中的 light sample。</span></span><br><span class="line"><span class="comment">// 注意：temporal reuse 复用的是这个 sample，不是上一帧 radiance。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirLightSample</span> &#123;</span><br><span class="line">    <span class="type">int</span> lightId;       <span class="comment">// 哪一个 light</span></span><br><span class="line">    Vec2f uv;          <span class="comment">// light surface 上的采样位置</span></span><br><span class="line">    <span class="type">float</span> sourcePdf;   <span class="comment">// 这个 sample 原本从 p_src 被采到的 pdf</span></span><br><span class="line">    <span class="type">float</span> target;      <span class="comment">// 针对当前 shading point 重新评估后的 target</span></span><br><span class="line"></span><br><span class="line">    Vec3f position;    <span class="comment">// sampled point on light</span></span><br><span class="line">    Vec3f normal;      <span class="comment">// light sample normal</span></span><br><span class="line">    Vec3f emission;    <span class="comment">// light emission</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一个 reservoir 是一个“压缩候选池”。</span></span><br><span class="line"><span class="comment">// 它只保存一个 selected sample，但通过 wSum / W / M 记录概率校正信息。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirReservoir</span> &#123;</span><br><span class="line">    RestirLightSample y; <span class="comment">// selected candidate</span></span><br><span class="line">    <span class="type">float</span> wSum;          <span class="comment">// candidate weights 的总和</span></span><br><span class="line">    <span class="type">float</span> W;             <span class="comment">// final shading 时使用的校正权重</span></span><br><span class="line">    <span class="type">uint32_t</span> M;          <span class="comment">// 这个 reservoir 代表了多少 candidates</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// surface metadata 用于 temporal reprojection validation。</span></span><br><span class="line"><span class="comment">// 没有这些信息，就不知道上一帧 reservoir 是否还能用于当前 hit point。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirSurfaceData</span> &#123;</span><br><span class="line">    vec3f hitP;       <span class="comment">// 当前 pixel primary hit 的世界坐标</span></span><br><span class="line">    vec3f normal;     <span class="comment">// hit surface normal</span></span><br><span class="line">    <span class="type">int</span> materialId;   <span class="comment">// 用于避免跨材质复用</span></span><br><span class="line">    <span class="type">int</span> valid;        <span class="comment">// 这个 pixel 是否有有效 primary hit</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>GPU 侧需要 ping-pong：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">current reservoir buffer        # 当前帧写入</span><br><span class="line">previous reservoir buffer       # 当前帧读取上一帧 history</span><br><span class="line"></span><br><span class="line">current surface data buffer     # 当前帧写入 hitP / normal / material</span><br><span class="line">previous surface data buffer    # 当前帧读取，用于 validation</span><br></pre></td></tr></table></figure>
+
+<p>每帧大概是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">begin frame</span><br><span class="line">  read previous reservoir / surface data</span><br><span class="line">  generate current initial candidates</span><br><span class="line">  optionally merge temporal candidate</span><br><span class="line">  write current reservoir / surface data</span><br><span class="line">end frame</span><br><span class="line"></span><br><span class="line">swap current and previous buffers</span><br></pre></td></tr></table></figure>
+
+<p>还需要保存 previous camera：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用上一帧 camera frame 把当前 hitP 投影回 previous pixel。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CameraFrameGPU</span> &#123;</span><br><span class="line">    vec3f pos;      <span class="comment">// previous camera position</span></span><br><span class="line">    vec3f dir_00;   <span class="comment">// previous frame lower-left ray direction</span></span><br><span class="line">    vec3f dir_du;   <span class="comment">// previous frame horizontal ray delta</span></span><br><span class="line">    vec3f dir_dv;   <span class="comment">// previous frame vertical ray delta</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>所以可以把 temporal reuse 的实现流程记成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1. 当前帧先正常生成 local reservoir</span><br><span class="line">2. 用 current hitP 投影到 previous camera</span><br><span class="line">3. 读取 previous surface data，检查是不是同一个 surface 附近</span><br><span class="line">4. 读取 previous reservoir 的 selected light sample</span><br><span class="line">5. 在 current hit point 重新评估这个 sample 的 target</span><br><span class="line">6. 用 currentTarget * prevW * representedM merge</span><br><span class="line">7. finalize current reservoir</span><br><span class="line">8. 对最终 selected sample trace shadow ray</span><br><span class="line">9. 写出 current reservoir / surface data，留给下一帧</span><br></pre></td></tr></table></figure>
+
+<p>这样看，temporal reuse 并不是一个神秘的新 estimator，而是在 no-reuse reservoir 之外，多加了一个“经过验证的历史候选”。</p>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>

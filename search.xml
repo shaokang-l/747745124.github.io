@@ -2172,4 +2172,469 @@
         <tag>ReSTIR</tag>
       </tags>
   </entry>
+  <entry>
+    <title>ReSTIR DI - 02 - Temporal Reuse</title>
+    <url>/2026/05/17/ReSTIR_DI_02_temporal_reuse/</url>
+    <content><![CDATA[<p>上一篇主要讲 <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可能有贡献的 sample。</p>
+<p>这一篇继续看 <strong>temporal reuse</strong>。</p>
+<p>先给一个很短的直觉：</p>
+<blockquote>
+<p>no-reuse 是“这一帧重新挑一个好 light sample”；temporal reuse 是“上一帧已经挑过一个不错的 sample，这一帧能不能在检查和重新加权之后继续用？”</p>
+</blockquote>
+<p>注意这里复用的不是上一帧算出来的 radiance，而是上一帧 reservoir 里保存的 <strong>light sample</strong>。</p>
+<hr>
+<h4 id="0-这篇想回答什么？"><a href="#0-这篇想回答什么？" class="headerlink" title="0. 这篇想回答什么？"></a>0. 这篇想回答什么？</h4><p>这篇主要想回答三个问题：</p>
+<ol>
+<li>no-reuse 每帧都重新选 light sample，为什么 temporal reuse 可以拿上一帧的 sample 继续用？</li>
+<li>为什么不能直接把上一帧的结果搬过来，而必须重新计算 target？</li>
+<li>previous reservoir merge 到 current reservoir 时，为什么权重是：</li>
+</ol>
+<p>$$<br>\mathrm{weight} :&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>\mathrm{prevReservoir.W}<br>\cdot<br>\mathrm{representedM}<br>$$</p>
+<p>如果用一个比喻：</p>
+<blockquote>
+<p>no-reuse reservoir 像当前帧临时做的一次“面试”：来了几个 light candidates，我们选一个最像能干活的。<br>temporal reuse 像把上一帧面试通过的人也叫回来复试一次：但因为岗位变了，也就是 shading point 变了，所以必须重新评估它现在还合不合适。</p>
+</blockquote>
+<hr>
+<h4 id="1-用一句话回顾-no-reuse"><a href="#1-用一句话回顾-no-reuse" class="headerlink" title="1. 用一句话回顾 no-reuse"></a>1. 用一句话回顾 no-reuse</h4><p>no-reuse ReSTIR DI 做的事情可以压缩成一句话：</p>
+<blockquote>
+<p>多看几个 candidate，挑一个更可能有贡献的 sample，最后只 trace 一条 shadow ray，再用 <code>W</code> 修正 sampling bias。</p>
+</blockquote>
+<p>对当前 shading point <code>x</code>，一个 light sample 可以写成：</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>direct lighting contribution 是：</p>
+<p>$$<br>\begin{aligned}<br>f(x, y) &amp;:&#x3D;<br>L_e(y)<br>\cdot<br>f_r(x, \omega_i, \omega_o)<br>\cdot<br>G(x, y)<br>\cdot<br>V(x, y)<br>\end{aligned}<br>$$</p>
+<p>其中 <code>V(x, y)</code> 是 visibility，也就是需要 shadow ray 才能知道的部分。</p>
+<p>但在 candidate selection 阶段，我们通常不想对每个 candidate 都 trace shadow ray，所以先用一个便宜的 unshadowed target：</p>
+<p>$$<br>\hat{p}(x, y) :&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y)<br>  \cdot<br>  f_r(x, \omega_i, \omega_o)<br>  \cdot<br>  G(x, y)<br>\right)<br>$$</p>
+<p>直觉上：</p>
+<blockquote>
+<p><code>target</code> 就是这个 candidate 的“看起来有多值得保留”。它不一定是归一化 pdf，只要能表达相对重要性即可。</p>
+</blockquote>
+<p>如果从 source distribution <code>p_src(y)</code> 采了 <code>M</code> 个 candidates：</p>
+<p>$$<br>y_1, y_2, \ldots, y_M<br>$$</p>
+<p>每个 candidate 的 RIS weight 是：</p>
+<p>$$<br>w_i &#x3D; \frac{\hat{p}(x, y_i)}{p_{\mathrm{src}}(y_i)}<br>$$</p>
+<p>也就是说：</p>
+<blockquote>
+<p><code>p_src</code> 负责“这个 sample 本来有多容易被采到”，<code>target</code> 负责“这个 sample 对当前点有多重要”。<br>用 <code>target / sourcePdf</code>，就是在补偿原始 proposal distribution 的偏差。</p>
+</blockquote>
+<p>reservoir update 的伪代码可以写成：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">Reservoir r;</span><br><span class="line">r.y = invalid; <span class="comment">// 当前 reservoir 选中的 light sample</span></span><br><span class="line">r.wSum = <span class="number">0.0f</span>; <span class="comment">// 到目前为止所有 candidate weight 的总和</span></span><br><span class="line">r.M = <span class="number">0</span>;       <span class="comment">// reservoir 当前代表了多少个 candidates</span></span><br><span class="line">r.W = <span class="number">0.0f</span>;    <span class="comment">// finalize 后用于 shading 的校正权重</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; initialCandidates; ++i) &#123;</span><br><span class="line">    LightSample y = <span class="built_in">sampleLight</span>();           <span class="comment">// 从 p_src(y) 采一个 light sample</span></span><br><span class="line">    <span class="type">float</span> sourcePdf = <span class="built_in">computeSourcePdf</span>(y);   <span class="comment">// 采到这个 y 的概率密度</span></span><br><span class="line"></span><br><span class="line">    Vec3 unshadowed = <span class="built_in">evalUnshadowed</span>(x, y);  <span class="comment">// 不 trace shadow ray，只估计潜在贡献</span></span><br><span class="line">    <span class="type">float</span> target = <span class="built_in">luminance</span>(unshadowed);    <span class="comment">// target = 这个 sample 看起来有多重要</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> w = target / sourcePdf;            <span class="comment">// RIS candidate weight</span></span><br><span class="line"></span><br><span class="line">    r.wSum += w;</span><br><span class="line">    r.M += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// weight 越大，越有机会替换当前 reservoir 里的 sample</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">rand</span>() &lt; w / r.wSum) &#123;</span><br><span class="line">        r.y = y;</span><br><span class="line">        r.y.target = target;</span><br><span class="line">        r.y.sourcePdf = sourcePdf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后 reservoir 需要 finalize：</p>
+<p>$$<br>W &#x3D; \frac{w_{\mathrm{sum}}}{M \cdot \hat{p}(x, y)}<br>$$</p>
+<p>对应到代码就是：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (r.M &gt; <span class="number">0</span> &amp;&amp; r.wSum &gt; <span class="number">0.0f</span> &amp;&amp; r.y.target &gt; <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="comment">// W 用来抵消 reservoir 按 target 偏向选择 sample 带来的 bias</span></span><br><span class="line">    r.W = r.wSum / (<span class="built_in">float</span>(r.M) * r.y.target);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    r.W = <span class="number">0.0f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终 shading 时才 trace selected sample 的 visibility：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">Vec3 visibleContribution = <span class="built_in">evalContributionWithVisibility</span>(x, r.y);</span><br><span class="line"></span><br><span class="line"><span class="comment">// r.W 是 reservoir 的概率校正项</span></span><br><span class="line">Vec3 Lo = visibleContribution * r.W;</span><br></pre></td></tr></table></figure>
+
+<p>这里最关键的是：</p>
+<blockquote>
+<p>reservoir 不是免费算了 <code>M</code> 条 shadow ray。它只是用 <code>M</code> 次便宜的 unshadowed evaluation，帮我们更聪明地决定最后那一条 shadow ray 应该打向哪里。</p>
+</blockquote>
+<hr>
+<h4 id="2-Temporal-reuse-为什么可以复用？"><a href="#2-Temporal-reuse-为什么可以复用？" class="headerlink" title="2. Temporal reuse 为什么可以复用？"></a>2. Temporal reuse 为什么可以复用？</h4><p>no-reuse 的问题是：每一帧都从零开始。</p>
+<p>这一帧已经花了 <code>K</code> 个 candidates 挑出来一个不错的 light sample，下一帧如果 camera 没怎么动、surface point 也差不多，完全丢掉它有点浪费。</p>
+<p>这里先回答一个最核心的问题：<strong>为什么上一帧的 sample 可以拿到当前帧来用？</strong></p>
+<p>原因是 direct lighting 的 sample space 本来就是所有可能的 light samples：</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>对相邻帧、相邻 surface point 来说，这个 sample space 通常没有变。上一帧 reservoir 里保存的 <code>y_prev</code>，本质上仍然是一个合法的 light sample。它不是上一帧的颜色，也不是上一帧最终算出来的 radiance，而是“某个光源上的一个采样点”。</p>
+<p>所以如果 current frame 和 previous frame 对应的是同一个 surface &#x2F; shading neighborhood，那么 <code>y_prev</code> 对当前点来说也可以作为一个额外的 candidate。</p>
+<p>换句话说：</p>
+<blockquote>
+<p>temporal reuse 不是扩大了数学上的 sample space；sample space 本来就是所有 light samples。<br>它扩大的是当前帧实际参与 reservoir selection 的 candidate set：除了当前帧新采的 candidates，还额外拿到了一个经过上一帧筛选的 history candidate。</p>
+</blockquote>
+<p>所以 temporal reuse 的想法是：</p>
+<blockquote>
+<p>上一帧的 reservoir 像一个“压缩过的候选池”。它虽然只存了一个 selected sample，但这个 sample 背后代表了一批已经看过、筛过的 candidates。</p>
+</blockquote>
+<p>当前帧本来只看自己的 initial candidates：</p>
+<p>$$<br>y_1, y_2, \ldots, y_K<br>$$</p>
+<p>temporal reuse 会再加入一个上一帧留下来的 sample：</p>
+<p>$$<br>y_{\mathrm{prev}}<br>$$</p>
+<p>然后把它当成一个额外 candidate merge 进当前 reservoir。</p>
+<p>但它不是普通 candidate。普通 initial candidate 只代表自己一个 sample；上一帧 reservoir 的 selected sample 代表的是上一帧积累过的一批 candidates。所以当前实现里会记录：</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>其中 <code>restirMaxHistory</code> 是一个上限，防止 history 越滚越大。</p>
+<p>可以把它想成：</p>
+<blockquote>
+<p>initial candidate 像“刚刚新来的候选人”。<br>temporal candidate 像“上一轮筛选留下来的候选人”，它不是凭空来的，而是背后带着上一轮筛选的信息。</p>
+</blockquote>
+<p>但这里也要马上补上一句：<strong>可以复用 light sample，不等于可以原封不动复用 previous reservoir。</strong></p>
+<p>previous reservoir 里的很多量并不是 light sample 自己的属性，而是上一帧 shading point 下算出来的属性。比如 <code>target</code>、最终 visible contribution、以及 reservoir finalize 后的解释，都和上一帧的 <code>x_prev</code> 绑定。因此 temporal reuse 必须同时做两件事：</p>
+<ol>
+<li>用 reprojection &#x2F; validation 尽量确认 previous reservoir 来自同一个 surface neighborhood。</li>
+<li>把 <code>y_prev</code> 放到当前 shading point 下重新 evaluate，再作为当前 reservoir 的候选项参与 merge。</li>
+</ol>
+<hr>
+<h4 id="3-Temporal-Reuse复用的是什么？"><a href="#3-Temporal-Reuse复用的是什么？" class="headerlink" title="3. Temporal Reuse复用的是什么？"></a>3. Temporal Reuse复用的是什么？</h4><ul>
+<li>Temporal reuse 复用的是 light sample，不是 radiance。</li>
+</ul>
+<p>这里有一个容易忽略的细节：如果想复用 previous reservoir，首先要尽量保证它来自当前帧对应的同一个 surface &#x2F; shading neighborhood。因为 reservoir 里的信息不是全局的，它是 shading-point specific 的：<code>target</code>、selected sample 的重要性、以及最后的 contribution，都是相对于某个 shading point 定义的。</p>
+<p>所以我们会先用 reprojection 和 validation 来检查这个约束，具体可以看第五部分。</p>
+<p>但这又会带来一个自然的问题：如果 reprojection 之后基本确认 previous reservoir 来自同一个 shading neighborhood，那是不是可以直接把它原封不动 merge 到 current reservoir？</p>
+<p>答案仍然是不行。</p>
+<p>即使 reprojection 成功，previous reservoir 里保存的 <code>target</code> 仍然是上一帧的：</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<p>而当前帧真正需要的是：</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>最简单的例子是 camera motion。即使 hit point 仍然落在同一个 surface 附近，outgoing direction <code>wo</code> 也可能变了；对于 glossy &#x2F; anisotropic BSDF，BSDF evaluation 会随 <code>wo</code> 改变。因此 previous reservoir 里的 selected light sample 可以复用，但它对当前 shading point 的 target 必须重新 evaluate。</p>
+<p>换句话说：<code>y_prev</code> 可以保留，<code>prevReservoir.W</code> 和 <code>M</code> 可以作为 history correction 参与 merge；但 <code>y_prev.target</code> 不能直接相信，必须替换成 current target。</p>
+<p>这一步不是重新 sample light，而是把上一帧留下来的同一个 light sample，放到当前 shading point 下重新打分。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// yPrev 是上一帧 reservoir 选中的 light sample</span></span><br><span class="line"><span class="comment">// 注意：这里只复用 yPrev 的 light position / normal / emission 等 sample 信息</span></span><br><span class="line"></span><br><span class="line">Vec3 wi = <span class="built_in">normalize</span>(yPrev.position - currentHitP);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> NoI = <span class="built_in">max</span>(<span class="built_in">dot</span>(currentNormal, wi), <span class="number">0.0f</span>);</span><br><span class="line"><span class="type">float</span> NoL = <span class="built_in">max</span>(<span class="built_in">dot</span>(yPrev.normal, -wi), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (NoI &lt;= <span class="number">0.0f</span> || NoL &lt;= <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="built_in">rejectTemporalCandidate</span>(); <span class="comment">// 当前点和这个 light sample 几何上连不上</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> G = NoI * NoL / <span class="built_in">distanceSquared</span>(currentHitP, yPrev.position);</span><br><span class="line">Vec3 f = <span class="built_in">evalBSDF</span>(currentHitP, wi, wo);</span><br><span class="line"></span><br><span class="line">Vec3 unshadowed = yPrev.emission * f * G;</span><br><span class="line"><span class="type">float</span> currentTarget = <span class="built_in">luminance</span>(unshadowed);</span><br></pre></td></tr></table></figure>
+
+<p>公式上就是：</p>
+<p>$$<br>\begin{aligned}<br>\omega_i &amp;&#x3D; \operatorname{normalize}(y_{\mathrm{prev}}.\mathrm{position} - x) \<br>G_{\mathrm{current}} &amp;&#x3D; G(x, y_{\mathrm{prev}}) \<br>f_{r,\mathrm{current}} &amp;&#x3D; f_r(x, \omega_i, \omega_o) \<br>\mathrm{currentTarget}<br>&amp;&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y_{\mathrm{prev}})<br>  \cdot<br>  f_{r,\mathrm{current}}<br>  \cdot<br>  G_{\mathrm{current}}<br>\right)<br>\end{aligned}<br>$$</p>
+<p>如果 <code>currentTarget &lt;= 0</code>，这个 temporal sample 对当前点就没有意义，应该 reject。</p>
+<p>所以这一步可以记成：</p>
+<blockquote>
+<p>上一帧只告诉我们“这个 light sample 可能不错”；当前帧必须自己判断“它对我现在这个 hit point 还不错吗？”</p>
+</blockquote>
+<p>这里也可以顺便解释 temporal reuse 的近似性。理想情况下，如果 reprojection 真的是严格的一一对应，且所有 target &#x2F; visibility 都在当前点重新 evaluate，那么 previous sample 就只是一个带权重校正的额外 candidate。但实际工程里，reprojection 和 validation 都是近似检查：normal threshold、position threshold、material id、target ratio clamp 都只能降低错误复用的概率，不能证明两个 pixel 对应完全相同的积分问题。</p>
+<p>所以 temporal reuse 更像一个 variance-bias tradeoff：它用更强的时域相关性换取单帧降噪和稳定性，但也可能因为不完美的 history match、heuristic validation、history clamp 等因素引入一些偏差。对 realtime rendering 来说，这通常是可接受的；但对 offline progressive rendering 来说，它不应该被简单理解成“每帧都是独立无偏 sample”。</p>
+<hr>
+<h4 id="4-previous-sample-merge-weight-怎么理解？"><a href="#4-previous-sample-merge-weight-怎么理解？" class="headerlink" title="4. previous sample merge weight 怎么理解？"></a>4. previous sample merge weight 怎么理解？</h4><p>temporal merge 最核心的权重是：</p>
+<p>$$<br>\begin{aligned}<br>w_{\mathrm{temporal}} &amp;:&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>W_{\mathrm{prev}}<br>\cdot<br>M_{\mathrm{represented}}<br>\end{aligned}<br>$$</p>
+<p>也就是当前实现里的：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">uint32_t</span> representedM = <span class="built_in">min</span>(prevReservoir.M, restirMaxHistory);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> weight =</span><br><span class="line">    currentTarget       <span class="comment">// 当前 shading point 觉得这个 sample 有多重要</span></span><br><span class="line">  * prevReservoir.W     <span class="comment">// 上一帧 reservoir resampling 留下的概率校正</span></span><br><span class="line">  * <span class="built_in">float</span>(representedM);<span class="comment">// 这个 sample 代表了多少个 history candidates</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">updateReservoirWithRepresentedCandidate</span>(</span><br><span class="line">    currentReservoir,</span><br><span class="line">    temporalSample,</span><br><span class="line">    currentTarget,</span><br><span class="line">    prevReservoir.W,</span><br><span class="line">    representedM,</span><br><span class="line">    <span class="built_in">rng</span>());</span><br></pre></td></tr></table></figure>
+
+<p>可以拆成三部分理解。</p>
+<h4 id="4-1-currentTarget：当前点觉得它重不重要"><a href="#4-1-currentTarget：当前点觉得它重不重要" class="headerlink" title="4.1 currentTarget：当前点觉得它重不重要"></a>4.1 <code>currentTarget</code>：当前点觉得它重不重要</h4><p>这是 temporal reuse 最重要的“重新面试”。</p>
+<p>上一帧觉得 <code>y_prev</code> 好，不代表当前帧也觉得它好。所以 merge 时必须用当前点重新算出来的 target：</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>而不是上一帧旧的：</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<h4 id="4-2-W-prev：上一帧-resampling-带来的校正"><a href="#4-2-W-prev：上一帧-resampling-带来的校正" class="headerlink" title="4.2 W_prev：上一帧 resampling 带来的校正"></a>4.2 <code>W_prev</code>：上一帧 resampling 带来的校正</h4><p>previous sample 不是直接从 <code>p_src</code> 原始采样得到的。它已经被上一帧 reservoir 按 target 偏向性地挑选过。</p>
+<p>上一帧 finalize 公式是：</p>
+<p>$$<br>W_{\mathrm{prev}} :&#x3D;<br>\frac{<br>  w_{\mathrm{sum,prev}}<br>}{<br>  M_{\mathrm{prev}}<br>  \cdot<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>所以 <code>W_prev</code> 可以理解成：</p>
+<blockquote>
+<p>上一帧 selected sample 自带的“概率校正标签”。没有它，我们会忘记这个 sample 是被 target-biased resampling 挑出来的。</p>
+</blockquote>
+<h4 id="4-3-representedM：它代表的不只是一个-sample"><a href="#4-3-representedM：它代表的不只是一个-sample" class="headerlink" title="4.3 representedM：它代表的不只是一个 sample"></a>4.3 <code>representedM</code>：它代表的不只是一个 sample</h4><p>temporal candidate 不是一个孤立 sample。它是上一帧 reservoir 压缩后的结果。</p>
+<p>如果完全不乘 <code>representedM</code>，就会把 history 当成普通一个 candidate，上一帧积累的信息会被压得太弱。</p>
+<p>但如果无限累积 <code>M</code>，history 又会越来越重，导致旧 sample 太难被新样本替换。所以实现里会 clamp：</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>直觉上：</p>
+<blockquote>
+<p><code>currentTarget</code> 决定“它现在值不值得用”。<br><code>W_prev</code> 负责“它之前被 reservoir 挑中过，所以要带上校正”。<br><code>representedM</code> 表示“它背后压缩了多少历史候选”。</p>
+</blockquote>
+<hr>
+<h4 id="5-Reprojection-validation-在防什么？"><a href="#5-Reprojection-validation-在防什么？" class="headerlink" title="5. Reprojection &#x2F; validation 在防什么？"></a>5. Reprojection &#x2F; validation 在防什么？</h4><p>temporal reuse 最大的问题是：上一帧同一个 pixel，不一定还是当前帧同一个 surface point。</p>
+<p>camera 一动，或者 surface 边界刚好扫过 pixel，上一帧的 reservoir 可能来自另一个物体、另一个材质、另一个 normal 方向。直接复用就会出现：</p>
+<ul>
+<li>ghosting：旧光照拖影还留在画面里。</li>
+<li>leaking：一个物体上的 light sample 漏到另一个物体上。</li>
+<li>wrong material reuse：上一帧是墙，当前帧是金属或者别的材质。</li>
+</ul>
+<p>所以 temporal reuse 之前要做 reprojection 和 validation：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">current hit point</span><br><span class="line">  -&gt; project into previous camera        # 当前 hitP 投影到上一帧相机</span><br><span class="line">  -&gt; find previous pixel                 # 找到上一帧对应 pixel</span><br><span class="line">  -&gt; read previous surface metadata      # 读取上一帧 hitP / normal / material</span><br><span class="line">  -&gt; validate same surface               # 检查是不是同一类 surface</span><br><span class="line">  -&gt; read previous reservoir             # 验证通过后才读取 reservoir</span><br></pre></td></tr></table></figure>
+
+<p>当前 validation 主要检查：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">previous pixel inside framebuffer        # 投影不能出屏幕</span><br><span class="line">previous surface valid                   # 上一帧这个 pixel 必须真的 hit 到东西</span><br><span class="line">material id match                        # 材质要一致，避免跨材质复用</span><br><span class="line">normal agreement                         # normal 方向要接近，避免跨几何边界</span><br><span class="line">world-space hit position threshold       # hitP 不能差太远</span><br><span class="line">previous reservoir valid                 # 上一帧 reservoir 本身要有效</span><br><span class="line">current target re-evaluation valid       # 当前点重新评估 target 要有效</span><br><span class="line">target ratio in range                    # 当前/上一帧 target 变化不能太夸张</span><br></pre></td></tr></table></figure>
+
+<p>其中 target ratio clamp 是一个很实用的工程安全阀：</p>
+<p>$$<br>\mathrm{targetRatio} &#x3D;<br>\frac{<br>  \hat{p}(x, y_{\mathrm{prev}})<br>}{<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>如果：</p>
+<p>$$<br>\mathrm{targetRatio} &lt; 0.1<br>\quad \text{or} \quad<br>\mathrm{targetRatio} &gt; 10<br>$$</p>
+<p>就 reject。</p>
+<p>这不是严格数学上必须的项，更像一个防呆规则：</p>
+<blockquote>
+<p>如果同一个 sample 在当前点和上一帧点的重要性差了十倍以上，那很可能不是“同一个局部问题”了。与其冒 ghosting 的风险，不如丢掉。</p>
+</blockquote>
+<hr>
+<h4 id="6-实验结果怎么解读？"><a href="#6-实验结果怎么解读？" class="headerlink" title="6. 实验结果怎么解读？"></a>6. 实验结果怎么解读？</h4><p>目前实验里主要看了三类指标：</p>
+<ul>
+<li><strong>per-frame accuracy</strong>：单帧和 reference 有多接近。</li>
+<li><strong>per-frame stability</strong>：相邻帧之间有多稳定。</li>
+<li><strong>accumulated frame accuracy</strong>：progressive accumulation 后和 reference 有多接近。</li>
+</ul>
+<p>结果大致是：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Static per-frame stability:</span><br><span class="line">No temporal LumaRMSE  mean=0.208880</span><br><span class="line">Temporal    LumaRMSE  mean=0.189280</span><br><span class="line"># temporal 降低了相邻帧差异，画面更稳</span><br><span class="line"></span><br><span class="line">Static per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.155184</span><br><span class="line">Temporal    LumaRMSE  mean=0.145915</span><br><span class="line"># static camera 下，temporal 单帧也更接近 reference</span><br><span class="line"></span><br><span class="line">Moving camera per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.162502</span><br><span class="line">Temporal    LumaRMSE  mean=0.155823</span><br><span class="line"># 小幅 camera motion 下，reprojection + validation 仍然有收益</span><br></pre></td></tr></table></figure>
+
+<p>所以如果是实时渲染场景，可以说 temporal reuse 的目标基本达到了：</p>
+<blockquote>
+<p>单帧更干净，帧间更稳定，小幅 moving camera 下也没有完全失效。</p>
+</blockquote>
+<p>但 accumulated RMSE 不一定更好：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">No temporal accumulated:</span><br><span class="line">RGB RMSE = 0.004208</span><br><span class="line">Luma ratio = 1.000001</span><br><span class="line"># no temporal 每帧更接近独立 sample，progressive average 更符合 MC 直觉</span><br><span class="line"></span><br><span class="line">Temporal after weight fix:</span><br><span class="line">RGB RMSE = 0.010192</span><br><span class="line">Luma ratio = 0.992809</span><br><span class="line"># temporal 单帧更稳，但相邻帧相关性更强，累积时不一定占优</span><br></pre></td></tr></table></figure>
+
+<p>原因是 progressive rendering 希望每一帧尽量像独立 Monte Carlo estimate：</p>
+<p>$$<br>\bar{L}<em>N &#x3D; \frac{1}{N} \sum</em>{t&#x3D;1}^{N} L_t<br>$$</p>
+<p>如果 <code>L_t</code> 之间相互独立，variance 大致按：</p>
+<p>$$<br>\frac{1}{N}<br>$$</p>
+<p>下降。</p>
+<p>但 temporal reuse 让当前帧依赖上一帧：</p>
+<p>$$<br>R_t &#x3D;<br>\operatorname{merge}<br>\left(<br>  \text{initial candidates at } t,<br>  R_{t-1}<br>\right)<br>$$</p>
+<p>所以 <code>L_t</code> 和 <code>L_&#123;t-1&#125;</code> 不再独立。画面看起来更稳，但 progressive average 的有效独立样本数下降了。</p>
+<p>这也是为什么当前结论应该写成：</p>
+<blockquote>
+<p>temporal reuse 更适合理解为 real-time temporal stabilization，而不是让 offline progressive path tracing 一定更快收敛的 unbiased estimator。</p>
+</blockquote>
+<hr>
+<h4 id="7-实现上需要什么-buffer？"><a href="#7-实现上需要什么-buffer？" class="headerlink" title="7. 实现上需要什么 buffer？"></a>7. 实现上需要什么 buffer？</h4><p>当前 temporal reuse MVP 至少需要四类状态：</p>
+<ol>
+<li>current &#x2F; previous reservoir</li>
+<li>current &#x2F; previous surface data</li>
+<li>previous camera</li>
+<li>一些 debug &#x2F; selection source buffer</li>
+</ol>
+<p>核心结构大概是：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 被 reservoir 选中的 light sample。</span></span><br><span class="line"><span class="comment">// 注意：temporal reuse 复用的是这个 sample，不是上一帧 radiance。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirLightSample</span> &#123;</span><br><span class="line">    <span class="type">int</span> lightId;       <span class="comment">// 哪一个 light</span></span><br><span class="line">    Vec2f uv;          <span class="comment">// light surface 上的采样位置</span></span><br><span class="line">    <span class="type">float</span> sourcePdf;   <span class="comment">// 这个 sample 原本从 p_src 被采到的 pdf</span></span><br><span class="line">    <span class="type">float</span> target;      <span class="comment">// 针对当前 shading point 重新评估后的 target</span></span><br><span class="line"></span><br><span class="line">    Vec3f position;    <span class="comment">// sampled point on light</span></span><br><span class="line">    Vec3f normal;      <span class="comment">// light sample normal</span></span><br><span class="line">    Vec3f emission;    <span class="comment">// light emission</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一个 reservoir 是一个“压缩候选池”。</span></span><br><span class="line"><span class="comment">// 它只保存一个 selected sample，但通过 wSum / W / M 记录概率校正信息。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirReservoir</span> &#123;</span><br><span class="line">    RestirLightSample y; <span class="comment">// selected candidate</span></span><br><span class="line">    <span class="type">float</span> wSum;          <span class="comment">// candidate weights 的总和</span></span><br><span class="line">    <span class="type">float</span> W;             <span class="comment">// final shading 时使用的校正权重</span></span><br><span class="line">    <span class="type">uint32_t</span> M;          <span class="comment">// 这个 reservoir 代表了多少 candidates</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// surface metadata 用于 temporal reprojection validation。</span></span><br><span class="line"><span class="comment">// 没有这些信息，就不知道上一帧 reservoir 是否还能用于当前 hit point。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirSurfaceData</span> &#123;</span><br><span class="line">    vec3f hitP;       <span class="comment">// 当前 pixel primary hit 的世界坐标</span></span><br><span class="line">    vec3f normal;     <span class="comment">// hit surface normal</span></span><br><span class="line">    <span class="type">int</span> materialId;   <span class="comment">// 用于避免跨材质复用</span></span><br><span class="line">    <span class="type">int</span> valid;        <span class="comment">// 这个 pixel 是否有有效 primary hit</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>GPU 侧需要 ping-pong：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">current reservoir buffer        # 当前帧写入</span><br><span class="line">previous reservoir buffer       # 当前帧读取上一帧 history</span><br><span class="line"></span><br><span class="line">current surface data buffer     # 当前帧写入 hitP / normal / material</span><br><span class="line">previous surface data buffer    # 当前帧读取，用于 validation</span><br></pre></td></tr></table></figure>
+
+<p>每帧大概是：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">begin frame</span><br><span class="line">  read previous reservoir / surface data</span><br><span class="line">  generate current initial candidates</span><br><span class="line">  optionally merge temporal candidate</span><br><span class="line">  write current reservoir / surface data</span><br><span class="line">end frame</span><br><span class="line"></span><br><span class="line">swap current and previous buffers</span><br></pre></td></tr></table></figure>
+
+<p>还需要保存 previous camera：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 用上一帧 camera frame 把当前 hitP 投影回 previous pixel。</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CameraFrameGPU</span> &#123;</span><br><span class="line">    vec3f pos;      <span class="comment">// previous camera position</span></span><br><span class="line">    vec3f dir_00;   <span class="comment">// previous frame lower-left ray direction</span></span><br><span class="line">    vec3f dir_du;   <span class="comment">// previous frame horizontal ray delta</span></span><br><span class="line">    vec3f dir_dv;   <span class="comment">// previous frame vertical ray delta</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>所以可以把 temporal reuse 的实现流程记成：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">1. 当前帧先正常生成 local reservoir</span><br><span class="line">2. 用 current hitP 投影到 previous camera</span><br><span class="line">3. 读取 previous surface data，检查是不是同一个 surface 附近</span><br><span class="line">4. 读取 previous reservoir 的 selected light sample</span><br><span class="line">5. 在 current hit point 重新评估这个 sample 的 target</span><br><span class="line">6. 用 currentTarget * prevW * representedM merge</span><br><span class="line">7. finalize current reservoir</span><br><span class="line">8. 对最终 selected sample trace shadow ray</span><br><span class="line">9. 写出 current reservoir / surface data，留给下一帧</span><br></pre></td></tr></table></figure>
+
+<p>这样看，temporal reuse 并不是一个神秘的新 estimator，而是在 no-reuse reservoir 之外，多加了一个“经过验证的历史候选”。</p>
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>ReSTIR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ReSTIR DI - 02 - Temporal Reuse</title>
+    <url>/2026/05/17/ReSTIR_DI_02_temporal_reuse_en/</url>
+    <content><![CDATA[<p>The previous post covered <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>: for the current shading point, we sample several light candidates and use a reservoir to keep one sample that is more likely to contribute.</p>
+<p>This note continues with <strong>temporal reuse</strong>.</p>
+<p>The short intuition is:</p>
+<blockquote>
+<p>No-reuse means “pick a good light sample again this frame.” Temporal reuse asks, “the previous frame already picked a decent sample; after validation and reweighting, can the current frame keep using it?”</p>
+</blockquote>
+<p>What we reuse here is not the radiance computed in the previous frame. We reuse the <strong>light sample</strong> stored in the previous reservoir.</p>
+<hr>
+<h4 id="0-What-This-Note-Tries-To-Answer"><a href="#0-What-This-Note-Tries-To-Answer" class="headerlink" title="0. What This Note Tries To Answer"></a>0. What This Note Tries To Answer</h4><p>This note focuses on three questions:</p>
+<ol>
+<li>If no-reuse selects light samples from scratch every frame, why can temporal reuse keep using a sample from the previous frame?</li>
+<li>Why can’t we copy the previous result directly? Why do we need to recompute the target?</li>
+<li>When merging a previous reservoir into the current reservoir, why is the merge weight:</li>
+</ol>
+<p>$$<br>\mathrm{weight} :&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>\mathrm{prevReservoir.W}<br>\cdot<br>\mathrm{representedM}<br>$$</p>
+<p>As an analogy:</p>
+<blockquote>
+<p>A no-reuse reservoir is like holding a small interview in the current frame: a few light candidates show up, and we pick the one that looks most useful.<br>Temporal reuse is like inviting last frame’s accepted candidate back for another interview. But the job has changed, meaning the shading point changed, so we must evaluate whether the candidate is still suitable.</p>
+</blockquote>
+<hr>
+<h4 id="1-A-One-Sentence-Recap-Of-No-Reuse"><a href="#1-A-One-Sentence-Recap-Of-No-Reuse" class="headerlink" title="1. A One-Sentence Recap Of No-Reuse"></a>1. A One-Sentence Recap Of No-Reuse</h4><p>No-reuse ReSTIR DI can be summarized as:</p>
+<blockquote>
+<p>Look at several candidates, pick one that is more likely to contribute, trace only one final shadow ray, and use <code>W</code> to correct the sampling bias.</p>
+</blockquote>
+<p>For the current shading point <code>x</code>, a light sample can be written as:</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>The direct lighting contribution is:</p>
+<p>$$<br>\begin{aligned}<br>f(x, y) &amp;:&#x3D;<br>L_e(y)<br>\cdot<br>f_r(x, \omega_i, \omega_o)<br>\cdot<br>G(x, y)<br>\cdot<br>V(x, y)<br>\end{aligned}<br>$$</p>
+<p>Here <code>V(x, y)</code> is visibility, the part that needs a shadow ray.</p>
+<p>During candidate selection, however, we usually do not want to trace a shadow ray for every candidate. So we first use a cheap unshadowed target:</p>
+<p>$$<br>\hat{p}(x, y) :&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y)<br>  \cdot<br>  f_r(x, \omega_i, \omega_o)<br>  \cdot<br>  G(x, y)<br>\right)<br>$$</p>
+<p>Intuitively:</p>
+<blockquote>
+<p><code>target</code> means “how worth keeping this candidate appears to be.” It does not have to be a normalized pdf; it only needs to represent relative importance.</p>
+</blockquote>
+<p>If we draw <code>M</code> candidates from the source distribution <code>p_src(y)</code>:</p>
+<p>$$<br>y_1, y_2, \ldots, y_M<br>$$</p>
+<p>The RIS weight for each candidate is:</p>
+<p>$$<br>w_i &#x3D; \frac{\hat{p}(x, y_i)}{p_{\mathrm{src}}(y_i)}<br>$$</p>
+<p>In other words:</p>
+<blockquote>
+<p><code>p_src</code> describes how likely the sample was under the original proposal. <code>target</code> describes how important the sample is for the current point.<br>Using <code>target / sourcePdf</code> compensates for the bias in the original proposal distribution.</p>
+</blockquote>
+<p>The reservoir update pseudocode looks like this:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">Reservoir r;</span><br><span class="line">r.y = invalid; <span class="comment">// the currently selected light sample</span></span><br><span class="line">r.wSum = <span class="number">0.0f</span>; <span class="comment">// sum of all candidate weights so far</span></span><br><span class="line">r.M = <span class="number">0</span>;       <span class="comment">// how many candidates this reservoir represents</span></span><br><span class="line">r.W = <span class="number">0.0f</span>;    <span class="comment">// correction weight used after finalization</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; initialCandidates; ++i) &#123;</span><br><span class="line">    LightSample y = <span class="built_in">sampleLight</span>();           <span class="comment">// sample a light sample from p_src(y)</span></span><br><span class="line">    <span class="type">float</span> sourcePdf = <span class="built_in">computeSourcePdf</span>(y);   <span class="comment">// probability density of sampling this y</span></span><br><span class="line"></span><br><span class="line">    Vec3 unshadowed = <span class="built_in">evalUnshadowed</span>(x, y);  <span class="comment">// estimate potential contribution without a shadow ray</span></span><br><span class="line">    <span class="type">float</span> target = <span class="built_in">luminance</span>(unshadowed);    <span class="comment">// how important this sample appears to be</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> w = target / sourcePdf;            <span class="comment">// RIS candidate weight</span></span><br><span class="line"></span><br><span class="line">    r.wSum += w;</span><br><span class="line">    r.M += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The larger the weight, the more likely it replaces the reservoir sample.</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">rand</span>() &lt; w / r.wSum) &#123;</span><br><span class="line">        r.y = y;</span><br><span class="line">        r.y.target = target;</span><br><span class="line">        r.y.sourcePdf = sourcePdf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Finally, the reservoir is finalized:</p>
+<p>$$<br>W &#x3D; \frac{w_{\mathrm{sum}}}{M \cdot \hat{p}(x, y)}<br>$$</p>
+<p>In code:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (r.M &gt; <span class="number">0</span> &amp;&amp; r.wSum &gt; <span class="number">0.0f</span> &amp;&amp; r.y.target &gt; <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="comment">// W cancels the bias introduced by target-weighted reservoir selection.</span></span><br><span class="line">    r.W = r.wSum / (<span class="built_in">float</span>(r.M) * r.y.target);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    r.W = <span class="number">0.0f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Only during final shading do we trace the visibility of the selected sample:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">Vec3 visibleContribution = <span class="built_in">evalContributionWithVisibility</span>(x, r.y);</span><br><span class="line"></span><br><span class="line"><span class="comment">// r.W is the reservoir probability correction.</span></span><br><span class="line">Vec3 Lo = visibleContribution * r.W;</span><br></pre></td></tr></table></figure>
+
+<p>The key point is:</p>
+<blockquote>
+<p>The reservoir did not trace <code>M</code> shadow rays for free. It only used <code>M</code> cheap unshadowed evaluations to make a better decision about where the final shadow ray should go.</p>
+</blockquote>
+<hr>
+<h4 id="2-Why-Temporal-Reuse-Can-Reuse-Anything"><a href="#2-Why-Temporal-Reuse-Can-Reuse-Anything" class="headerlink" title="2. Why Temporal Reuse Can Reuse Anything"></a>2. Why Temporal Reuse Can Reuse Anything</h4><p>The problem with no-reuse is that every frame starts from zero.</p>
+<p>If this frame already spent <code>K</code> candidates to find a decent light sample, and the next frame has a similar camera and surface point, throwing that sample away completely can be wasteful.</p>
+<p>The core question is: <strong>why is a sample from the previous frame valid in the current frame?</strong></p>
+<p>The reason is that the direct lighting sample space is the set of all possible light samples:</p>
+<p>$$<br>y &#x3D; (\text{light id}, \text{point on light})<br>$$</p>
+<p>For neighboring frames and neighboring surface points, this sample space usually does not change. The <code>y_prev</code> stored in the previous reservoir is still a valid light sample. It is not the previous frame’s color, and it is not the final radiance from the previous frame. It is just “a sampled point on some light.”</p>
+<p>So if the current frame and previous frame correspond to the same surface or shading neighborhood, <code>y_prev</code> can be treated as one more candidate for the current point.</p>
+<p>Put differently:</p>
+<blockquote>
+<p>Temporal reuse does not expand the mathematical sample space; the sample space was already all light samples.<br>It expands the candidate set that participates in current-frame reservoir selection: in addition to fresh candidates from the current frame, we also get one history candidate filtered by the previous frame.</p>
+</blockquote>
+<p>The temporal reuse idea is:</p>
+<blockquote>
+<p>The previous reservoir is like a compressed candidate pool. It stores only one selected sample, but that selected sample represents a group of candidates that were already considered and filtered in the previous frame.</p>
+</blockquote>
+<p>The current frame first looks at its own initial candidates:</p>
+<p>$$<br>y_1, y_2, \ldots, y_K<br>$$</p>
+<p>Temporal reuse adds one sample from the previous frame:</p>
+<p>$$<br>y_{\mathrm{prev}}<br>$$</p>
+<p>Then it merges this sample into the current reservoir as an extra candidate.</p>
+<p>But it is not an ordinary candidate. A fresh initial candidate represents one sample. The previous reservoir’s selected sample represents a set of previous candidates. So the implementation records:</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>Here <code>restirMaxHistory</code> is an upper bound that prevents history from becoming too heavy.</p>
+<p>Intuitively:</p>
+<blockquote>
+<p>An initial candidate is like a candidate who just arrived.<br>A temporal candidate is someone who already passed the previous round. It did not appear out of nowhere; it carries information from previous filtering.</p>
+</blockquote>
+<p>But this needs an immediate caveat: <strong>being able to reuse a light sample does not mean we can copy the previous reservoir unchanged.</strong></p>
+<p>Many fields in the previous reservoir are not properties of the light sample itself. They were computed under the previous frame’s shading point. For example, <code>target</code>, final visible contribution, and the interpretation of the finalized reservoir are all tied to <code>x_prev</code>. Therefore temporal reuse must do two things:</p>
+<ol>
+<li>Use reprojection and validation to check that the previous reservoir likely came from the same surface neighborhood.</li>
+<li>Evaluate <code>y_prev</code> again under the current shading point, then merge it as a current-frame candidate.</li>
+</ol>
+<hr>
+<h4 id="3-What-Temporal-Reuse-Actually-Reuses"><a href="#3-What-Temporal-Reuse-Actually-Reuses" class="headerlink" title="3. What Temporal Reuse Actually Reuses"></a>3. What Temporal Reuse Actually Reuses</h4><p>Temporal reuse reuses the light sample, not radiance.</p>
+<p>The easy-to-miss detail is that before using a previous reservoir, we first need to make sure it comes from the same surface or shading neighborhood as the current pixel. The reservoir is shading-point specific: <code>target</code>, the selected sample’s importance, and the final contribution are all defined relative to one shading point.</p>
+<p>That is why reprojection and validation are needed. Section 5 covers the checks.</p>
+<p>This naturally raises another question: if reprojection says the previous reservoir comes from the same shading neighborhood, can we merge it directly?</p>
+<p>Still no.</p>
+<p>Even when reprojection succeeds, the <code>target</code> stored in the previous reservoir is:</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<p>But the current frame needs:</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>The simplest example is camera motion. Even if the hit point is still near the same surface, the outgoing direction <code>wo</code> may have changed. For glossy or anisotropic BSDFs, the BSDF evaluation changes with <code>wo</code>. Therefore the selected light sample from the previous reservoir can be reused, but its target for the current shading point must be recomputed.</p>
+<p>In other words: <code>y_prev</code> can be kept, and <code>prevReservoir.W</code> plus <code>M</code> can participate in history correction, but <code>y_prev.target</code> cannot be trusted directly. It must be replaced by the current target.</p>
+<p>This step does not resample a light. It takes the same light sample left by the previous frame and scores it again under the current shading point.</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// yPrev is the light sample selected by the previous reservoir.</span></span><br><span class="line"><span class="comment">// Only the sample information is reused: light position, normal, emission, etc.</span></span><br><span class="line"></span><br><span class="line">Vec3 wi = <span class="built_in">normalize</span>(yPrev.position - currentHitP);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> NoI = <span class="built_in">max</span>(<span class="built_in">dot</span>(currentNormal, wi), <span class="number">0.0f</span>);</span><br><span class="line"><span class="type">float</span> NoL = <span class="built_in">max</span>(<span class="built_in">dot</span>(yPrev.normal, -wi), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (NoI &lt;= <span class="number">0.0f</span> || NoL &lt;= <span class="number">0.0f</span>) &#123;</span><br><span class="line">    <span class="built_in">rejectTemporalCandidate</span>(); <span class="comment">// the current point cannot geometrically connect to this light sample</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> G = NoI * NoL / <span class="built_in">distanceSquared</span>(currentHitP, yPrev.position);</span><br><span class="line">Vec3 f = <span class="built_in">evalBSDF</span>(currentHitP, wi, wo);</span><br><span class="line"></span><br><span class="line">Vec3 unshadowed = yPrev.emission * f * G;</span><br><span class="line"><span class="type">float</span> currentTarget = <span class="built_in">luminance</span>(unshadowed);</span><br></pre></td></tr></table></figure>
+
+<p>In formulas:</p>
+<p>$$<br>\begin{aligned}<br>\omega_i &amp;&#x3D; \operatorname{normalize}(y_{\mathrm{prev}}.\mathrm{position} - x) \<br>G_{\mathrm{current}} &amp;&#x3D; G(x, y_{\mathrm{prev}}) \<br>f_{r,\mathrm{current}} &amp;&#x3D; f_r(x, \omega_i, \omega_o) \<br>\mathrm{currentTarget}<br>&amp;&#x3D;<br>\operatorname{luminance}<br>\left(<br>  L_e(y_{\mathrm{prev}})<br>  \cdot<br>  f_{r,\mathrm{current}}<br>  \cdot<br>  G_{\mathrm{current}}<br>\right)<br>\end{aligned}<br>$$</p>
+<p>If <code>currentTarget &lt;= 0</code>, this temporal sample is not useful for the current point and should be rejected.</p>
+<p>So the rule is:</p>
+<blockquote>
+<p>The previous frame only tells us “this light sample may be good.” The current frame still has to decide “is it good for my current hit point?”</p>
+</blockquote>
+<p>This also explains why temporal reuse is approximate. In the ideal case, if reprojection were an exact one-to-one mapping and all targets and visibility were re-evaluated at the current point, the previous sample would simply be an extra weighted candidate. In practice, reprojection and validation are heuristic checks. Normal thresholds, position thresholds, material id checks, and target ratio clamps reduce bad reuse, but they cannot prove that two pixels correspond to exactly the same integration problem.</p>
+<p>So temporal reuse is best viewed as a variance-bias tradeoff. It uses stronger temporal correlation to reduce single-frame noise and improve stability, but imperfect history matching, validation heuristics, and history clamps may introduce some bias. For real-time rendering this is often acceptable. For offline progressive rendering, it should not be understood as “each frame remains an independent unbiased sample.”</p>
+<hr>
+<h4 id="4-Understanding-The-Previous-Sample-Merge-Weight"><a href="#4-Understanding-The-Previous-Sample-Merge-Weight" class="headerlink" title="4. Understanding The Previous Sample Merge Weight"></a>4. Understanding The Previous Sample Merge Weight</h4><p>The core temporal merge weight is:</p>
+<p>$$<br>\begin{aligned}<br>w_{\mathrm{temporal}} &amp;:&#x3D;<br>\mathrm{currentTarget}<br>\cdot<br>W_{\mathrm{prev}}<br>\cdot<br>M_{\mathrm{represented}}<br>\end{aligned}<br>$$</p>
+<p>This corresponds to the current implementation:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">uint32_t</span> representedM = <span class="built_in">min</span>(prevReservoir.M, restirMaxHistory);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> weight =</span><br><span class="line">    currentTarget       <span class="comment">// how important this sample is for the current shading point</span></span><br><span class="line">  * prevReservoir.W     <span class="comment">// probability correction left by the previous reservoir</span></span><br><span class="line">  * <span class="built_in">float</span>(representedM);<span class="comment">// how many history candidates this sample represents</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">updateReservoirWithRepresentedCandidate</span>(</span><br><span class="line">    currentReservoir,</span><br><span class="line">    temporalSample,</span><br><span class="line">    currentTarget,</span><br><span class="line">    prevReservoir.W,</span><br><span class="line">    representedM,</span><br><span class="line">    <span class="built_in">rng</span>());</span><br></pre></td></tr></table></figure>
+
+<p>We can understand it as three parts.</p>
+<h4 id="4-1-currentTarget-Whether-The-Current-Point-Wants-It"><a href="#4-1-currentTarget-Whether-The-Current-Point-Wants-It" class="headerlink" title="4.1 currentTarget: Whether The Current Point Wants It"></a>4.1 <code>currentTarget</code>: Whether The Current Point Wants It</h4><p>This is the most important “re-interview” in temporal reuse.</p>
+<p>The fact that the previous frame liked <code>y_prev</code> does not mean the current frame likes it too. Therefore the merge must use the target recomputed at the current point:</p>
+<p>$$<br>\hat{p}(x, y_{\mathrm{prev}})<br>$$</p>
+<p>not the stale previous-frame target:</p>
+<p>$$<br>\hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>$$</p>
+<h4 id="4-2-W-prev-Correction-From-Previous-Resampling"><a href="#4-2-W-prev-Correction-From-Previous-Resampling" class="headerlink" title="4.2 W_prev: Correction From Previous Resampling"></a>4.2 <code>W_prev</code>: Correction From Previous Resampling</h4><p>The previous sample did not come directly from the raw <code>p_src</code> proposal. It has already been selected by the previous reservoir with a target-biased procedure.</p>
+<p>The previous frame finalization formula is:</p>
+<p>$$<br>W_{\mathrm{prev}} :&#x3D;<br>\frac{<br>  w_{\mathrm{sum,prev}}<br>}{<br>  M_{\mathrm{prev}}<br>  \cdot<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>So <code>W_prev</code> can be understood as:</p>
+<blockquote>
+<p>The selected sample’s probability correction tag from the previous frame. Without it, we forget that this sample was chosen by target-biased resampling.</p>
+</blockquote>
+<h4 id="4-3-representedM-It-Represents-More-Than-One-Sample"><a href="#4-3-representedM-It-Represents-More-Than-One-Sample" class="headerlink" title="4.3 representedM: It Represents More Than One Sample"></a>4.3 <code>representedM</code>: It Represents More Than One Sample</h4><p>A temporal candidate is not an isolated sample. It is the compressed result of the previous reservoir.</p>
+<p>If we do not multiply by <code>representedM</code>, history is treated as only one ordinary candidate, and the information accumulated in the previous frame becomes too weak.</p>
+<p>But if <code>M</code> grows without bound, history becomes too strong and old samples become too hard to replace. So the implementation clamps it:</p>
+<p>$$<br>M_{\mathrm{represented}} &#x3D;<br>\min(M_{\mathrm{prev}}, M_{\mathrm{maxHistory}})<br>$$</p>
+<p>Intuitively:</p>
+<blockquote>
+<p><code>currentTarget</code> decides whether the sample is useful now.<br><code>W_prev</code> says that the sample was previously selected by a reservoir and therefore needs probability correction.<br><code>representedM</code> says how many history candidates are compressed behind it.</p>
+</blockquote>
+<hr>
+<h4 id="5-What-Reprojection-And-Validation-Prevent"><a href="#5-What-Reprojection-And-Validation-Prevent" class="headerlink" title="5. What Reprojection And Validation Prevent"></a>5. What Reprojection And Validation Prevent</h4><p>The biggest problem in temporal reuse is that the same pixel in the previous frame may not correspond to the same surface point in the current frame.</p>
+<p>When the camera moves, or when a surface boundary crosses a pixel, the previous reservoir may come from a different object, material, or normal direction. Directly reusing it can cause:</p>
+<ul>
+<li>ghosting: old lighting lingers in the image.</li>
+<li>leaking: a light sample from one object leaks onto another.</li>
+<li>wrong material reuse: the previous frame was a wall, but the current frame is metal or another material.</li>
+</ul>
+<p>So temporal reuse first performs reprojection and validation:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">current hit point</span><br><span class="line">  -&gt; project into previous camera        # project current hitP into the previous camera</span><br><span class="line">  -&gt; find previous pixel                 # locate the corresponding previous pixel</span><br><span class="line">  -&gt; read previous surface metadata      # read previous hitP / normal / material</span><br><span class="line">  -&gt; validate same surface               # check whether it is the same surface neighborhood</span><br><span class="line">  -&gt; read previous reservoir             # only read the reservoir after validation succeeds</span><br></pre></td></tr></table></figure>
+
+<p>The current validation mainly checks:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">previous pixel inside framebuffer        # reprojection must stay on screen</span><br><span class="line">previous surface valid                   # the previous pixel must have hit something</span><br><span class="line">material id match                        # avoid cross-material reuse</span><br><span class="line">normal agreement                         # avoid crossing geometric boundaries</span><br><span class="line">world-space hit position threshold       # hitP cannot differ too much</span><br><span class="line">previous reservoir valid                 # previous reservoir itself must be valid</span><br><span class="line">current target re-evaluation valid       # current target must be valid</span><br><span class="line">target ratio in range                    # current/previous target cannot change too much</span><br></pre></td></tr></table></figure>
+
+<p>The target ratio clamp is a practical safety valve:</p>
+<p>$$<br>\mathrm{targetRatio} &#x3D;<br>\frac{<br>  \hat{p}(x, y_{\mathrm{prev}})<br>}{<br>  \hat{p}(x_{\mathrm{prev}}, y_{\mathrm{prev}})<br>}<br>$$</p>
+<p>If:</p>
+<p>$$<br>\mathrm{targetRatio} &lt; 0.1<br>\quad \text{or} \quad<br>\mathrm{targetRatio} &gt; 10<br>$$</p>
+<p>then reject the temporal sample.</p>
+<p>This is not a strict mathematical requirement. It is more of a guardrail:</p>
+<blockquote>
+<p>If the same sample changes importance by more than 10x between the current and previous point, it is probably no longer the same local problem. Dropping it is safer than risking ghosting.</p>
+</blockquote>
+<hr>
+<h4 id="6-Reading-The-Experiment-Results"><a href="#6-Reading-The-Experiment-Results" class="headerlink" title="6. Reading The Experiment Results"></a>6. Reading The Experiment Results</h4><p>The current experiments mainly look at three metrics:</p>
+<ul>
+<li><strong>per-frame accuracy</strong>: how close a single frame is to the reference.</li>
+<li><strong>per-frame stability</strong>: how stable neighboring frames are.</li>
+<li><strong>accumulated frame accuracy</strong>: how close progressive accumulation is to the reference.</li>
+</ul>
+<p>The results are roughly:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Static per-frame stability:</span><br><span class="line">No temporal LumaRMSE  mean=0.208880</span><br><span class="line">Temporal    LumaRMSE  mean=0.189280</span><br><span class="line"># temporal reduces adjacent-frame differences, so the image is more stable</span><br><span class="line"></span><br><span class="line">Static per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.155184</span><br><span class="line">Temporal    LumaRMSE  mean=0.145915</span><br><span class="line"># with a static camera, temporal is also closer to the reference per frame</span><br><span class="line"></span><br><span class="line">Moving camera per-frame accuracy:</span><br><span class="line">No temporal LumaRMSE  mean=0.162502</span><br><span class="line">Temporal    LumaRMSE  mean=0.155823</span><br><span class="line"># with mild camera motion, reprojection + validation still helps</span><br></pre></td></tr></table></figure>
+
+<p>For a real-time rendering scenario, temporal reuse basically achieves its goal:</p>
+<blockquote>
+<p>The image is cleaner per frame, more stable across frames, and still useful under small camera motion.</p>
+</blockquote>
+<p>But accumulated RMSE is not necessarily better:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">No temporal accumulated:</span><br><span class="line">RGB RMSE = 0.004208</span><br><span class="line">Luma ratio = 1.000001</span><br><span class="line"># no temporal behaves more like independent per-frame samples, which fits progressive averaging better</span><br><span class="line"></span><br><span class="line">Temporal after weight fix:</span><br><span class="line">RGB RMSE = 0.010192</span><br><span class="line">Luma ratio = 0.992809</span><br><span class="line"># temporal is more stable per frame, but adjacent frames are more correlated, so accumulation may not win</span><br></pre></td></tr></table></figure>
+
+<p>The reason is that progressive rendering wants each frame to behave as much as possible like an independent Monte Carlo estimate:</p>
+<p>$$<br>\bar{L}<em>N &#x3D; \frac{1}{N} \sum</em>{t&#x3D;1}^{N} L_t<br>$$</p>
+<p>If the <code>L_t</code> values are independent, variance decreases roughly like:</p>
+<p>$$<br>\frac{1}{N}<br>$$</p>
+<p>But temporal reuse makes the current frame depend on the previous frame:</p>
+<p>$$<br>R_t &#x3D;<br>\operatorname{merge}<br>\left(<br>  \text{initial candidates at } t,<br>  R_{t-1}<br>\right)<br>$$</p>
+<p>So <code>L_t</code> and <code>L_&#123;t-1&#125;</code> are no longer independent. The image looks more stable, but the effective number of independent samples in a progressive average is lower.</p>
+<p>That is why the current conclusion should be:</p>
+<blockquote>
+<p>Temporal reuse is better understood as real-time temporal stabilization, not as a guarantee that offline progressive path tracing converges faster as an unbiased estimator.</p>
+</blockquote>
+<hr>
+<h4 id="7-What-Buffers-The-Implementation-Needs"><a href="#7-What-Buffers-The-Implementation-Needs" class="headerlink" title="7. What Buffers The Implementation Needs"></a>7. What Buffers The Implementation Needs</h4><p>The temporal reuse MVP needs at least four kinds of state:</p>
+<ol>
+<li>current &#x2F; previous reservoir</li>
+<li>current &#x2F; previous surface data</li>
+<li>previous camera</li>
+<li>debug &#x2F; selection-source buffers</li>
+</ol>
+<p>The core structures are:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// The light sample selected by a reservoir.</span></span><br><span class="line"><span class="comment">// Temporal reuse reuses this sample, not the previous frame&#x27;s radiance.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirLightSample</span> &#123;</span><br><span class="line">    <span class="type">int</span> lightId;       <span class="comment">// which light</span></span><br><span class="line">    Vec2f uv;          <span class="comment">// sampled location on the light surface</span></span><br><span class="line">    <span class="type">float</span> sourcePdf;   <span class="comment">// pdf of originally sampling this sample from p_src</span></span><br><span class="line">    <span class="type">float</span> target;      <span class="comment">// target re-evaluated for the current shading point</span></span><br><span class="line"></span><br><span class="line">    Vec3f position;    <span class="comment">// sampled point on light</span></span><br><span class="line">    Vec3f normal;      <span class="comment">// light sample normal</span></span><br><span class="line">    Vec3f emission;    <span class="comment">// light emission</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// A reservoir is a compressed candidate pool.</span></span><br><span class="line"><span class="comment">// It stores only one selected sample, while wSum / W / M keep probability correction information.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirReservoir</span> &#123;</span><br><span class="line">    RestirLightSample y; <span class="comment">// selected candidate</span></span><br><span class="line">    <span class="type">float</span> wSum;          <span class="comment">// sum of candidate weights</span></span><br><span class="line">    <span class="type">float</span> W;             <span class="comment">// correction weight used during final shading</span></span><br><span class="line">    <span class="type">uint32_t</span> M;          <span class="comment">// how many candidates this reservoir represents</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Surface metadata is used for temporal reprojection validation.</span></span><br><span class="line"><span class="comment">// Without it, we cannot tell whether a previous reservoir is valid for the current hit point.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RestirSurfaceData</span> &#123;</span><br><span class="line">    vec3f hitP;       <span class="comment">// world-space primary hit position for this pixel</span></span><br><span class="line">    vec3f normal;     <span class="comment">// hit surface normal</span></span><br><span class="line">    <span class="type">int</span> materialId;   <span class="comment">// used to avoid cross-material reuse</span></span><br><span class="line">    <span class="type">int</span> valid;        <span class="comment">// whether this pixel has a valid primary hit</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>On the GPU side, these buffers need ping-ponging:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">current reservoir buffer        # written by the current frame</span><br><span class="line">previous reservoir buffer       # read by the current frame as history</span><br><span class="line"></span><br><span class="line">current surface data buffer     # current frame writes hitP / normal / material</span><br><span class="line">previous surface data buffer    # current frame reads this for validation</span><br></pre></td></tr></table></figure>
+
+<p>Each frame roughly does:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">begin frame</span><br><span class="line">  read previous reservoir / surface data</span><br><span class="line">  generate current initial candidates</span><br><span class="line">  optionally merge temporal candidate</span><br><span class="line">  write current reservoir / surface data</span><br><span class="line">end frame</span><br><span class="line"></span><br><span class="line">swap current and previous buffers</span><br></pre></td></tr></table></figure>
+
+<p>We also need to save the previous camera:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Used to project the current hitP back into the previous frame.</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CameraFrameGPU</span> &#123;</span><br><span class="line">    vec3f pos;      <span class="comment">// previous camera position</span></span><br><span class="line">    vec3f dir_00;   <span class="comment">// lower-left ray direction in the previous frame</span></span><br><span class="line">    vec3f dir_du;   <span class="comment">// previous frame horizontal ray delta</span></span><br><span class="line">    vec3f dir_dv;   <span class="comment">// previous frame vertical ray delta</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>So the implementation flow can be summarized as:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">1. Generate a local reservoir normally for the current frame</span><br><span class="line">2. Project current hitP into the previous camera</span><br><span class="line">3. Read previous surface data and validate the same surface neighborhood</span><br><span class="line">4. Read the selected light sample from the previous reservoir</span><br><span class="line">5. Re-evaluate that sample&#x27;s target at the current hit point</span><br><span class="line">6. Merge it using currentTarget * prevW * representedM</span><br><span class="line">7. Finalize the current reservoir</span><br><span class="line">8. Trace a shadow ray for the final selected sample</span><br><span class="line">9. Write current reservoir / surface data for the next frame</span><br></pre></td></tr></table></figure>
+
+<p>Seen this way, temporal reuse is not a mysterious new estimator. It adds one more “validated history candidate” on top of the no-reuse reservoir.</p>
+]]></content>
+      <categories>
+        <category>Computer Graphics, Rendering</category>
+      </categories>
+      <tags>
+        <tag>C/C++</tag>
+        <tag>Rendering</tag>
+        <tag>ReSTIR</tag>
+      </tags>
+  </entry>
 </search>
