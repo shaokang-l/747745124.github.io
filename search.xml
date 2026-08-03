@@ -59,7 +59,7 @@
   </entry>
   <entry>
     <title>382. Linked List Random Node</title>
-    <url>/2021/11/15/382.%20Linked%20List%20Random%20Node/</url>
+    <url>/2021/11/16/382.%20Linked%20List%20Random%20Node/</url>
     <content><![CDATA[<h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><p>Given a singly linked list, return a random node’s value from the linked list. Each node must have the <strong>same probability</strong> of being chosen.</p>
 <p>Implement the <code>Solution</code> class:</p>
 <ul>
@@ -183,7 +183,7 @@
   </entry>
   <entry>
     <title>1345. Jump Game IV</title>
-    <url>/2022/01/14/1345.%20Jump%20Game%20IV/</url>
+    <url>/2022/01/15/1345.%20Jump%20Game%20IV/</url>
     <content><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h3><p>Given an array of integers <code>arr</code>, you are initially positioned at the first index of the array.</p>
 <p>In one step you can jump from index <code>i</code> to index:</p>
 <ul>
@@ -264,7 +264,7 @@
   </entry>
   <entry>
     <title>1463. Cherry Pickup II</title>
-    <url>/2022/01/07/1463.%20Cherry%20Pickup%20II/</url>
+    <url>/2022/01/08/1463.%20Cherry%20Pickup%20II/</url>
     <content><![CDATA[<h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><p>You are given a <code>rows x cols</code> matrix <code>grid</code> representing a field of cherries where <code>grid[i][j]</code> represents the number of cherries that you can collect from the <code>(i, j)</code> cell.</p>
 <p>You have two robots that can collect cherries for you:</p>
 <ul>
@@ -608,7 +608,7 @@
   </entry>
   <entry>
     <title>Blender 3.1 Alpha Render Test on M1 Max</title>
-    <url>/2021/12/10/Blender%203.1%20Render%20Test/</url>
+    <url>/2021/12/11/Blender%203.1%20Render%20Test/</url>
     <content><![CDATA[<h2 id="All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P"><a href="#All-Scenes-are-rendered-using-cycles-using-GPU-Compute-1080P" class="headerlink" title="All Scenes are rendered using cycles using GPU Compute 1080P"></a>All Scenes are rendered using cycles using GPU Compute 1080P</h2><h3 id="1-Classroom-300-Samplings"><a href="#1-Classroom-300-Samplings" class="headerlink" title="1.Classroom 300 Samplings"></a>1.Classroom 300 Samplings</h3><ul>
 <li><p>Result: 1min 47.32s &#x3D; 107.32s </p>
 </li>
@@ -738,7 +738,7 @@
   </entry>
   <entry>
     <title>CPU Profiling a Small Path Tracer on M1 Max</title>
-    <url>/2026/05/10/Profiling_CPU/</url>
+    <url>/2026/05/11/Profiling_CPU/</url>
     <content><![CDATA[<p>This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full renderer rewrite, but to use Instruments to identify real bottlenecks and make small, measurable improvements.</p>
 <p>The profiling setup was intentionally simple:</p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// disable scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>
@@ -832,7 +832,7 @@
   </entry>
   <entry>
     <title>计算机网络-概览笔记</title>
-    <url>/2021/09/05/Notes-Computer%20Networks/</url>
+    <url>/2021/09/06/Notes-Computer%20Networks/</url>
     <content><![CDATA[<h3 id="Client-Server"><a href="#Client-Server" class="headerlink" title="Client&#x2F;Server:"></a>Client&#x2F;Server:</h3><p>应用层，最为抽象</p>
 <h3 id="TCP-传输层"><a href="#TCP-传输层" class="headerlink" title="TCP:传输层"></a>TCP:传输层</h3><p>对可靠性要求高、检验错误</p>
 <h3 id="UDP："><a href="#UDP：" class="headerlink" title="UDP："></a>UDP：</h3><p>对可靠性要求低、但是能够保证实时</p>
@@ -1502,7 +1502,7 @@
   </entry>
   <entry>
     <title>Portfolio Site</title>
-    <url>/2022/01/19/Portfolio%20Site%20Online/</url>
+    <url>/2022/01/20/Portfolio%20Site%20Online/</url>
     <content><![CDATA[<p>Recently I began my Master application for 2022 Fall, and some of the universities, require the applicants to submit their portfolio in the form of personal website. I was intended to submit this site, however, this site only contains daily logs and technical topic posts. So I would rather create another website for my portfolio works.</p>
 <p>After one afternoon’s work, new Portfolio Website was online, powering by Wix. Actually I found the Wix tool quite easy to use, only drags and drops are needed, just like what they’ve shown in the Youtube ads. The problem is, it’s not suitable for me to contantly update the contents since it tooks a lot more to render a single site in Wix. You have to drag and drop each paragraph yourself. However, it’s pretty easy to publish a post in Hexo. I can just use Typora and markdown to upload a post in seconds. Also, Wix doesn’t have good support for code snippets as the Markdown does. So I‘m just gonna post most of my daily thoughts and progresses here. And major works on the portfolio site.</p>
 <p>I actually want to merge these two sites, this site and the portfolio site, into one. However, I find the two sites’ styles are quite different and I’m not interested in writing pieces of CSS code anyway. Maybe I will merge them someday.</p>
@@ -1638,7 +1638,7 @@
   </entry>
   <entry>
     <title>Missing triangle in BVH</title>
-    <url>/2023/05/22/Little%20Caveat%20in%20BVH%20of%20Triangles/</url>
+    <url>/2023/05/23/Little%20Caveat%20in%20BVH%20of%20Triangles/</url>
     <content><![CDATA[<p>Recently I was applying Bounding Volume Hierachy to a Whitted-style Raytracing system. The idea of BVH and implementation are well described in <strong>Ray Tracing in the Next Week</strong> by Peter Shirly. It’s a really great book. And here’s the link <a href="https://raytracing.github.io/books/RayTracingTheNextWeek.html">https://raytracing.github.io/books/RayTracingTheNextWeek.html</a></p>
 <p>One key component in BVH is AABB (Axis-Aligned-Bounding-Box) intersects with ray. People usually adopt Slab method to address this problem. To be more specific, computing the ray-AABB intersection along 3 different axis, if these intervals produces an overlapping region, then the ray intersects with AABB and vice versa.</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">compute (tx0, tx1)</span><br><span class="line">compute (ty0, ty1)</span><br><span class="line">compute (tz0, tz1)</span><br><span class="line">return overlap?( (tx0, tx1), (ty0, ty1), (tz0, tz1))</span><br></pre></td></tr></table></figure>
@@ -1992,7 +1992,7 @@
   </entry>
   <entry>
     <title>雨滴合成器/A Raindrop Synthesizer</title>
-    <url>/2023/03/23/%E9%9B%A8%E6%BB%B4%E5%90%88%E6%88%90%E5%99%A8/</url>
+    <url>/2023/03/24/%E9%9B%A8%E6%BB%B4%E5%90%88%E6%88%90%E5%99%A8/</url>
     <content><![CDATA[<p>​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，如此也就有了这篇博客。</p>
 <h4 id="为什么想做雨滴合成器？"><a href="#为什么想做雨滴合成器？" class="headerlink" title="为什么想做雨滴合成器？"></a>为什么想做雨滴合成器？</h4><p>​		这学期的其中一个作业是复现一篇1984年的physcally-based synthesizer (Karplus-Strong model). 简单来说，就是基于物理规则对声音进行建模，例如市场上有物理建模钢琴<code>pianoteq</code>，据说声音可以媲美昂贵的采样音源，而且体积非常小巧。对钢琴来说，物理建模就需要包括琴槌的属性，琴槌击弦发声的过程，以及声音在钢琴腔体内的传播等等。每一个步骤都会涉及到非常复杂的推导过程，所以不适合数学不好的我（悲）。</p>
 <p>​		我觉得这种物理建模合成器非常神奇，不需要预录好的audio sample也可以产生出非常真实的声音，因此，我想试一试能不能做一个简单的物理合成器。然后我就选择了雨滴合成器。</p>
@@ -2095,7 +2095,7 @@
   </entry>
   <entry>
     <title>ReSTIR DI - 01 - 无复用版本</title>
-    <url>/2026/05/13/ReSTIR%20DI%2001/</url>
+    <url>/2026/05/14/ReSTIR%20DI%2001/</url>
     <content><![CDATA[<p>因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。</p>
 <p>长话短说，ReSTIR DI我个人认为是改进NEE直接光源采样的过程中，光源样本可能不佳的问题。解决方式是通过额外的信息（不管是预先计算每个sample的预期贡献，还是样本复用也好），来尽量让我们采样到更好的光源sample。</p>
 <h4 id="1-Direct-lighting-本来要求什么？"><a href="#1-Direct-lighting-本来要求什么？" class="headerlink" title="1. Direct lighting 本来要求什么？"></a>1. Direct lighting 本来要求什么？</h4><p>对一个 shading point $x$，direct lighting 可以写成：<br>$$<br>L_o(x) &#x3D; \int_{\mathcal{Y}} f(x, y),dy<br>$$<br>这里 $y$ 可以理解成一个 light sample，例如：<br>$$<br>y &#x3D; (\text{light id},\ \text{point on light})<br>$$<br>而 $f(x,y)$ 包含：<br>$$<br>\begin{aligned}<br>f(x,y) &amp;&#x3D;<br>L_e(y)<br>\cdot f_r(x,\omega_i,\omega_o)<br>\cdot G(x,y)<br>\cdot V(x,y)<br>\end{aligned}<br>$$<br>也就是 emission、BRDF、geometry term、visibility。</p>
@@ -2174,7 +2174,7 @@
   </entry>
   <entry>
     <title>ReSTIR DI - 02 - Temporal Reuse</title>
-    <url>/2026/05/17/ReSTIR_DI_02_temporal_reuse/</url>
+    <url>/2026/05/18/ReSTIR_DI_02_temporal_reuse/</url>
     <content><![CDATA[<p>上一篇主要讲 <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>：对当前 shading point 多看几个 light candidates，然后用 reservoir 从里面挑一个更可能有贡献的 sample。</p>
 <p>这一篇继续看 <strong>temporal reuse</strong>。</p>
 <p>先给一个很短的直觉：</p>
@@ -2408,7 +2408,7 @@
   </entry>
   <entry>
     <title>ReSTIR DI - 02 - Temporal Reuse</title>
-    <url>/2026/05/17/ReSTIR_DI_02_temporal_reuse_en/</url>
+    <url>/2026/05/18/ReSTIR_DI_02_temporal_reuse_en/</url>
     <content><![CDATA[<p>The previous post covered <strong>no-reuse ReSTIR DI &#x2F; RIS</strong>: for the current shading point, we sample several light candidates and use a reservoir to keep one sample that is more likely to contribute.</p>
 <p>This note continues with <strong>temporal reuse</strong>.</p>
 <p>The short intuition is:</p>
@@ -2636,5 +2636,17 @@
         <tag>Rendering</tag>
         <tag>ReSTIR</tag>
       </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2026/08/04/%E5%8C%97%E4%BA%AC%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>好久没来北京了。上一次来北京已经是12年的事情，那个时候留下的印象只剩下零星两三件。在北大或是清华的校园里买“学生”推销的纪念品，讨个好彩头；长城爬一半爬不动于是沿途折返；去和妈妈的几个同学吃了饭。</p>
+<p>我一直都不太喜欢北京，除了过于“讲政治”以外，天气、演出和上海相比都只能算是马马虎虎。这或许只是我的个人偏见，但确实，我十多年没来过一次北京。</p>
+<p>妈妈当时有几个同学在北京工作。那时的我什么都不了解，能记得的也只有一些很会赚钱的例子。只记得一个是心理咨询师，据说一小时咨询费就是上千，真让人羡慕。另一个好像是程序员，听说在北京三环买了房。其余的便不记得了。看来这孩子打小就势利眼。</p>
+<p>后来听妈妈说起那位程序员。他当时承受着很大的压力，那位做心理咨询的同学也曾去开解过他。再后来，传来的便是他病逝的消息。而那次在北京见面，也成了我们和他的最后一面。至于为什么她会提起，或许是她很感慨，又或许只是想借此提醒我要注意身体。</p>
+<p>比起身体健康，我却在想另一件事。如果有一天，忽然有人告诉我，我的某个初中同学或高中同学离世，我会做的大概也只剩下感慨，然后便继续照常生活。我会不会太无情了一些？ 我不知道。有很多人曾经占据我生活中很大的一部分，而后又倏地消失。我没有办法维系所有关系，一段关系可以从拉钩的约定，变成零星的言语，最后只剩下别人口中的消息，就这样消失在尘埃里。</p>
+<p>人们总喜欢用“一期一会，所以要珍惜现在”来解释这样的困境。但那样的答案还是太说教，太过于明确了。我总感觉，承认自己没有办法维系所有关系，承认自己面对一个久未联系之人的离世没有想象中那么悲伤，承认自己的“薄情”——或许也只能这样。</p>
+<p>关于北京，我最后想起了去年在电影院看的《蓝宇》。狭窄的出租屋，无数的自行车，转瞬即逝的关系，雨天的工地绵延在视线里。</p>
+]]></content>
   </entry>
 </search>

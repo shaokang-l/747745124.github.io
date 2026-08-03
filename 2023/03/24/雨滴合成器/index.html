@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>雨滴合成器/A Raindrop Synthesizer - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="雨滴合成器/A Raindrop Synthesizer - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="雨滴合成器/A Raindrop Synthesizer - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">雨滴合成器/A Raindrop Synthesizer</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            雨滴合成器/A Raindrop Synthesizer
+        </h1>
+        <div class="stuff">
+            <span>
+                March 24, 2023
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Audio-Programming/" rel="tag">Audio Programming</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/JUCE/" rel="tag">JUCE</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，如此也就有了这篇博客。</p>
+<h4 id="为什么想做雨滴合成器？"><a href="#为什么想做雨滴合成器？" class="headerlink" title="为什么想做雨滴合成器？"></a>为什么想做雨滴合成器？</h4><p>​		这学期的其中一个作业是复现一篇1984年的physcally-based synthesizer (Karplus-Strong model). 简单来说，就是基于物理规则对声音进行建模，例如市场上有物理建模钢琴<code>pianoteq</code>，据说声音可以媲美昂贵的采样音源，而且体积非常小巧。对钢琴来说，物理建模就需要包括琴槌的属性，琴槌击弦发声的过程，以及声音在钢琴腔体内的传播等等。每一个步骤都会涉及到非常复杂的推导过程，所以不适合数学不好的我（悲）。</p>
+<p>​		我觉得这种物理建模合成器非常神奇，不需要预录好的audio sample也可以产生出非常真实的声音，因此，我想试一试能不能做一个简单的物理合成器。然后我就选择了雨滴合成器。</p>
+<h4 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h4><p>​		既然想要基于物理，就得找到合适的公式。在参考了一圈之后，我找到了这篇04年的论文。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://huelights.com/docs/P_169.pdf">http://huelights.com/docs/P_169.pdf</a></p>
+</blockquote>
+<img src="https://s2.loli.net/2023/03/24/rcQSwlteACn2TvN.png" alt="image-20230323223922933" style="zoom:33%;" />
+
+<p>​		其中，作者给出了以上的波形图。雨滴的波形通常可以分为两个不同的阶段：第一阶段，水滴打到硬表面。第二阶段，水滴打到湿表面，逐渐衰减。整个过程约持续10-20 ms。</p>
+<p>​		其中，第一阶段的波形由以下公式给出:</p>
+<img src="https://s2.loli.net/2023/03/24/v3HVjwd1l8JUkaM.png" alt="image-20230323224134739" style="zoom: 50%;" />
+
+<p>​		其中，<code>p</code>代表在<code>t</code>时间点,<code>H</code>的高度上雨滴产生的声压，而右侧参数多到让人直接昏厥。虽然形式看起来很复杂，但是大部分都是固定的参数。例如<code>c</code>代表声音的传播速度,<code>v_term</code>代表雨滴的终止速度等等。假设聆听者的高度<code>H</code>固定为1.85m (是谁的身高？)，那么整个函数其实只和时间<code>t</code>有关，我们只需要给定一个时间，函数就会返回声压级，这个声压级也就可以近似认为是这个时间点的响度。</p>
+<p>​		第二阶段如下给出：</p>
+<p>​	<img src="https://s2.loli.net/2023/03/24/fOt5SzgyXlrA287.png" alt="image-20230323224924652" style="zoom: 50%;" /></p>
+<blockquote>
+<p> 给定时间<code>t</code>和某个水波形状相关参数<code>l</code>，这一时间点的声压如上，对应波形图的上下来回并衰减的部分。</p>
+</blockquote>
+<h4 id="有了公式，然后呢？"><a href="#有了公式，然后呢？" class="headerlink" title="有了公式，然后呢？"></a>有了公式，然后呢？</h4><p>​		有了公式之后，只要把这些公式写下来，给定时间，返回值就可以了吧？不行。</p>
+<p>​		基于物理的建模虽然很精确，但是这得基于一个前提：参数是准确的。如果参数不准确，那么结果自然也不准确。而我恰好不知道怎样是好的参数。</p>
+<p>​		例如我第一次应用第一阶段的公式的时候，整个第一阶段只能产生3-4个sample（以44100Hz的sample rate为例，也就是只有0.06 ms），仅仅三四个sample哪里有声儿啊。同理，第二阶段参数设置也很复杂。考虑到一个水滴的完整声波应该有10-20 ms，我显然搞错了参数，但我也不知道从哪个开始改起。</p>
+<h4 id="简化"><a href="#简化" class="headerlink" title="简化"></a>简化</h4><p>​		现有公式参数太多了，让我不知从何下手。但至少我知道我波形图应该长什么样子，也知道整体的时长为10-20 ms。我们可以直接使用参数更少的波形去近似复杂的公式，同时让结果尽可能接近给定的波形图。</p>
+<p>​		在这样的想法下，第一阶段的函数被简化为了:</p>
+<img src="https://s2.loli.net/2023/03/24/kGK83WihZf2XmHS.png" alt="image-20230324012054270" style="zoom:50%;" />
+
+<blockquote>
+<p>其中<code>A0</code>用于控制响度，<code>k</code>用于控制波形的宽度，而<code>s</code>用于控制水滴发声的时间。</p>
+</blockquote>
+<p>​		同理，第二阶段的函数也被简化成了:</p>
+<img src="https://s2.loli.net/2023/03/24/tsajbyK821pnQJS.png" alt="image-20230324011547436" style="zoom: 50%;" />
+
+<blockquote>
+<p>其中<code>A1</code>用于控制响度，<code>m</code>用于控制响度衰减的速度，<code>f</code>用于控制衰减的频率，<code>q</code>用于控制水滴发声的时间。</p>
+</blockquote>
+<p>​		这是近似后产生的波形图，和给定的波形图是比较相似的。而且这一近似模型参数较少，易于控制。所以在实现的时候我就采用了这个近似模型。</p>
+<img src="https://s2.loli.net/2023/03/24/HEfziy7sa2hIRl3.png" alt="image-20230323232308569" style="zoom:33%;" />
+
+
+
+<h4 id="实现中遇到的问题"><a href="#实现中遇到的问题" class="headerlink" title="实现中遇到的问题"></a>实现中遇到的问题</h4><p>​		前景提要：音频计算通常是以block_rate为单位，一个block通常含有512个samples，在audio programming中每一个sample通俗理解就是一个时间点的数值。计算时基本上是一次性计算512个samples，然后再播放这512个samples，以此往复。</p>
+<ul>
+<li><strong>Amplitude Normalize</strong></li>
+</ul>
+<p>​		既然是雨滴生成器，那一滴雨肯定不够。怎么说也得每秒来一千个水滴吧？我给每个雨滴设置了不同的起始时间，使得这些雨滴均匀分布在1秒内。尝试一番后，我试着输出每个时间点t（也就是一个sample）的数值，发现有不少的sample数值大于30或小于-5。通常来说，每个sample的result都应该被限制在[-1,1]之间，否则就没有意义。因此，我需要对所有的samples进行normalize。直接clamp&#x2F;cutoff肯定不行，这样会损失掉samples之间相对大小的信息。我采取的方法比较简单，先记录下所有的sample数值，并找到其中绝对值的最大值，然后每个数除以这个值。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">normalize</span><span class="params">(std::vector&lt;<span class="type">float</span>&gt; &amp;result)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> max_abs = *std::<span class="built_in">max_element</span>(result.<span class="built_in">begin</span>(), result.<span class="built_in">end</span>(), [](<span class="type">float</span> a, <span class="type">float</span> b)</span><br><span class="line">                                     &#123; <span class="keyword">return</span> std::<span class="built_in">abs</span>(a) &lt; std::<span class="built_in">abs</span>(b); &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> &amp;elem : result)</span><br><span class="line">    &#123;</span><br><span class="line">        elem /= max_abs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>举个例子来说，<code>&#123;10.0,-20.0,-30.0&#125;</code>的结果在normalize之后应该是<code>&#123;1/3,-2/3,-1&#125;</code>。</p>
+<p>​		这样做有一个问题，音频的计算通常是以block_rate &#x2F; sample_rate 作为单位，也就是说需要在512&#x2F;44100 秒内完成计算。&#x3D;&#x3D;由于我无法提前得知1秒内的最大绝对值&#x3D;&#x3D;，因此只能提前计算完1秒内所有的samples (44100个samples，每个sample可能有几百个水滴，需要在512&#x2F;44100秒内完成计算)，找到max_abs，然后再对所有的samples进行处理。显然CPU是没有这样的速度的，audio thread会被block，从而听不到任何声音。</p>
+<p>​		倘若采取<code>std::async</code>的方式进行异步计算，即每512&#x2F;44100秒内，根据用户给定的参数，计算新的44100个samples的数值，当计算的thread完成后，现在的samples就会被替换成新的samples。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//每个block_rate完成如下计算</span></span><br><span class="line"><span class="keyword">auto</span> future = std::<span class="built_in">async</span>(std::launch::async, &amp;Raindrops::recompute, <span class="keyword">this</span>, randomness-&gt;<span class="built_in">get</span>(), density-&gt;<span class="built_in">get</span>(), decay_frequency-&gt;<span class="built_in">get</span>());</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; buffer.<span class="built_in">getNumSamples</span>(); ++i)</span><br><span class="line">&#123;</span><br><span class="line">    left[i] = <span class="built_in">soft_clip</span>(drops-&gt;<span class="built_in">next_sample</span>(start_sample, end_sample) * <span class="built_in">dbtoa</span>(gain-&gt;<span class="built_in">get</span>()));</span><br><span class="line">    left[i] = <span class="built_in">mix</span>(left[i], last_sample, <span class="number">0.5f</span>);</span><br><span class="line">    right[i] = left[i];</span><br><span class="line">    last_sample = left[i];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> future.<span class="built_in">get</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">//recompute会替换当前雨滴的sample,并使用std::mutex上锁</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">recompute</span><span class="params">(<span class="type">float</span> rnd, <span class="type">float</span> ds, <span class="type">float</span> d_freq)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    m.<span class="built_in">lock</span>();</span><br><span class="line">    drops = std::<span class="built_in">make_unique</span>&lt;Drops&gt;(rnd, ds, <span class="number">0.0</span>, <span class="number">4.0</span>, d_freq, <span class="number">2.0</span>);</span><br><span class="line">    m.<span class="built_in">unlock</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​		由于不知道什么时候可以计算完（通常都比较慢），用户变更参数就会变得非常不灵敏，通常都得等上一段时间才会播放最新计算出来的samples。</p>
+<p>​		现在我们陷入了两难，不计算1秒内所有的samples，我就不能知道最大绝对值，也就不能normalize，提前计算好1秒内所有的samples又实在太慢。有没有什么两全其美的办法呢？用running max替代global max。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#每个<span class="function">sample <span class="title">time</span><span class="params">(<span class="number">1</span>/<span class="number">44100</span>秒)</span> 进行如下计算</span></span><br><span class="line"><span class="function">result </span>= drops-&gt;<span class="built_in">sample_at</span>(t);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">fabs</span>(res) &gt; <span class="built_in">fabs</span>(running_max))</span><br><span class="line">&#123;</span><br><span class="line">	running_max = res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">result = res / <span class="built_in">fabs</span>(running_max);</span><br></pre></td></tr></table></figure>
+
+<p>​		之前我们需要预计算是因为我们希望使用global max进行normalize。假设我们采用running max，那么就不需要提前计算1秒的所有samples，我们只需要每个时间点计算出一个值，更新running max，再除以running max就可以了。</p>
+<ul>
+<li><strong>Inter-block Cutoff</strong></li>
+</ul>
+<p>​		由于不需要知道global max，我们计算的逻辑已经从每个block_rate (512&#x2F;44100秒)计算1秒的所有samples (44100个)变成了计算每个block 的所有samples (512个)。这个量级基本可以实现实时计算了。但另一方面，由于每block_rate就会计算出512个新的samples，samples的更新速度非常快。那么就有可能存在以下的情况：</p>
+<p>​		在上一个block中，有一个水滴在还在第一阶段，并且没有结束第一阶段，所以按理来说，到下一个block的时候，上一个水滴应该继续第一阶段的波形。但是&#x3D;&#x3D;由于计算一个新的block时会重新初始化所有的水滴(reset水滴的timer)&#x3D;&#x3D;，那么不同的block之间就变得完全无关了。可能上一个block中某个水滴还在第一阶段，一到下一个block这个水滴却还没有进入第一阶段。这种跨越block时的不连贯我暂且称其为<code>inter-block cutoff</code> 。我总觉得这里应该配张图才能更好解释这个概念，不过后面再说吧。</p>
+<p>​		总之作为结果，这种不连贯会产生一种click的效果，听起来比较像鼠标按左键的声音。</p>
+<p>​		既然计算新的block时初始化所有的水滴会导致这样的不连贯性，那么只要不初始化不就行了吗？之所以我们需要初始化所有的水滴，是因为如果不初始化，按照当前设置的参数，所有的水滴只会均匀分布在0-1s的时间轴上，因而一旦时间超过1秒，所有的水滴都不会产生声音。而初始化所有的水滴就能reset时间轴，从而能够实现持续播放的效果。</p>
+<p>​		想要保持连贯，那么我们就需要保证在新的block开始时，每一个水滴的timer和上一个block结束时的timer只差了一个sample_step（1&#x2F;44100秒），也就是上一段中提到的“不初始化”。那么我们该怎样实现持续播放呢？注意到所有的水滴都只有可能在[0,1]的区间上发出声音，如果我们需要让模拟器持续发出声音，那么每个水滴的时间轴就需要在这个区间上循环。如果重置时间轴发生在第一个阶段中或者第二个阶段中，那么就会产生cutoff，我们只需要确保重置时间轴时，水滴已经结束第一或者第二阶段（即不发出声音），此时，由于重置前后结果都为0，也就没有了cutoff带来的click效果。</p>
+<h4 id="可以控制的参数："><a href="#可以控制的参数：" class="headerlink" title="可以控制的参数："></a>可以控制的参数：</h4><p>​		在这个插件中，你可以调整这些参数来产生不同的效果</p>
+<ul>
+<li><p>Gain - Overall audio gain</p>
+</li>
+<li><p>Density - How many drops in one second</p>
+</li>
+<li><p>Freq Coeff - Controls overall frequency</p>
+</li>
+<li><p>Interval Coeff - Controls average duration of drops</p>
+</li>
+<li><p>Noise Level - White noise level</p>
+</li>
+<li><p>High pass filter and Low pass filter</p>
+<ul>
+<li>12dB &#x2F; Oct</li>
+</ul>
+</li>
+</ul>
+<h4 id="应用："><a href="#应用：" class="headerlink" title="应用："></a>应用：</h4><p>​		其实在写代码之前，用Max做了一个雨声生成器的原型，思路来自于以下这篇文章。里面提到procedural的雨声可以由高频的烧水声+中频的烧水声+噪声+单独的水滴声组合而成。现在雨滴合成器可以通过调整参数实现一层烧水声+一层噪声的组合。理论上只要开2-3个雨滴合成器的instance，调整合适的参数后再按一定比例混合起来，就可以实现更为逼真的程序化的雨声了。</p>
+<blockquote>
+<p> <a target="_blank" rel="noopener" href="https://blog.audiokinetic.com/zh/generating-rain-with-pure-synthesis/">https://blog.audiokinetic.com/zh/generating-rain-with-pure-synthesis/</a></p>
+</blockquote>
+<p>​		后面可能也许会考虑直接在插件里面写两个instance，然后用户可以直接控制每个instance的参数。另一方面还希望可以加一点UI，以及莫名出现的seg fault也需要debug。</p>
+<h4 id="最后："><a href="#最后：" class="headerlink" title="最后："></a>最后：</h4><p>​		这是小玩具的地址，需要用到JUCE submodule，有兴趣的可以试一试。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/747745124/Raindrop-Generator">https://github.com/747745124/Raindrop-Generator</a></p>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>

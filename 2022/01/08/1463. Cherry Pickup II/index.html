@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="en-us,default" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>1463. Cherry Pickup II - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,Description:You are given a rows x cols matrix grid representing a field of cherries where grid[i][,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="1463. Cherry Pickup II - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,Description:You are given a rows x cols matrix grid representing a field of cherries where grid[i][,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="1463. Cherry Pickup II - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,Description:You are given a rows x cols matrix grid representing a field of cherries where grid[i][,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">1463. Cherry Pickup II</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            1463. Cherry Pickup II
+        </h1>
+        <div class="stuff">
+            <span>
+                January 08, 2022
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Dynamic-Programming/" rel="tag">Dynamic Programming</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/Hard/" rel="tag">Hard</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><p>You are given a <code>rows x cols</code> matrix <code>grid</code> representing a field of cherries where <code>grid[i][j]</code> represents the number of cherries that you can collect from the <code>(i, j)</code> cell.</p>
+<p>You have two robots that can collect cherries for you:</p>
+<ul>
+<li><strong>Robot #1</strong> is located at the <strong>top-left corner</strong> <code>(0, 0)</code>, and</li>
+<li><strong>Robot #2</strong> is located at the <strong>top-right corner</strong> <code>(0, cols - 1)</code>.</li>
+</ul>
+<p>Return <em>the maximum number of cherries collection using both robots by following the rules below</em>:</p>
+<ul>
+<li>From a cell <code>(i, j)</code>, robots can move to cell <code>(i + 1, j - 1)</code>, <code>(i + 1, j)</code>, or <code>(i + 1, j + 1)</code>.</li>
+<li>When any robot passes through a cell, It picks up all cherries, and the cell becomes an empty cell.</li>
+<li>When both robots stay in the same cell, only one takes the cherries.</li>
+<li>Both robots cannot move outside of the grid at any moment.</li>
+<li>Both robots should reach the bottom row in <code>grid</code>.</li>
+</ul>
+<h3 id="Example-1"><a href="#Example-1" class="headerlink" title="Example 1:"></a>Example 1:</h3><p><img src="https://assets.leetcode.com/uploads/2020/04/29/sample_1_1802.png" alt="sample_1_1802"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Input: grid = [[3,1,1],[2,5,1],[1,5,5],[2,1,1]]</span><br><span class="line">Output: 24</span><br><span class="line">Explanation: Path of robot #1 and #2 are described in color green and blue respectively.</span><br><span class="line">Cherries taken by Robot #1, (3 + 2 + 5 + 2) = 12.</span><br><span class="line">Cherries taken by Robot #2, (1 + 5 + 5 + 1) = 12.</span><br><span class="line">Total of cherries: 12 + 12 = 24.</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Example-2"><a href="#Example-2" class="headerlink" title="Example 2:"></a>Example 2:</h3><p><img src="https://assets.leetcode.com/uploads/2020/04/23/sample_2_1802.png" alt="sample_2_1802"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Input: grid = [[1,0,0,0,0,0,1],[2,0,0,0,0,3,0],[2,0,9,0,0,0,0],[0,3,0,5,4,0,0],[1,0,2,3,0,0,6]]</span><br><span class="line">Output: 28</span><br><span class="line">Explanation: Path of robot #1 and #2 are described in color green and blue respectively.</span><br><span class="line">Cherries taken by Robot #1, (1 + 9 + 5 + 2) = 17.</span><br><span class="line">Cherries taken by Robot #2, (1 + 3 + 4 + 3) = 11.</span><br><span class="line">Total of cherries: 17 + 11 = 28.</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Constraints"><a href="#Constraints" class="headerlink" title="Constraints:"></a><strong>Constraints:</strong></h3><ul>
+<li><code>rows == grid.length</code></li>
+<li><code>cols == grid[i].length</code></li>
+<li><code>2 &lt;= rows, cols &lt;= 70</code></li>
+<li><code>0 &lt;= grid[i][j] &lt;= 100</code></li>
+</ul>
+<blockquote>
+<p>We have a maximum input size of 70*70 &#x3D; 4900, a loose limit would be $O((mn)^2)$.</p>
+</blockquote>
+<h3 id="Intuition"><a href="#Intuition" class="headerlink" title="Intuition:"></a>Intuition:</h3><ul>
+<li>Each round, each robot would go exactly one step down. And they will always move forward until reaching the end.<ul>
+<li>In this way, we can describe the status of two robots by a 3-element tuple <code>(y,x1,x2)</code>. Since <code>#y: row #x: col</code>, there are $O(r*c^2)$ combinations</li>
+</ul>
+</li>
+<li><code>dp[y][x1][x2]</code> means the maximum cherries collected at this combination</li>
+<li>Base Case: <code>y&gt;=r, x&lt;0 or x&gt;c</code> (out of bounary), return 0</li>
+<li><strong>Transition Equation:</strong> <code>dp[y+1][x1][x2] =&#123;max[y][x1&#39;][x2&#39;] + grid[y][x1]+grid[y][x2] if x1!=x2 else 0&#125;</code></li>
+<li>Time Complexity: $O(r<em>c^2</em>9)$</li>
+<li>Space Complexity: $O(r*c^2)$</li>
+<li><strong>To get the answer:</strong> find the maximum value in <code>dp[r-1][x1][x2]</code> (traverse)</li>
+</ul>
+<h3 id="A-Reverse-Solution"><a href="#A-Reverse-Solution" class="headerlink" title="A Reverse Solution:"></a>A Reverse Solution:</h3><p>Robots start at any grid in the last level, and then they go up until one goes to the left corner, the other go to the right corner.</p>
+<ul>
+<li><p><strong>Transition Equation:</strong> <code>dp[y][x1][x2] =&#123;max[y+1][x1&#39;][x2&#39;] + grid[y][x1]+grid[y][x2] if x1!=x2 else 0</code>}</p>
+</li>
+<li><p><strong>To get the answer</strong>: <code>dp[0][0][c-1]</code></p>
+</li>
+</ul>
+<h3 id="Code"><a href="#Code" class="headerlink" title="Code:"></a>Code:</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">using</span> triArr = vector&lt;vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;&gt;;</span><br><span class="line">    <span class="type">int</span> r = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> c = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">cherryPickup</span><span class="params">(vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; &amp;grid)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;r = grid.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">this</span>-&gt;c = grid[<span class="number">0</span>].<span class="built_in">size</span>();</span><br><span class="line">        <span class="function">triArr <span class="title">dp</span><span class="params">(r, vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;(c, vector&lt;<span class="type">int</span>&gt;(c, <span class="number">-1</span>)))</span></span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">helper</span>(<span class="number">0</span>, <span class="number">0</span>, c - <span class="number">1</span>, grid, dp);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// used for recursion</span></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">helper</span><span class="params">(<span class="type">int</span> y, <span class="type">int</span> x1, <span class="type">int</span> x2, vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; &amp;grid, triArr &amp;dp)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (x1 &lt; <span class="number">0</span> || x1 &gt;= c || x2 &lt; <span class="number">0</span> || x2 &gt;= c || y &gt;= r || y &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> ans = dp[y][x1][x2];</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//if visited return</span></span><br><span class="line">        <span class="keyword">if</span> (ans != <span class="number">-1</span>)</span><br><span class="line">            <span class="keyword">return</span> ans;</span><br><span class="line"></span><br><span class="line">        <span class="type">bool</span> isSame = x1 == x2;</span><br><span class="line">        <span class="type">int</span> cur = grid[y][x1] + (isSame ? <span class="number">0</span> : grid[y][x2]);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> d1 = <span class="number">-1</span>; d1 &lt;= <span class="number">1</span>; d1++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> d2 = <span class="number">-1</span>; d2 &lt;= <span class="number">1</span>; d2++)</span><br><span class="line">            &#123; <span class="comment">// each round find the max one from 9 combinations</span></span><br><span class="line">                ans = <span class="built_in">max</span>(ans, cur + <span class="built_in">helper</span>(y + <span class="number">1</span>, x1 + d1, x2 + d2, grid, dp));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//update the answer</span></span><br><span class="line">        dp[y][x1][x2] = ans;</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        <div id="gitalk-container" class="comment link">Load Comments</div>
+    </div>
+    
+</div>
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+        
+            
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>
