@@ -1,0 +1,65 @@
+/* NPR menu room (room.js). The room canvas fills the .nav overlay; the real menu links float above their
+   objects as paper tags. Everything that changes the menu look is scoped under html.npr-room-on, so the
+   plain text menu is untouched until the room is ready (or when WebGL is unavailable). */
+
+/* mount container: sized before the room is ready, invisible until html.npr-room-on */
+.nav > .npr-room {position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;opacity:0;pointer-events:none;
+  -webkit-tap-highlight-color:transparent;}
+
+html.npr-room-on .nav {background:#f4eee3;}
+html.npr-room-on .nav > .npr-room {opacity:1;pointer-events:auto;z-index:0;transition:opacity .35s ease;touch-action:manipulation;}
+
+/* labels: bottom-centre at (--npr-x, --npr-y); a thread runs down to the object's anchor */
+html.npr-room-on .nav .menu {position:absolute;top:0;left:0;width:100%;height:100%;margin:0;padding:0;pointer-events:none;z-index:2;}
+html.npr-room-on .nav .menu li {position:absolute;left:0;top:0;margin:0;font-size:15px;
+  transform:translate3d(var(--npr-x,-999px),var(--npr-y,-999px),0) translate(-50%,-100%);
+  z-index:calc(20 - var(--npr-depth,0) * 10);
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility 0s linear .25s;}
+html.npr-room-on .nav .menu li:not(:last-child) {margin:0;}
+html.npr-room-on .nav .menu li.npr-on-screen {opacity:1;visibility:visible;pointer-events:auto;transition:opacity .25s ease;}
+html.npr-room-on .nav .menu li.npr-active {z-index:30;}
+
+html.npr-room-on .nav .menu a {position:relative;z-index:1;display:block;margin:0;padding:5px 13px 6px;font-size:15px;line-height:1.25;
+  letter-spacing:.03em;white-space:nowrap;color:#3a2618;background:#fbf5e8;border:1.5px solid #3a2618;border-radius:4px 11px 4px 11px;
+  box-shadow:2px 3px 0 rgba(58,38,24,.82);transition:transform .18s cubic-bezier(.3,1.6,.5,1),background-color .18s ease,box-shadow .18s ease;}
+html.npr-room-on .nav .menu a:hover {color:#3a2618;border-bottom:1.5px solid #3a2618;padding-bottom:6px;}
+html.npr-room-on .nav .menu li.npr-active a {background:#f5c46a;transform:translateY(-3px) rotate(-2deg);box-shadow:3px 5px 0 rgba(58,38,24,.85);}
+html.npr-room-on .nav .menu li:not(.pview) a::after {content:"\2197";margin-left:.3em;font-size:.85em;opacity:.7;} /* external link (internal ones are .pview) */
+html.npr-room-on .nav .menu a:focus {outline:none;}
+html.npr-room-on .nav .menu a:focus-visible {outline:2px dashed #3a2618;outline-offset:4px;}
+
+/* thread + pin from the label to the object */
+html.npr-room-on .nav .menu li::after {content:'';position:absolute;left:50%;top:100%;width:1.5px;height:var(--npr-ll,0px);
+  margin-left:-.75px;background:rgba(58,38,24,.6);transform-origin:50% 0;transform:rotate(var(--npr-la,0rad));pointer-events:none;}
+html.npr-room-on .nav .menu li::before {content:'';position:absolute;left:calc(50% + var(--npr-lx,0px));top:calc(100% + var(--npr-ly,0px));
+  width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#fbf5e8;border:1.5px solid #3a2618;box-sizing:border-box;pointer-events:none;}
+html.npr-room-on .nav .menu li.npr-active::before {background:#f5c46a;}
+
+/* quote, social icons and copyright rest calmly along the bottom */
+html.npr-room-on .nav center {position:absolute;left:0;right:0;bottom:104px;z-index:2;pointer-events:none;}
+html.npr-room-on .nav .hitokoto {margin:0 auto;padding:0 20px;max-width:800px;font-size:14px;line-height:1.5;color:#8c7b67;}
+html.npr-room-on .nav p {z-index:2;pointer-events:none;color:#a18f7a;}
+html.npr-room-on .nav p a {pointer-events:auto;color:#a18f7a;}
+html.npr-room-on .nav .footerlinks {bottom:46px;margin:0;padding:0;font-size:30px;line-height:40px;}
+html.npr-room-on .nav .footerlinks a {font-size:28px;margin:0 4px;color:#8c7b67;}
+html.npr-room-on .nav .footerlinks a:hover {color:#3a2618;}
+html.npr-room-on .nav #copyright {bottom:16px;margin:0;font-size:11px;}
+
+@media screen and (max-width:780px) {
+  html.npr-room-on .nav .menu li {font-size:12px;}
+  html.npr-room-on .nav .menu a {padding:3px 8px 4px;font-size:12px;border-width:1.25px;box-shadow:1.5px 2px 0 rgba(58,38,24,.82);}
+  html.npr-room-on .nav .menu a:hover {border-bottom-width:1.25px;padding-bottom:4px;}
+  html.npr-room-on .nav center {bottom:92px;}
+  html.npr-room-on .nav .hitokoto {font-size:12px;padding:0 16px;}
+  html.npr-room-on .nav .footerlinks {bottom:38px;line-height:34px;}
+  html.npr-room-on .nav .footerlinks a {font-size:23px;}
+  html.npr-room-on .nav #copyright {bottom:12px;font-size:10px;padding:0 12px;box-sizing:border-box;}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.npr-room-on .nav > .npr-room,
+  html.npr-room-on .nav .menu li,
+  html.npr-room-on .nav .menu li.npr-on-screen,
+  html.npr-room-on .nav .menu a {transition:none;}
+  html.npr-room-on .nav .menu li.npr-active a {transform:none;}
+}

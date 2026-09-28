@@ -1,0 +1,12 @@
+/* NPR sub-page banners (js/npr/boot.js + page-*.js): a full-width illustrated band on top of #single .section,
+   under the fixed #top bar. Each scene may restyle its own band in css/npr-page-<key>.css. */
+.npr-page-scene {position:relative;width:100%;height:clamp(280px,46vh,460px);margin-top:50px;overflow:hidden;opacity:0;transition:opacity .8s ease;}
+.npr-page-scene.npr-ready {opacity:1;}
+#single.npr-page-on .article {margin-top:0;}
+body.touch .npr-page-scene {margin-top:0;} /* #top is static on touch devices */
+@media screen and (max-width:780px) {
+  .npr-page-scene {height:300px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .npr-page-scene {transition:none;}
+}

@@ -1,0 +1,42 @@
+/* Selection (/recommend/) banner — "the recommendation shelf" (js/npr/page-selection.js). */
+.npr-page-selection {background:#fff;}
+/* the paper-coloured illustration fades softly into the white page at its edges */
+.npr-page-selection .npr-canvas {
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 14%,#000 86%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 84%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,#000 14%,#000 86%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 84%,transparent);
+  mask-composite:intersect;
+}
+.npr-page-selection.npr-sel-hot .npr-canvas {cursor:pointer;}
+
+/* name tags on the shelf edge (mirror the section headings; the headings stay the accessible path) */
+.npr-sel-tag {
+  position:absolute;left:0;top:0;transform:translate(calc(var(--x,-999px) - 50%),calc(var(--y,-999px) + 2px));
+  padding:2px 9px 3px;border-radius:3px;background:#f7efdf;color:#5a3b24;border:1px solid rgba(90,59,36,.35);
+  box-shadow:0 1px 0 rgba(58,38,24,.25);font:500 12px/1.4 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none;
+  transition:background .2s,color .2s,border-color .2s;
+}
+.npr-sel-tag i {font-style:normal;margin-left:6px;padding:0 5px;border-radius:8px;background:rgba(90,59,36,.12);font-size:11px;}
+.npr-sel-tag.npr-sel-on {background:#f5c46a;border-color:#b07a4f;color:#3a2618;}
+
+/* tooltip above the hovered prop: the section heading */
+.npr-sel-tip {
+  position:absolute;left:0;top:0;pointer-events:none;opacity:0;
+  transform:translate(calc(var(--x,-999px) - 50%),calc(var(--y,-999px) - 100% + 6px));
+  padding:5px 12px 6px;border-radius:14px;background:#3a2618;color:#fff1c7;font-size:13px;line-height:1.3;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(58,38,24,.25);transition:opacity .18s;
+}
+.npr-sel-tip::after {content:"\2193";margin-left:6px;color:#f5c46a;}
+.npr-sel-tip.npr-sel-show {opacity:1;}
+
+/* clicking a prop scrolls to its heading: keep it clear of the fixed 50 px #top bar */
+.npr-page-selection ~ .article h2,.npr-page-selection ~ .article h3 {scroll-margin-top:64px;}
+body.touch .npr-page-selection ~ .article h2,body.touch .npr-page-selection ~ .article h3 {scroll-margin-top:12px;}
+
+@media screen and (max-width:780px) {
+  .npr-sel-tag {font-size:11px;padding:1px 7px 2px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .npr-sel-tag,.npr-sel-tip {transition:none;}
+}

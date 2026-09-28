@@ -1,0 +1,33 @@
+/* About banner ("the maker's desk", js/npr/page-about.js): the painted paper band fades into the white page.
+   Eased (smoothstep-like) mask stops so the cream never ends in a visible edge. */
+.npr-page-about {background:#fff;}
+.npr-page-about .npr-canvas {
+  --fx:13%;--fy:15%;
+  --mx:linear-gradient(90deg,transparent,rgba(0,0,0,.03) calc(var(--fx) * .15),rgba(0,0,0,.16) calc(var(--fx) * .35),rgba(0,0,0,.5) calc(var(--fx) * .6),rgba(0,0,0,.84) calc(var(--fx) * .82),#000 var(--fx),
+    #000 calc(100% - var(--fx)),rgba(0,0,0,.84) calc(100% - var(--fx) * .82),rgba(0,0,0,.5) calc(100% - var(--fx) * .6),rgba(0,0,0,.16) calc(100% - var(--fx) * .35),rgba(0,0,0,.03) calc(100% - var(--fx) * .15),transparent);
+  --my:linear-gradient(180deg,transparent,rgba(0,0,0,.03) calc(var(--fy) * .15),rgba(0,0,0,.16) calc(var(--fy) * .35),rgba(0,0,0,.5) calc(var(--fy) * .6),rgba(0,0,0,.84) calc(var(--fy) * .82),#000 var(--fy),
+    #000 calc(100% - var(--fy)),rgba(0,0,0,.84) calc(100% - var(--fy) * .82),rgba(0,0,0,.5) calc(100% - var(--fy) * .6),rgba(0,0,0,.16) calc(100% - var(--fy) * .35),rgba(0,0,0,.03) calc(100% - var(--fy) * .15),transparent);
+  -webkit-mask-image:var(--mx),var(--my);
+  -webkit-mask-composite:source-in;
+  mask-image:var(--mx),var(--my);
+  mask-composite:intersect;
+}
+.npr-page-about .npr-about-tip {
+  position:absolute;left:0;top:0;z-index:1;pointer-events:none;white-space:nowrap;text-align:center;
+  padding:6px 12px 7px;border:1.5px solid #3a2618;border-radius:9px;background:#fffaf0;color:#3a2618;
+  box-shadow:2px 3px 0 rgba(58,38,24,.22);font-size:14px;line-height:1.25;
+  opacity:0;transition:opacity .18s ease;
+}
+.npr-page-about .npr-about-tip.npr-on {opacity:1;}
+.npr-page-about .npr-about-tip b {display:block;font-weight:600;letter-spacing:.02em;}
+.npr-page-about .npr-about-tip span {display:block;margin-top:2px;font-size:11.5px;color:#8a6a52;}
+@media screen and (max-width:780px) {
+  .npr-page-about .npr-canvas {--fx:9%;--fy:13%;}
+  .npr-page-about .npr-about-tip {font-size:13px;padding:5px 10px 6px;}
+}
+@media screen and (max-width:480px) {
+  .npr-page-about .npr-about-tip span {display:none;} /* keep the tag small enough not to cover the robot */
+}
+@media (prefers-reduced-motion:reduce) {
+  .npr-page-about .npr-about-tip {transition:none;}
+}

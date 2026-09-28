@@ -1,0 +1,48 @@
+/* NPR 3D hero (js/npr/boot.js + forest.js). The painted #cover stays as the fallback. */
+#mark {position:relative;}
+#npr-hero {position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;}
+#npr-hero .npr-canvas {opacity:0;transition:opacity 1.2s ease;}
+
+/* pending: the forest is loading, keep the painting out of sight; on: canvas fades in over it */
+html.npr-hero-pending #mark,
+html.npr-hero-on #mark {background:#0f2426;}
+#mark .layer {transition:opacity .8s ease, visibility 0s linear 0s;}
+html.npr-hero-pending #mark .layer,
+html.npr-hero-on #mark .layer {opacity:0;visibility:hidden;transition:opacity .8s ease, visibility 0s linear 1.2s;}
+html.npr-hero-on #npr-hero .npr-canvas {opacity:1;}
+
+/* #vibrant, #header and #post0 follow #mark in the DOM, so they already paint above the canvas
+   (no z-index here: the icons must stay above the fixed .nav) */
+html.npr-hero-on #post0 {text-shadow:0 1px 12px rgba(6,14,20,.55);}
+html.npr-hero-on #header .icon-menu,
+html.npr-hero-on #header .icon-search {background:rgba(12,24,32,.55);}
+html.npr-hero-on body.mu #header .icon-menu,
+html.npr-hero-on body.mu #header .icon-search {background:none;color:#9a6428 !important;} /* accent is too pale on the light menu */
+
+@media screen and (max-width:780px) {
+  /* no polygon on narrow screens: a soft bottom shade keeps the post title readable */
+  html.npr-hero-on #vibrant div {opacity:0;}
+  html.npr-hero-on #vibrant {background:linear-gradient(to top, rgba(10,20,30,.72) 0%, rgba(10,20,30,.25) 32%, rgba(10,20,30,0) 55%);}
+}
+@media (prefers-reduced-motion:reduce) {
+  #npr-hero .npr-canvas, #mark .layer {transition:none;}
+}
+
+/* "enter the forest" (forest.js enter()): a warm light veil centred on the glow, turning to the page white */
+#npr-hero .npr-veil {position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;visibility:hidden;
+  --lx:60%;--ly:35%;--warm:0;--white:0;}
+#npr-hero .npr-veil.npr-veil-on {opacity:1;visibility:visible;}
+#npr-hero .npr-veil::before,
+#npr-hero .npr-veil::after {content:"";position:absolute;top:0;left:0;width:100%;height:100%;}
+#npr-hero .npr-veil::before {opacity:var(--warm);
+  background:radial-gradient(circle at var(--lx) var(--ly), #fffdf6 0%, #fff0c8 22%, rgba(255,214,140,.85) 48%, rgba(240,180,90,.35) 80%, rgba(240,180,90,0) 110%);}
+#npr-hero .npr-veil::after {opacity:var(--white);background:#fff;}
+#npr-hero .npr-veil.npr-veil-out {opacity:0;transition:opacity .9s ease;}
+/* the overlay steps aside at the start of the flight and comes back with the hero */
+html.npr-hero-on #vibrant, html.npr-hero-on #post0, html.npr-hero-on #header > div {transition:opacity .45s ease;}
+html.npr-entering #vibrant, html.npr-entering #post0, html.npr-entering #header > div {opacity:0;transition:opacity .25s ease;pointer-events:none;}
+html.npr-entering:not(.npr-enter-hold) #loader {visibility:hidden;}
+/* ...and the post fades in out of the white instead of sliding in (under 500 ms: Diaspora makes #preview
+   static 500 ms after .show, by then its transitionend must have hidden #container) */
+#preview.npr-enter-fade {left:0;opacity:0;pointer-events:none;transition:none;}
+#preview.npr-enter-fade.show {opacity:1;pointer-events:auto;transition:opacity .42s ease;}

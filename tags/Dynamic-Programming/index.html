@@ -15,9 +15,6 @@
     <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.png"> 
     
-<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
-
-    
     
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="Tag: Dynamic Programming - Niflheimr"/>
@@ -33,48 +30,59 @@
     
 <link rel="stylesheet" href="/css/diaspora.css">
 
+    
+<link rel="stylesheet" href="/css/media-card.css">
+
+    
+    
+<link rel="stylesheet" href="/css/npr.css">
+<link rel="stylesheet" href="/css/npr-room.css">
+
+    <script type="importmap">{"imports":{"three":"/js/three/three.module.min.js","three/addons/":"/js/three/addons/"}}</script>
+    
+    
 <meta name="generator" content="Hexo 7.3.0"></head>
 
 <body class="loading">
     <span id="config-title" style="display:none">Niflheimr</span>
     <div id="loader"></div>
-    <div class="nav">
+    
+<div class="nav">
+    
+    <div class="npr-room" aria-hidden="true"></div>
+    
     <ul id="menu-menu" class="menu">
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="bookshelf" data-npr-index="0">
             <a href="/categories/" title="Category" target="_blank" rel="noopener">Category</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
-            <a href="/tags/" title="Tags" target="_blank" rel="noopener">Tags</a>
-        </li>
-        
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="cabinet" data-npr-index="1">
             <a href="/archives/" title="Archives" target="_blank" rel="noopener">Archives</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="portrait" data-npr-index="2">
             <a href="/about/" title="About" target="_blank" rel="noopener">About</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="gramophone" data-npr-index="3">
             <a href="/recommend/" title="Selection" target="_blank" rel="noopener">Selection</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="sofa" data-npr-index="4">
             <a href="/friends/" title="Friends" target="_blank" rel="noopener">Friends</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="desk" data-npr-index="5">
             <a href="/updateLog/" title="Log" target="_blank" rel="noopener">Log</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
+        <li class="pview menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="corkboard" data-npr-index="6">
             <a href="/bulletin/" title="Bulletin" target="_blank" rel="noopener">Bulletin</a>
         </li>
         
-        <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
-            <a href="/archivedPost/" title="Portfolio" target="_blank" rel="noopener">Portfolio</a>
+        <li class="  menu-item menu-item-type-post_type menu-item-object-page" data-npr-object="easel" data-npr-index="7">
+            <a href="https://shaokang.cc/" title="Portfolio" target="_blank" rel="noopener">Portfolio</a>
         </li>
         
     </ul>
@@ -111,13 +119,18 @@
 
     <div id="container">
         
+
     <div id="screen">
         <div id="mark">
             <div class="layer" data-depth="0.4">
                 <img src="/img/cover-spring.jpg" id="cover" crossorigin="anonymous" width="1920" height="1080">
             </div>
+            
+                <div id="npr-hero" aria-hidden="true"></div>
+                
         </div>
-        <div id="vibrant">
+        <div id="vibrant" data-npr-overlay="#102a33"
+            data-npr-accent="#f5c46a" >
             <svg viewbox="0 0 2880 1620" height="100%" preserveaspectratio="xMaxYMax slice">
                 <polygon opacity="0.7" points="2000,1620 0,1620 0,0 600,0 " />
             </svg>
@@ -153,14 +166,15 @@
     </div>
     <div id="preview"></div>
     
-<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"scale":1.1,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"vOffset":-100,"position":"right","width":200,"height":400},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</body>
 
     
 <script src="/js/Valine.min.js"></script>
 
+    <script id="valine-config" type="application/json">{"appId":"V5TlA1sBo6I0jj0UAHU5cK04-gzGzoHsz","appKey":"KxU4ydJ3GkVkqk6ThXVXi8RF","placeholder":"到此一游","avatar":"robohash","verify":true}</script>
         
             
-<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/jquery.min.js"></script>
 <script src="/js/plugin.js"></script>
 <script src="/js/typed.js"></script>
 <script src="/js/diaspora.js"></script>
@@ -223,24 +237,16 @@
 </div>
 
 
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
-        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
-        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
-        messageStyle: "none"
-    });
-</script>
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
-        for(i=0; i < all.length; i += 1) {
-            all[i].SourceElement().parentNode.className += ' has-jax';
-        }
-    });
-</script>
+    <script id="npr-config" type="application/json">{"hero":true,"menu_room":true,"mobile":true,"accent":"#f5c46a","pages":{"/about/":"about","/categories/":"categories","/friends/":"friends","/recommend/":"selection"}}</script>
+    <script type="module" src="/js/npr/boot.js"></script>
 
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
+
+
+<style>mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}</style>
+<script id="mathjax-config" type="text/plain" data-src="/js/mathjax/tex-chtml.js"></script>
+
+<script src="/js/math.js"></script>
+
 
 
 

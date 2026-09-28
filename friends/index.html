@@ -23,7 +23,7 @@
 
     <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml">
 
-    <link rel="icon" href="/themes/diaspora/source/img/favicon.png">
+    <link rel="icon" href="/img/favicon.png">
 
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
 
@@ -585,16 +585,17 @@
             </div>
         </div>
     </div>
-    <script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script>
-    <script>L2Dwidget.init({ "log": false, "pluginJsPath": "lib/", "pluginModelPath": "assets/", "pluginRootPath": "live2dw/", "tagMode": false });</script>
     <!-- hexo-inject:begin -->
     <!-- hexo-inject:end -->
+    <!-- NPR three.js banner (theme js/npr/boot.js); this page is copied as-is, so the hooks live here -->
+    <script type="importmap">{"imports":{"three":"/js/three/three.module.min.js","three/addons/":"/js/three/addons/"}}</script>
+    <script id="npr-config" type="application/json">{"hero":false,"menu_room":false,"mobile":true,"accent":"#f5c46a","pages":{"/friends/":"friends"}}</script>
+    <script type="module" src="/js/npr/boot.js"></script>
 </body>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/valine/1.4.14/Valine.min.js"></script>
 
 
-<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/jquery.min.js"></script>
 <script src="/js/plugin.js"></script>
 <script src="/js/typed.js"></script>
 <script src="/js/diaspora.js"></script>

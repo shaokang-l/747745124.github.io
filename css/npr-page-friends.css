@@ -1,0 +1,52 @@
+/* Friends banner ("the friend village", js/npr/page-friends.js): a dusk watercolour wash that fades into
+   the white page behind a transparent canvas, plus the hover label. */
+.npr-page-friends {
+  background:
+    radial-gradient(ellipse 34% 60% at 50% 58%, rgba(255, 214, 170, .55), rgba(255, 214, 170, 0) 70%),
+    radial-gradient(ellipse 58% 92% at 50% 44%, rgba(214, 190, 226, .75), rgba(236, 214, 226, .45) 55%, rgba(255, 255, 255, 0) 100%),
+    #fff;
+}
+.npr-page-friends .npr-canvas {position:absolute;inset:0;}
+/* The village replaces the friend cards, so it gets a big band. */
+#single .npr-page-scene.npr-page-friends {height:clamp(440px,72vh,720px);}
+@media screen and (max-width:780px) {
+  #single .npr-page-scene.npr-page-friends {height:clamp(360px,56vh,520px);}
+}
+/* While the village is on, the cards are hidden visually only: the links stay in the DOM (and in the tab
+   order / accessibility tree), parked over the band so focusing one never scrolls the page away from it; a
+   focused link lights up its cottage and the label. Without the scene (boot removes npr-page-on) the cards
+   show as before. */
+#single.npr-page-on .section:has(> .npr-page-friends) {position:relative;}
+#single.npr-page-on .content > [class^="link-grid-"] {
+  position:absolute;top:120px;left:50%;width:1px;height:1px;margin:0;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+}
+.npr-page-friends .npr-friends-tip {
+  position:absolute;left:0;top:0;z-index:1;pointer-events:none;
+  max-width:260px;padding:6px 12px 7px;border:1.5px solid #3a2618;border-radius:8px;
+  background:#fbf6ea;color:#3a2618;box-shadow:2px 3px 0 rgba(58,38,24,.85);
+  font:14px/1.35 Georgia, "Songti SC", "PingFang SC", "Microsoft YaHei", serif;text-align:center;white-space:nowrap;
+  opacity:0;transition:opacity .18s ease;margin-top:-10px;
+}
+.npr-page-friends .npr-friends-tip.npr-on {opacity:1;}
+@media screen and (min-width:781px) {
+  .npr-page-friends .npr-friends-tip {max-width:340px;padding:8px 16px 9px;font-size:17px;}
+  .npr-page-friends .npr-friends-tip span {font-size:14px !important;}
+  .npr-page-friends .npr-friends-tip i {font-size:12.5px !important;}
+}
+.npr-page-friends .npr-friends-tip.npr-kbd {outline:2px dashed #3a2618;outline-offset:3px;}
+.npr-page-friends .npr-friends-tip i {display:block;margin-top:2px;font:11px/1.3 -apple-system, "Helvetica Neue", Arial, sans-serif;color:#8a6a4e;letter-spacing:.02em;}
+.npr-page-friends .npr-friends-tip i[hidden] {display:none;}
+.npr-page-friends .npr-friends-tip b {display:block;font-weight:700;}
+.npr-page-friends .npr-friends-tip span[hidden] {display:none;}
+.npr-page-friends .npr-friends-tip span {display:block;font-size:12px;font-style:italic;color:#6e4a32;overflow:hidden;text-overflow:ellipsis;}
+@media (prefers-reduced-motion:reduce) {
+  .npr-page-friends .npr-friends-tip {transition:none;}
+}
+/* name tags pinned under the sign boards on narrow bands (phones) */
+.npr-page-friends .npr-friends-tag {
+  position:absolute;left:0;top:0;z-index:1;pointer-events:none;white-space:nowrap;
+  padding:1px 6px 2px;border:1.5px solid #3a2618;border-radius:6px;margin-top:-4px;background:#fbf0d6;color:#2a170b;
+  box-shadow:1px 2px 0 rgba(58,38,24,.8);font:700 11px/1.3 Georgia, "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
+}
+.npr-page-friends .npr-friends-tag-plot {background:#fff3c9;border-color:#8a5a1c;}

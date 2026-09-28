@@ -105,8 +105,9 @@ var Diaspora = {
                     comment.click();
                 }
             }, 0)
-            var math = document.getElementById("single")
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, math])
+            if (window.DiasporaMath) {
+                DiasporaMath.typeset(document.getElementById("single"))
+            }
         })
     },
     preview: function () {
@@ -206,6 +207,16 @@ $(function () {
     if ($('#preview').length) {
         var cover = {};
         cover.t = $('#cover');
+        // NPR 3D hero (boot.js): fixed overlay / icon colours instead of the cover's swatches
+        var nprTint = function () {
+            var v = $('#vibrant'), overlay = v.attr('data-npr-overlay'), accent = v.attr('data-npr-accent');
+            if (!overlay || !$('html').hasClass('npr-hero-on')) return false;
+            $('#vibrant polygon').css('fill', overlay)
+            $('#vibrant div').css('background-color', overlay)
+            if (accent) $('.icon-menu, .icon-search').css('color', accent)
+            return true;
+        };
+        $(document).on('npr:hero', nprTint)
         cover.w = cover.t.attr('width');
         cover.h = cover.t.attr('height');
         ; (cover.o = function () {
@@ -244,6 +255,7 @@ $(function () {
                 $('html, body').removeClass('loading')
             }, 1000)
             $('#mark').parallax()
+            if (nprTint()) return;
             var vibrant = new Vibrant(cover.t[0]);
             var swatches = vibrant.swatches()
             if (swatches['DarkVibrant']) {
@@ -267,7 +279,7 @@ $(function () {
             T = setTimeout(function () {
                 if (!Diaspora.P() && location.href == Home) {
                     cover.o()
-                    cover.f()
+                    cover.f && cover.f()
                 }
                 if ($('#loader').attr('class')) {
                     Diaspora.loading()
@@ -600,39 +612,24 @@ $(function () {
                 }
                 return false;
                 break;
-            // comment
+            // comment (Valine; settings from theme.valine via #valine-config)
             case - 1 != tag.indexOf("comment"):
-                if ($('#gitalk-container').data('enable') == true) {
-                    Diaspora.loading(),
-                        comment = $('#gitalk-container');
-                    gitalk = new Valine({
-                        el: '#gitalk-container',
-                        appId: 'V5TlA1sBo6I0jj0UAHU5cK04-gzGzoHsz',
-                        appKey: 'KxU4ydJ3GkVkqk6ThXVXi8RF',
-                        notify: false,
-                        verify: true,
-                        avatar: 'robohash',
-                        placeholder: '到此一游'
-                    })
-                    $(".comment").removeClass("link")
-                    gitalk.render('gitalk-container')
-                    Diaspora.loaded();
-                } else {
-                    Diaspora.loading(),
-                        comment = $('#gitalk-container');
-                    gitalk = new Valine({
-                        el: '#gitalk-container',
-                        appId: 'V5TlA1sBo6I0jj0UAHU5cK04-gzGzoHsz',
-                        appKey: 'KxU4ydJ3GkVkqk6ThXVXi8RF',
-                        notify: false,
-                        verify: true,
-                        avatar: 'robohash',
-                        placeholder: '到此一游'
-                    })
-                    $(".comment").removeClass("link")
-                    gitalk.render('gitalk-container')
-                    Diaspora.loaded();
-                }
+                var vc = $('#valine-config');
+                if (!vc.length || typeof Valine == 'undefined') return false;
+                vc = JSON.parse(vc.text());
+                Diaspora.loading()
+                new Valine({
+                    el: '#gitalk-container',
+                    path: location.pathname, // per page; Valine's own default is frozen when its script first loads
+                    appId: vc.appId,
+                    appKey: vc.appKey,
+                    notify: false,
+                    verify: vc.verify,
+                    avatar: vc.avatar || 'robohash',
+                    placeholder: vc.placeholder || ''
+                })
+                $(".comment").removeClass("link")
+                Diaspora.loaded();
                 return false;
                 break;
             default:

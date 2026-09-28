@@ -1,0 +1,39 @@
+/* Categories banner ("the category bookshelf", js/npr/page-categories.js) + the category list as a compact index. */
+.npr-page-scene.npr-page-categories {
+  height:clamp(360px,60vh,560px);
+  /* the paper ground fades softly into the white page */
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 10%,#000 88%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 10%,#000 88%,transparent 100%);
+  mask-composite:intersect;
+}
+.npr-page-categories .npr-cat-label {
+  position:absolute;left:0;top:0;z-index:2;pointer-events:none;white-space:nowrap;
+  display:flex;align-items:baseline;gap:8px;padding:6px 12px 7px;border-radius:8px;
+  background:#fbf6ea;border:1.5px solid #3a2618;box-shadow:2px 3px 0 rgba(58,38,24,.28);
+  color:#3a2618;font-size:15px;line-height:1.2;
+  opacity:0;transition:opacity .18s ease;
+}
+.npr-page-categories .npr-cat-label.npr-on {opacity:1;}
+.npr-page-categories .npr-cat-label b {font-weight:600;}
+.npr-page-categories .npr-cat-label span {color:#8a5a3b;font-size:13px;}
+
+/* list below the shelf: a tidy wrap of chips, each with its book's cloth colour */
+#single.npr-bookshelf-on .set .category-list {display:flex;flex-wrap:wrap;gap:6px 10px;margin:0;padding:0;list-style:none;}
+#single.npr-bookshelf-on .set .category-list-item {width:auto;margin:0;padding-left:10px;border-left:4px solid var(--npr-book,#c9b79c);font-size:16px;line-height:1.6;transition:background .15s ease;}
+#single.npr-bookshelf-on .set .category-list-item.npr-book-hot {background:#fbf3de;}
+#single.npr-bookshelf-on .set .category-list-item.npr-book-hot .category-list-link {color:#2196F3;}
+@media screen and (max-width:780px) {
+  .npr-page-scene.npr-page-categories {
+    height:clamp(360px,54vh,460px);
+    -webkit-mask-image:linear-gradient(to right,transparent 0,#000 6%,#000 94%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);
+    mask-image:linear-gradient(to right,transparent 0,#000 6%,#000 94%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);
+  }
+  /* pull the index up under the band; one chip per row so every colour bar lines up with its name */
+  #single.npr-bookshelf-on .content {margin-top:8px;}
+  #single.npr-bookshelf-on .set .category-list {display:block;}
+  #single.npr-bookshelf-on .set .category-list-item {display:block;margin:0 0 6px;line-height:1.5;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .npr-page-categories .npr-cat-label,#single.npr-bookshelf-on .set .category-list-item {transition:none;}
+}
