@@ -34,6 +34,11 @@
   #single.npr-bookshelf-on .set .category-list {display:block;}
   #single.npr-bookshelf-on .set .category-list-item {display:block;margin:0 0 6px;line-height:1.5;}
 }
+/* night mode (js/theme.js): lamp-lit label and index chips on the warm dark page */
+html[data-theme="night"] .npr-page-categories .npr-cat-label {background:#2a211b;border-color:#e8b86a;color:#f1e4cf;box-shadow:2px 3px 0 rgba(0,0,0,.45);}
+html[data-theme="night"] .npr-page-categories .npr-cat-label span {color:#d9a866;}
+html[data-theme="night"] #single.npr-bookshelf-on .set .category-list-item.npr-book-hot {background:#2e241d;}
+html[data-theme="night"] #single.npr-bookshelf-on .set .category-list-item.npr-book-hot .category-list-link {color:#e8b86a;}
 @media (prefers-reduced-motion:reduce) {
   .npr-page-categories .npr-cat-label,#single.npr-bookshelf-on .set .category-list-item {transition:none;}
 }

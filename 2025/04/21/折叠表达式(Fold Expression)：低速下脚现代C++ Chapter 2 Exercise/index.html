@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+
+<html lang="en-us,default" class="loading" data-theme-default="auto">
+<head>
+    <meta charset="UTF-8" />
+    
+    <script>(function (h, k) {
+        var t, q = /[?&]night=([01])(?=&|#|$)/.exec(location.search), d = h.getAttribute('data-theme-default');
+        try {
+            if (q) {
+                t = q[1] === '1' ? 'night' : 'day';
+                localStorage.setItem(k, t);
+                history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])night=[01](&|$)/, '$1').replace(/[?&]$/, '') + location.hash);
+            } else t = localStorage.getItem(k);
+        } catch (e) {}
+        if (t !== 'night' && t !== 'day') t = d === 'night' || (d !== 'day' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+        h.setAttribute('data-theme', t);
+    })(document.documentElement, 'npr-theme');</script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise - Niflheimr</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="A personal website for Naoyuki,最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使,"> 
+    <meta name="author" content="Naoyuki"> 
+    <link rel="alternative" href="atom.xml" title="Niflheimr" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    
+    
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise - Niflheimr"/>
+    <meta name="twitter:description" content="A personal website for Naoyuki,最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使,"/>
+    
+    
+    
+    
+    <meta property="og:site_name" content="Niflheimr"/>
+    <meta property="og:type" content="object"/>
+    <meta property="og:title" content="折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise - Niflheimr"/>
+    <meta property="og:description" content="A personal website for Naoyuki,最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使,"/>
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+    
+<link rel="stylesheet" href="/css/media-card.css">
+
+    
+<link rel="stylesheet" href="/css/night.css">
+
+    <script src="/js/theme.js" defer></script>
+    
+    
+<link rel="stylesheet" href="/css/npr.css">
+<link rel="stylesheet" href="/css/npr-room.css">
+
+    <script type="importmap">{"imports":{"three":"/js/three/three.module.min.js","three/addons/":"/js/three/addons/"}}</script>
+    
+    
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Niflheimr</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://naoyuki.top"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">
+            折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise
+        </h1>
+        <div class="stuff">
+            <span>
+                April 21, 2025
+            </span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使得这门语言本身更好地支持例如函数式编程的范式。</p>
+<p>每一章的结尾作者都会提供一些简单的小题目，其中第二章的小题目cover了折叠表达式(Fold Expression, since C++17)和结构化绑定（Structured Binding, since C++17）。在自己闲着摸索的时候发现了一个有意思的小事情，于是稍微写点东西记录一下。</p>
+<blockquote>
+<p>感觉光看这本书和课后的题的话，内容还是不太能掌握，可能跟着其他博客看一看会比较好。</p>
+</blockquote>
+<h3 id="为什么需要Fold-Expression"><a href="#为什么需要Fold-Expression" class="headerlink" title="为什么需要Fold Expression?"></a>为什么需要Fold Expression?</h3><p>模版是C++比较重要的一个板块之一，但是C++11之前，模版的参数数量是固定的。自从C++11之后，新引入的表示方法允许声明时引入任意数量的参数，即如下形式:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br></pre></td></tr></table></figure>
+
+<p>有了可变长模版，我们就可以写一个允许任意长度参数的函数模版了。一个显而易见的好处是，我们可用这样的语法实现以下函数功能，并且只要写一个函数模版。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一个函数模版 mean_val，接受任意长度的参数，返回平均值</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// return 2</span></span><br><span class="line"><span class="built_in">mean_val</span>(<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>) <span class="comment">// return 3.5</span></span><br></pre></td></tr></table></figure>
+
+<p>不过在C++17之前，这样的函数模版在解包(unpack)的时候会比较麻烦，因为我们在写函数模版的时候并不知道究竟会传几个参数进来，而参数包又不像是std::vector之类的容器有简单的方式进行遍历，因此我们对于函数参数的实际操作就变得比较麻烦。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//比如说我想实现max_val，但是我并没有直观的方式遍历args的内容</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//我该怎么获得args的内容呢？</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过目前来说，我们可以通过sizeof… 来计算参数的个数:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(Ts... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	std::cout&lt;&lt;<span class="keyword">sizeof</span>...(args)&lt;&lt;std::endl</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">foo</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>) <span class="comment">// cout:3</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="一个比较常见的做法是利用递归来进行参数解包"><a href="#一个比较常见的做法是利用递归来进行参数解包" class="headerlink" title="一个比较常见的做法是利用递归来进行参数解包:"></a>一个比较常见的做法是利用递归来进行参数解包:</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//书中的案例</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span> </span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T0&gt; <span class="type">void</span> <span class="title">printf1</span><span class="params">(T0 value)</span> </span>&#123;</span><br><span class="line">std::cout &lt;&lt; value &lt;&lt; std::endl;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span>... Ts&gt; </span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">printf1</span><span class="params">(T value, Ts... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; value &lt;&lt; std::endl;<span class="comment">//每次取出一个T，然后递归再取出一个T</span></span><br><span class="line">    <span class="built_in">printf1</span>(args...);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">printf1</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="string">&quot;123&quot;</span>, <span class="number">1.1</span>); <span class="comment">//输出所有参数</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这么做的确比较繁琐，而C++17中引入了一种比较简洁的方式来实现这种功能需求，这就是标题里的折叠表达式。</p>
+<ul>
+<li>考虑下面的代码，下面的函数模版可以实现任意长度立即数的求和。</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">sum</span><span class="params">(T ... t)</span> <span class="comment">//C++14，函数返回值自动推断</span></span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">	<span class="keyword">return</span> (t + ...); <span class="comment">//折叠表达式</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">sum</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过书中没有仔细讲这个折叠表达式的内容，因此原理上就有些不清晰，这里做一些补充。</p>
+<h3 id="折叠表达式的语法："><a href="#折叠表达式的语法：" class="headerlink" title="折叠表达式的语法："></a>折叠表达式的语法：</h3><ul>
+<li><code>pack op ...</code> (一元右折叠 &#x2F; unary right fold)</li>
+<li><code>... op pack</code> (一元左折叠 &#x2F; unary right fold)</li>
+<li><code>pack op ... op init</code> (二元右折叠 &#x2F; binary right fold)</li>
+<li><code>init op ... op pack</code> (二元左折叠 &#x2F; binary left fold)</li>
+</ul>
+<p>其中，<code>pack</code>是参数包，即上述代码中的t，op即operator，支持32种二元运算符，例如<code>+,-,*,/</code> , <code>init</code>表示最后一层展开时二元运算符的另一个操作数。 其中在二元折叠中两个operator要保持一致。</p>
+<h3 id="以上四个表达式和以下内容等价："><a href="#以上四个表达式和以下内容等价：" class="headerlink" title="以上四个表达式和以下内容等价："></a>以上四个表达式和以下内容等价：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(args op ...) &lt;-&gt; (arg1 op (arg2 op (arg3 op (... op (arg_n-1 op arg_n)))))</span><br><span class="line">(... op args) &lt;-&gt; (((arg1 op arg2) op ...) op arg_n)</span><br><span class="line">(args op ... op init) &lt;-&gt; (arg1 op (... op (arg_n−1 op (arg_n op init))))</span><br><span class="line">(init args op ... op ) &lt;-&gt; ((((init op arg1) op arg2) op ...) op arg_n)</span><br></pre></td></tr></table></figure>
+
+<p>这么写可能还是有点晕，举两个例子可能更好:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">args = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">(args - ...) &lt;-&gt; (<span class="number">1</span> - (<span class="number">2</span> - <span class="number">3</span>))</span><br><span class="line">(<span class="number">3</span> - ... - args) &lt;-&gt; (((<span class="number">3</span><span class="number">-1</span>)<span class="number">-2</span>)<span class="number">-3</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Ref: <a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/fold">https://en.cppreference.com/w/cpp/language/fold</a></p>
+</blockquote>
+<p>下面是一个注意点，由于运算符优先级问题，第一种备注是掉的写法并不被接受，需要写成第二种写法</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> ...Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//  return (args + ... + 1 * 2);   // Error: operator with precedence below cast</span></span><br><span class="line">    <span class="keyword">return</span> (args + ... + (<span class="number">1</span> * <span class="number">2</span>)); <span class="comment">// OK</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="作业题："><a href="#作业题：" class="headerlink" title="作业题："></a>作业题：</h3><p>利用折叠表达式写一个计算求均值的函数模版:</p>
+<p>答案如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">mean</span><span class="params">(T... t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">mean</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//output: 3</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="但是…"><a href="#但是…" class="headerlink" title="但是…"></a>但是…</h3><p>不知道为什么我突然想试着把 <code>+</code> 改成 <code>-</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(t - ...)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; (<span class="number">1</span>-(<span class="number">2</span>-(<span class="number">3</span>-(<span class="number">4</span><span class="number">-5</span>)))) = (<span class="type">int</span>)<span class="number">3</span>/<span class="number">5</span> = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子倒是没有问题，如果我改成左折叠:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">return</span> (... - t) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//output: 3689348814741910320</span></span><br></pre></td></tr></table></figure>
+
+<p>这个一长串数字并不是随机数，运行了好几次都是同一个结果。但是:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(... - t)/<span class="keyword">sizeof</span>...(t) &lt;-&gt; ((((<span class="number">1</span><span class="number">-2</span>)<span class="number">-3</span>)<span class="number">-4</span>)<span class="number">-5</span>)/<span class="number">5</span> = <span class="number">-13</span>/<span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>本应该输出-2才对，那么究竟是哪里出问题了呢？</p>
+<h3 id="探索"><a href="#探索" class="headerlink" title="探索"></a>探索</h3><p>首先我查看了折叠表达式和<code>sizeof…(t)</code>的返回值，用lldb调试后发现数值没有问题，那么应该是除法这一步出了问题。</p>
+<p><img src="https://s2.loli.net/2022/01/01/v2aCilBbDmuOLEj.png" alt="image-20220101230639043"></p>
+<p>当我将p的类型从auto改为int之后，返回值就变成-2了：</p>
+<p><img src="https://s2.loli.net/2022/01/01/16UWplfXmMLCNTv.png" alt="image-20220101230834880"></p>
+<p>那么看来应该是<code>sizeof…</code>返回值的问题。</p>
+<h3 id="解释："><a href="#解释：" class="headerlink" title="解释："></a>解释：</h3><p>询问学长之后发现，<code>sizeof...</code>返回的是一个<code>size_t</code>类型的值，在64-bit操作系统中类型是<code>uint64_t</code>，即64位无符号整型。然后折叠表达式自动推断返回为int（<code>int32_t</code>), 二者做除法的时候int被提升到<code>uint64_t</code>，然后又因为负数的符号位在最高位，被转换成unsigned的时候，数值就变得非常大了。</p>
+<p>可以具体算一下这个<code>3689348814741910320</code>的由来，结果是一致的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-13 = (hex) FFFFFFFFFFFFFFF3 -&gt; 18,446,744,073,709,551,603</span><br><span class="line">int(18,446,744,073,709,551,603 / 5) = 3689348814741910320</span><br></pre></td></tr></table></figure>
+
+<p>所以需要注意的是，一行的表达式，其实包含了一次类型推断和一次隐式类型转换，所以使用的时候需要比较小心一些。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(t + ...) / <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="comment">//equivalent as below</span></span><br><span class="line"><span class="keyword">auto</span> p = (t + ...);</span><br><span class="line"><span class="type">size_t</span> i = <span class="keyword">sizeof</span>...(t);</span><br><span class="line"><span class="keyword">return</span> p/i;</span><br></pre></td></tr></table></figure>
+
+<p>等我看完Chapter 4的时候可能会再来写一点内容，感觉还是得一边看一边跟着例子写一点才好。</p>
+
+                <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+                <audio id="audio" loop="1" preload="auto" controls="controls"
+                    data-autoplay=" false">
+                    <source type="audio/mpeg" src="">
+                </audio>
+                
+                    <ul id="audio-list" style="display:none">
+                        
+                            
+                                <li title="0" data-url="http://music.163.com/song/media/outer/url?id=430224.mp3"></li>
+                                
+                                        
+                    </ul>
+                    
+        </div>
+        
+<div id="gitalk-container" class="comment link">Load Comments</div>
+
+
+    </div>
+    
+</div>
+    </div>
+</div>
+</body>
+
+    
+<script src="/js/Valine.min.js"></script>
+
+    <script id="valine-config" type="application/json">{"appId":"V5TlA1sBo6I0jj0UAHU5cK04-gzGzoHsz","appKey":"KxU4ydJ3GkVkqk6ThXVXi8RF","placeholder":"到此一游","avatar":"robohash","verify":true}</script>
+        
+            
+<script src="/js/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+                
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script id="npr-config" type="application/json">{"hero":true,"menu_room":true,"mobile":true,"accent":"#f5c46a","pages":{"/about/":"about","/categories/":"categories","/friends/":"friends","/recommend/":"selection"}}</script>
+    <script type="module" src="/js/npr/boot.js"></script>
+
+
+
+<style>mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}</style>
+<script id="mathjax-config" type="text/plain" data-src="/js/mathjax/tex-chtml.js"></script>
+
+<script src="/js/math.js"></script>
+
+
+
+
+
+</html>

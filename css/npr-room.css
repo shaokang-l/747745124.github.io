@@ -21,7 +21,7 @@ html.npr-room-on .nav .menu li.npr-active {z-index:30;}
 
 html.npr-room-on .nav .menu a {position:relative;z-index:1;display:block;margin:0;padding:5px 13px 6px;font-size:15px;line-height:1.25;
   letter-spacing:.03em;white-space:nowrap;color:#3a2618;background:#fbf5e8;border:1.5px solid #3a2618;border-radius:4px 11px 4px 11px;
-  box-shadow:2px 3px 0 rgba(58,38,24,.82);transition:transform .18s cubic-bezier(.3,1.6,.5,1),background-color .18s ease,box-shadow .18s ease;}
+  box-shadow:2px 3px 0 rgba(58,38,24,.82);transition:transform .18s cubic-bezier(.3,1.6,.5,1),background-color .18s ease,box-shadow .18s ease,color .4s ease,border-color .4s ease;}
 html.npr-room-on .nav .menu a:hover {color:#3a2618;border-bottom:1.5px solid #3a2618;padding-bottom:6px;}
 html.npr-room-on .nav .menu li.npr-active a {background:#f5c46a;transform:translateY(-3px) rotate(-2deg);box-shadow:3px 5px 0 rgba(58,38,24,.85);}
 html.npr-room-on .nav .menu li:not(.pview) a::after {content:"\2197";margin-left:.3em;font-size:.85em;opacity:.7;} /* external link (internal ones are .pview) */
@@ -56,7 +56,39 @@ html.npr-room-on .nav #copyright {bottom:16px;margin:0;font-size:11px;}
   html.npr-room-on .nav #copyright {bottom:12px;font-size:10px;padding:0 12px;box-sizing:border-box;}
 }
 
+/* ---- warm night (html[data-theme="night"], see theme.js): dark warm paper, cream ink, gold accents ---- */
+html[data-theme="night"] .nav {background:rgba(30,22,23,.985);}
+html[data-theme="night"] .nav .menu a {color:#cdbfad;}
+html[data-theme="night"] .nav .menu a:hover {color:#eadfcf;border-bottom-color:#e8b86a;}
+html[data-theme="night"] .nav .hitokoto {color:#a89886;}
+html[data-theme="night"] .nav p,
+html[data-theme="night"] .nav p a {color:#8f7f6e;}
+html[data-theme="night"] .nav .footerlinks a {color:#a89886;}
+html[data-theme="night"] .nav .footerlinks a:hover {color:#e8b86a;}
+/* (the header over the open menu is styled by night.css) */
+
+html.npr-room-on .nav {transition:top .3s cubic-bezier(.4,0,.2,1),background-color .8s ease;}
+html.npr-room-on[data-theme="night"] .nav {background:#1e1517;}
+html.npr-room-on[data-theme="night"] .nav .menu a {color:#eadfcf;background:#2a1f1c;border-color:#d9c7ad;
+  box-shadow:2px 3px 0 rgba(8,4,5,.85);}
+html.npr-room-on[data-theme="night"] .nav .menu a:hover {color:#eadfcf;border-bottom-color:#d9c7ad;}
+html.npr-room-on[data-theme="night"] .nav .menu li.npr-active a {color:#2a1a10;background:#e8b86a;border-color:#f3d9a4;
+  box-shadow:3px 5px 0 rgba(8,4,5,.9),0 0 14px rgba(255,179,92,.35);}
+html.npr-room-on[data-theme="night"] .nav .menu a:focus-visible {outline-color:#e8b86a;}
+html.npr-room-on[data-theme="night"] .nav .menu li::after {background:rgba(234,223,207,.5);}
+html.npr-room-on[data-theme="night"] .nav .menu li::before {background:#2a1f1c;border-color:#d9c7ad;}
+html.npr-room-on[data-theme="night"] .nav .menu li.npr-active::before {background:#e8b86a;}
+html.npr-room-on[data-theme="night"] .nav .hitokoto {color:#a89886;}
+html.npr-room-on[data-theme="night"] .nav p,
+html.npr-room-on[data-theme="night"] .nav p a {color:#8f7f6e;}
+html.npr-room-on[data-theme="night"] .nav .footerlinks a {color:#a89886;}
+html.npr-room-on[data-theme="night"] .nav .footerlinks a:hover {color:#e8b86a;}
+@media screen and (max-width:780px) {
+  html.npr-room-on[data-theme="night"] .nav .menu a {box-shadow:1.5px 2px 0 rgba(8,4,5,.85);}
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html.npr-room-on .nav {transition:top .3s cubic-bezier(.4,0,.2,1);}
   html.npr-room-on .nav > .npr-room,
   html.npr-room-on .nav .menu li,
   html.npr-room-on .nav .menu li.npr-on-screen,

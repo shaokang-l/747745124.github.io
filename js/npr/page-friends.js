@@ -13,9 +13,36 @@ const DEG = Math.PI / 180;
 const noRaycast = () => {};
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const DEPTH = 0.95; // underside depth scale of the island
-const GLASS = 1.5, GLASS_ON = 3.4; // window glow (HDR emissive) idle / hovered
+const GLASS = [1.5, 3.0], GLASS_ON = [3.4, 4.6]; // window glow (HDR emissive) idle / hovered, day / night
 const SIGN_W = 1.5, SIGN_H = 0.46; // friend name boards (world units)
 const SIGN_FACE = 9 * DEG; // boards turn toward the camera (world yaw)
+const FADE = 0.8; // day <-> night crossfade (s)
+
+// Day / night values of everything the theme toggle changes. Night: a deep warm night over the island, lit by
+// cottage windows, lanterns and a warm village glow; the moon is only a faint cool key and rim.
+const LOOK = {
+  key: [[0xffc9a0, 2.3], [0xb9c4ff, 0.45]],
+  fill: [[0xa9b4ff, 0.7], [0x8a6a8a, 0.12]],
+  hemi: [[0xe6d4f2, 0x6d5a58, 1.25], [0x5e4660, 0x2c1d19, 0.75]],
+  village: [0, 2.4],                  // warm glow over the village (off by day)
+  lamps: [[1.2, 2.2, 3.2], [2.6, 1.6, 4.2]], // cottage lights: idle, + hovered, distance
+  robot: [1.6, 3.0],
+  glow: [2.4, 4.4],                   // lantern bulbs
+  plus: [2.2, 3.4],
+  eyes: [0.9, 1.6],
+  rim: [0, 0.22],                     // cool moon rim on every toon surface
+  board: [0xe8e0d0, 0xf4d8aa],        // name boards, lit by their lanterns
+  moon: [[1.7, 1.55, 1.2], [2.6, 2.35, 1.85]],
+  stars: [[1.8, 1.6, 1.2], [3.2, 2.7, 1.9]],
+  flies: [2.6, 3.6],                  // x accent
+  outline: [[0x3a2618, 0.9, 0.3], [0x170d0a, 0.88, 0.45]], // colour, opacity, colour bleed
+  bloom: [0.75, 1.05],
+  paper: [0xfff4e2, 0xffe2c2],
+  grade: [[0xffffff, 1.0, 1.02], [0xffe9d6, 1.06, 1.06]],  // tint, exposure, saturation
+};
+const lerp = (a, b, t) => a + (b - a) * t;
+const pair = (a, b) => [new THREE.Color(a), new THREE.Color(b)];
+const rgb = (v) => new THREE.Color(v[0], v[1], v[2]);
 
 // Screen-constant accent rim drawn from an inflated back-face hull.
 const HULL_VERT = /* glsl */`
@@ -106,7 +133,7 @@ function sparkles(count, place, { color, size, drift }) {
   return pts;
 }
 
-export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a' } = {}) {
+export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a', night } = {}) {
   root = root || document;
   const friends = readFriends(root);
   const stage = createStage(container, {
@@ -196,7 +223,9 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const fill = new THREE.DirectionalLight(0xa9b4ff, 0.7);
   fill.position.set(8, 3, 5);
   const hemi = new THREE.HemisphereLight(0xe6d4f2, 0x6d5a58, 1.25);
-  world.add(key, key.target, fill, hemi);
+  const village = new THREE.PointLight(0xffb35c, 0, 0, 1); // night only (0 by day: same programs)
+  village.position.set(0, 2.6, 2.2);
+  world.add(key, key.target, fill, hemi, village);
 
   const vc = track(vcMaterial());
   const glowMat = track(glowMaterial(0xffd27a, 2.4));
@@ -290,9 +319,11 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     e.anim.add(proxy);
     e.proxy = proxy;
   };
+  const boards = [];
+  const boardMat = (map) => { const m = track(new THREE.MeshBasicMaterial({ map, color: LOOK.board[0] })); boards.push(m); return m; };
   const signBoard = (e, tex, pos, w, h, ry) => {
     // unlit, so lantern light / bloom never washes the lettering out
-    const m = new THREE.Mesh(track(new THREE.PlaneGeometry(w, h)), track(new THREE.MeshBasicMaterial({ map: tex, color: 0xe8e0d0 })));
+    const m = new THREE.Mesh(track(new THREE.PlaneGeometry(w, h)), boardMat(tex));
     m.position.copy(pos);
     m.rotation.y = ry;
     m.raycast = noRaycast;
@@ -310,7 +341,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     const body = new THREE.Mesh(track(house.body), vc);
     body.castShadow = body.receiveShadow = true;
     markOutline(body);
-    e.glass = track(glowMaterial(0xffc978, GLASS));
+    e.glass = track(glowMaterial(0xffc978, GLASS[0]));
     const glass = new THREE.Mesh(track(house.glass), e.glass);
     markOutline(glass);
     e.anim.add(body, glass);
@@ -329,7 +360,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     addHull(e, [house.body, house.glass]);
     e.top = house.top;
     if (lampLights.length < 4) {
-      const L = new THREE.PointLight(0xffb870, 1.2, 3.2, 2);
+      const L = new THREE.PointLight(0xffb870, LOOK.lamps[0][0], LOOK.lamps[0][2], 2);
       L.position.set(0, 0.7, (house.d || 1) / 2 + 0.45);
       e.anim.add(L);
       e.light = L;
@@ -342,6 +373,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const plotSlot = slots[S - 1];
   const plot = makeEntry(friends.length, plotSlot, 'plot', null);
   let plus = null;
+  const plusMat = track(glowMaterial(accentCol.getHex(), LOOK.plus[0]));
   {
     const pp = new Parts();
     const spec = buildPlot(pp, rand, accent);
@@ -358,7 +390,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     signBoard(plot, track(signTexture('Your house here?', { sub: 'ask on the Bulletin board', aspect: PW / PH })), sgn.board, PW, PH, SIGN_FACE);
     const pm = new Parts();
     plusMarker(pm);
-    plus = new THREE.Mesh(track(pm.build()), track(glowMaterial(accentCol.getHex(), 2.2)));
+    plus = new THREE.Mesh(track(pm.build()), plusMat);
     plus.position.set(0.05, 0.5, spec.z0 + 0.05);
     plus.scale.setScalar(1.35);
     plus.userData.y = plus.position.y;
@@ -370,17 +402,19 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   entries.push(plot);
 
   const robot = new THREE.Group();
+  const eyeMat = track(glowMaterial(0xfff1c7, LOOK.eyes[0]));
+  let robotLight = null;
   {
     const rb = new Parts(), rg = new Parts(), re = new Parts();
     buildRobot(rb, rg, re);
     const b = new THREE.Mesh(track(rb.build()), vc);
     b.castShadow = true;
     markOutline(b);
-    const eyes = new THREE.Mesh(track(re.build()), track(glowMaterial(0xfff1c7, 0.9)));
+    const eyes = new THREE.Mesh(track(re.build()), eyeMat);
     robot.add(b, new THREE.Mesh(track(rg.build()), glowMat), eyes);
-    const L = new THREE.PointLight(0xffc27a, 1.6, 2.6, 2); // its lantern lights the robot and the lot
-    L.position.set(0.1, 0.55, 0.55);
-    robot.add(L);
+    robotLight = new THREE.PointLight(0xffc27a, LOOK.robot[0], 2.6, 2); // its lantern lights the robot and the lot
+    robotLight.position.set(0.1, 0.55, 0.55);
+    robot.add(robotLight);
     robot.position.set(plotSlot.x + 1.15, 0, plotSlot.z + 0.55);
     robot.scale.setScalar(1.25);
     world.add(robot);
@@ -428,7 +462,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const clouds = floaters.slice(islets.length);
 
   const moon = new THREE.Mesh(track(new THREE.PlaneGeometry(1.4, 1.4)), track(new THREE.MeshBasicMaterial({
-    map: track(moonTexture()), color: new THREE.Color(1.7, 1.55, 1.2), transparent: true, depthWrite: false, fog: false,
+    map: track(moonTexture()), color: rgb(LOOK.moon[0]), transparent: true, depthWrite: false, fog: false,
   })));
   moon.position.set(rx * 1.25, 2.3, -rz - 3);
   moon.raycast = noRaycast;
@@ -436,7 +470,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
 
   const skyR = seededRandom('friends-stars');
   const stars = sparkles(low ? 18 : 30, (v) => v.set((skyR() - 0.5) * rx * 5, 1.6 + skyR() * 3.2, -rz - 4 - skyR() * 3), {
-    color: new THREE.Color(1.8, 1.6, 1.2), size: 26, drift: 0,
+    color: rgb(LOOK.stars[0]), size: 26, drift: 0,
   });
   track(stars.geometry); track(stars.material);
   world.add(stars);
@@ -445,7 +479,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       v.set((skyR() - 0.5) * rx * 2.1, 0.3 + skyR() * 1.9, (skyR() - 0.5) * rz * 2.1);
       if (inside(v.x, v.z, 1.05)) break;
     }
-  }, { color: accentCol.clone().multiplyScalar(2.6), size: 34, drift: 1 });
+  }, { color: accentCol.clone().multiplyScalar(LOOK.flies[0]), size: 34, drift: 1 });
   track(flies.geometry); track(flies.material);
   world.add(flies);
 
@@ -538,7 +572,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     moon.lookAt(camera.position);
   }
   const renderShadows = () => { renderer.shadowMap.needsUpdate = true; };
-  stage.onResize((w, h) => { frame(w, h); if (!stage.running && stage.frames > 0) renderShadows(); });
+  stage.onResize((w, h) => { frame(w, h); tipH = 0; if (!stage.running && stage.frames > 0) renderShadows(); });
 
   /* --------------------------------------------------------------------------------------------
    * Hover label (DOM, inside the container; never catches the pointer)
@@ -548,7 +582,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const tipName = document.createElement('b'), tipSub = document.createElement('span'), tipHint = document.createElement('i');
   tip.append(tipName, tipSub, tipHint);
   container.appendChild(tip);
-  let tipFor = -1, tipKey = '', tipX = NaN, tipY = NaN;
+  let tipFor = -1, tipKey = '', tipX = NaN, tipY = NaN, tipH = 0;
   const _a = new THREE.Vector3();
   // The label stands in for the (hidden) friend card: nickname, intro line, and where the click goes.
   function placeTip(e, kbd) {
@@ -562,12 +596,14 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       tipSub.hidden = !tipSub.textContent;
       tipHint.textContent = tapArmed ? 'Tap again to open \u2197' : plotE || !e.data.host ? '' : e.data.host + ' \u2197';
       tipHint.hidden = !tipHint.textContent;
+      tipH = 0;
     }
     tipFor = e.i;
     tip.classList.toggle('npr-kbd', !!kbd);
     _a.set(0, e.top + 0.15, 0);
     e.anim.localToWorld(_a).project(camera);
-    const x = Math.round((_a.x * 0.5 + 0.5) * stage.width), y = Math.round(Math.max((0.5 - _a.y * 0.5) * stage.height, 8));
+    if (!tipH) tipH = tip.offsetHeight + 18; // it hangs above its anchor: keep it inside the band (tall towers)
+    const x = Math.round((_a.x * 0.5 + 0.5) * stage.width), y = Math.round(Math.max((0.5 - _a.y * 0.5) * stage.height, tipH));
     if (x !== tipX || y !== tipY) {
       tipX = x; tipY = y;
       tip.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
@@ -696,12 +732,60 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const pointer = createPointer(window, { smoothing: 2.5 });
 
   /* --------------------------------------------------------------------------------------------
+   * Day / night: every changing value is blended from LOOK (e = eased 0 day .. 1 night)
+   * ------------------------------------------------------------------------------------------ */
+  const P = stage.pipeline.params;
+  P.outline.color = new THREE.Color(); P.paper.tint = new THREE.Color(); P.grade.tint = new THREE.Color();
+  const L = {
+    key: pair(LOOK.key[0][0], LOOK.key[1][0]), fill: pair(LOOK.fill[0][0], LOOK.fill[1][0]),
+    sky: pair(LOOK.hemi[0][0], LOOK.hemi[1][0]), ground: pair(LOOK.hemi[0][1], LOOK.hemi[1][1]),
+    board: pair(...LOOK.board), moon: [rgb(LOOK.moon[0]), rgb(LOOK.moon[1])], stars: [rgb(LOOK.stars[0]), rgb(LOOK.stars[1])],
+    flies: [accentCol.clone().multiplyScalar(LOOK.flies[0]), new THREE.Color(0xffb35c).multiplyScalar(LOOK.flies[1])],
+    outline: pair(LOOK.outline[0][0], LOOK.outline[1][0]), paper: pair(...LOOK.paper), grade: pair(LOOK.grade[0][0], LOOK.grade[1][0]),
+  };
+  const moonRim = new THREE.Color(0xb9c4ff);
+  let isNight = night !== undefined ? !!night : document.documentElement.dataset.theme === 'night';
+  let mix = isNight ? 1 : 0, look = -1;
+  function applyLook(m) {
+    const e = m * m * (3 - 2 * m);
+    if (e === look) return;
+    look = e;
+    const two = (k, i) => lerp(LOOK[k][0][i], LOOK[k][1][i], e);
+    const one = (k) => lerp(LOOK[k][0], LOOK[k][1], e);
+    key.color.lerpColors(L.key[0], L.key[1], e); key.intensity = two('key', 1);
+    fill.color.lerpColors(L.fill[0], L.fill[1], e); fill.intensity = two('fill', 1);
+    hemi.color.lerpColors(L.sky[0], L.sky[1], e); hemi.groundColor.lerpColors(L.ground[0], L.ground[1], e);
+    hemi.intensity = two('hemi', 2);
+    village.intensity = one('village');
+    for (const Lp of lampLights) Lp.distance = two('lamps', 2);
+    robotLight.intensity = one('robot');
+    glowMat.emissiveIntensity = one('glow');
+    plusMat.emissiveIntensity = one('plus');
+    eyeMat.emissiveIntensity = one('eyes');
+    for (const mat of [vc, cloudMat]) { mat.rimColor = moonRim; mat.rimStrength = one('rim'); }
+    for (const b of boards) b.color.lerpColors(L.board[0], L.board[1], e);
+    moon.material.color.lerpColors(L.moon[0], L.moon[1], e);
+    stars.material.uniforms.uColor.value.lerpColors(L.stars[0], L.stars[1], e);
+    flies.material.uniforms.uColor.value.lerpColors(L.flies[0], L.flies[1], e);
+    P.outline.color.lerpColors(L.outline[0], L.outline[1], e);
+    P.outline.opacity = two('outline', 1); P.outline.colorBleed = two('outline', 2);
+    P.bloom.strength = one('bloom');
+    P.paper.tint.lerpColors(L.paper[0], L.paper[1], e);
+    P.grade.tint.lerpColors(L.grade[0], L.grade[1], e);
+    P.grade.exposure = two('grade', 1); P.grade.saturation = two('grade', 2);
+  }
+  applyLook(mix);
+
+  /* --------------------------------------------------------------------------------------------
    * Frame update
    * ------------------------------------------------------------------------------------------ */
   const T0 = 3.2; // reduced motion: time frozen on a pleasant moment
   function update(dt, t) {
     const T = still ? T0 : t;
     if (!still) pointer.update(dt);
+    const goal = isNight ? 1 : 0; // day <-> night crossfade (snaps when rendered without the loop)
+    if (mix !== goal) mix = still || dt === 0 ? goal : Math.max(0, Math.min(1, mix + Math.sign(goal - mix) * dt / FADE));
+    applyLook(mix);
     const px = still ? 0 : pointer.x, py = still ? 0 : pointer.y;
     // parallax + gentle bob
     _v.copy(view.target);
@@ -748,8 +832,11 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       e.anim.scale.set(sxz, sq, sxz);
       e.hull.visible = e.h > 0.01;
       e.hullMat.uniforms.uWidth.value = e.h * 3.2;
-      if (e.glass) e.glass.emissiveIntensity = GLASS + (GLASS_ON - GLASS) * e.h + (still ? 0 : Math.sin(T * 2.1 + e.i * 1.7) * 0.08);
-      if (e.light) e.light.intensity = 1.2 + e.h * 2.2;
+      if (e.glass) {
+        const g0 = lerp(GLASS[0], GLASS[1], look), g1 = lerp(GLASS_ON[0], GLASS_ON[1], look);
+        e.glass.emissiveIntensity = g0 + (g1 - g0) * e.h + (still ? 0 : Math.sin(T * 2.1 + e.i * 1.7) * 0.08);
+      }
+      if (e.light) e.light.intensity = lerp(LOOK.lamps[0][0], LOOK.lamps[1][0], look) + e.h * lerp(LOOK.lamps[0][1], LOOK.lamps[1][1], look);
       if (Math.abs(e.lift - lt) > 0.002 || Math.abs(e.liftV) > 0.01 || sq !== 1 || wob !== 0 || Math.abs(e.h - lt) > 0.01) moving = true;
     }
     if (moving || dirty) { renderShadows(); dirty = moving; }
@@ -770,6 +857,17 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       if (still) stage.renderOnce(); else stage.start();
     },
     stop() { stage.stop(); },
+    // Theme toggle: crossfade while the loop runs; otherwise (stopped, reduced motion, instant) switch and
+    // repaint the still frame so the next reveal is already right.
+    setNight(on, { instant = false } = {}) {
+      if (disposed) return;
+      isNight = !!on;
+      if (instant || still || !stage.running) {
+        mix = isNight ? 1 : 0;
+        applyLook(mix);
+        if (stage.frames > 0) stage.renderOnce();
+      }
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

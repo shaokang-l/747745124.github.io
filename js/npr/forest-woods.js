@@ -261,7 +261,9 @@ function sprayGeometry(rand) {
 
 /* ---------------------------------------------------------------- assembly */
 
-export function createWoods({ atmos, quality, accent }) {
+// lane: { from: [x, z], through: [x, z] } — a sight line kept free of trunks (the night moon's window); its
+// half width grows with the distance (from the view axis of every layout's camera)
+export function createWoods({ atmos, quality, accent, lane = null }) {
   const low = quality === 'low';
   const rand = seededRandom('niflheimr-woods');
   const group = new THREE.Group();
@@ -345,16 +347,18 @@ export function createWoods({ atmos, quality, accent }) {
     groundGeo.computeVertexNormals();
   }
   // antler-light pool: a smooth warm radial gradient round the stag's hooves (per fragment; the vertex grid
-  // is too coarse for it)
+  // is too coarse for it); wider and stronger at night, when the antlers are the key light
+  const poolU = { value: new THREE.Vector2(1, 5) }; // x = strength, y = spread (m^2)
   const groundPool = (shader, { pass }) => {
     if (pass !== 'color') return;
+    shader.uniforms.uPool = poolU;
     shader.vertexShader = 'varying vec2 vGroundXZ;\n' + shader.vertexShader
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvGroundXZ = position.xz;');
-    shader.fragmentShader = 'varying vec2 vGroundXZ;\n' + shader.fragmentShader.replace('#include <color_fragment>', /* glsl */`
+    shader.fragmentShader = 'varying vec2 vGroundXZ;\nuniform vec2 uPool;\n' + shader.fragmentShader.replace('#include <color_fragment>', /* glsl */`
       #include <color_fragment>
       {
         vec2 pd = ( vGroundXZ - vec2( 0.25, - 0.35 ) ) * vec2( 1.0, 1.35 );
-        float pool = exp( - dot( pd, pd ) / 5.0 );
+        float pool = exp( - dot( pd, pd ) / uPool.y ) * uPool.x;
         diffuseColor.rgb *= 1.0 + pool * vec3( 0.55, 0.36, 0.14 );
       }`);
   };
@@ -391,16 +395,28 @@ export function createWoods({ atmos, quality, accent }) {
   scatter(low ? 16 : 26, -12, 3, 7, 0.16, 0.34);
   scatter(low ? 22 : 40, -28, -12, 9, 0.12, 0.55, 0.2); // widths 0.25..1.1 m: no even "pleats"
   scatter(low ? 26 : 50, -70, -28, 12, 0.14, 0.6, 0.2);
-  const trunks = new THREE.InstancedMesh(trunkGeo, barkMat, placed.length);
   const barkA = new THREE.Color(0x4a3a2f), barkB = new THREE.Color(0x5e4a3a), barkMoss = new THREE.Color(0x4a5236);
   // a mid trunk standing in the brightest ray gap just right of the antlers read as a dark "icicle" hanging
   // from the canopy: push such trunks back into the haze
   for (const t of placed) if (t[1] > -10 && t[1] < -7 && t[0] > 1.2 && t[0] < 3.2) { t[1] -= 4.5; t[0] += 0.3; }
-  placed.forEach(([x, z, r], i) => {
-    const lean = (rand() - 0.5) * 0.12;
-    compose(trunks, i, x, groundHeight(x, z) - 0.15, z, lean, rand() * 6.28, (rand() - 0.5) * 0.08, r, 34 + rand() * 6, r);
+  // clear the lane (after the scatter and drawing the same random numbers, so every other trunk, fern and
+  // leaf stays where it was)
+  const inLane = ([x, z, r]) => {
+    if (!lane) return false;
+    const [ax, az] = lane.from, dx = lane.through[0] - ax, dz = lane.through[1] - az, l = Math.hypot(dx, dz);
+    const t = ((x - ax) * dx + (z - az) * dz) / l;
+    return t > 8 && Math.abs((x - ax) * dz - (z - az) * dx) / l < r + 0.25 + 0.04 * t;
+  };
+  const standing = placed.filter((t) => !inLane(t));
+  const trunks = new THREE.InstancedMesh(trunkGeo, barkMat, standing.length);
+  let nTrunk = 0;
+  placed.forEach((t) => {
+    const [x, z, r] = t;
+    const lean = (rand() - 0.5) * 0.12, ry = rand() * 6.28, rz = (rand() - 0.5) * 0.08, h = 34 + rand() * 6;
     _c.copy(barkA).lerp(barkB, rand()).lerp(barkMoss, rand() < 0.3 ? 0.5 : 0);
-    trunks.setColorAt(i, _c);
+    if (inLane(t)) return;
+    compose(trunks, nTrunk, x, groundHeight(x, z) - 0.15, z, lean, ry, rz, r, h, r);
+    trunks.setColorAt(nTrunk++, _c);
   });
   group.add(trunks);
 
@@ -411,7 +427,9 @@ export function createWoods({ atmos, quality, accent }) {
   for (let i = 0; i < 4; i++) frame.setColorAt(i, _c.set(i % 2 ? 0x3e2f26 : 0x46362a));
   frame.frustumCulled = false;
   group.add(frame);
+  let framing = [];
   function setFrame(list, ferns = [], hanging = []) {
+    framing = list;
     sprays.count = hanging.length;
     hanging.forEach(([x, y, z, rot, sc], i) => compose(sprays, i, x, y, z, 0, rot, 0, sc));
     sprays.instanceMatrix.needsUpdate = true;
@@ -518,6 +536,7 @@ export function createWoods({ atmos, quality, accent }) {
   const stemMat = createToonMaterial({ color: 0xb8a58a, bands: 2, shadeLift: 0.5, ...fog });
   const capMat = createToonMaterial({ color: 0xffc27a, emissive: accent.clone().lerp(new THREE.Color(0xffa040), 0.35),
     emissiveIntensity: 2.2, bands: 2, ...fog });
+  capMat.userData.night = { emissiveScale: 1.6, emissive: 0xff9a4a }; // softly glowing lanterns of the forest floor
   disposables.push(stemGeo, capGeo, stemMat, capMat);
   const shrooms = [];
   for (const [cx, cz, n] of [[-2.1, 1.4, 5], [1.5, 1.3, 4], [2.9, -0.6, 3], [-4.6, -2.6, 4]]) {
@@ -525,7 +544,9 @@ export function createWoods({ atmos, quality, accent }) {
   }
   const stems = new THREE.InstancedMesh(stemGeo, stemMat, shrooms.length);
   const caps = new THREE.InstancedMesh(capGeo, capMat, shrooms.length);
+  const shroomLights = []; // [x, y, z, size] of every cap (fx adds a soft night glow round them)
   shrooms.forEach(([x, z, s], i) => {
+    shroomLights.push([x, groundHeight(x, z) + 0.12 * s, z, s]);
     const tilt = (rand() - 0.5) * 0.4, yaw = rand() * 6.28;
     compose(stems, i, x, groundHeight(x, z) - 0.01, z, tilt, yaw, 0, s);
     compose(caps, i, x, groundHeight(x, z) - 0.01, z, tilt, yaw, 0, s);
@@ -559,8 +580,25 @@ export function createWoods({ atmos, quality, accent }) {
   markOutline(sprays, false); // per-leaf ink is noise; the dark mass reads as a silhouette
   markOutline(caps, false);
 
+  // Angular clearance (radians) of a view ray (from, unit dir) from every trunk nearer than maxDist: < 0 when
+  // a trunk hides what lies beyond (the moon is placed where this is large).
+  function clearance(from, dir, maxDist = 45) {
+    const dl = Math.hypot(dir.x, dir.z) || 1e-6, ux = dir.x / dl, uz = dir.z / dl;
+    let best = Infinity;
+    const test = (x, z, r) => {
+      const px = x - from.x, pz = z - from.z, t = px * ux + pz * uz;
+      if (t <= 0.5 || t > maxDist) return;
+      const y = from.y + t * dir.y / dl;
+      best = Math.min(best, (Math.abs(px * uz - pz * ux) - r * (1 - 0.38 * Math.min(Math.max(y / 36, 0), 1))) / t);
+    };
+    for (const [x, z, r] of standing) test(x, z, r);
+    for (const [x, z, r] of framing) test(x, z, r);
+    return best;
+  }
+
   function update(t) { windTime.value = t; }
+  function setNight(k) { poolU.value.set(1 + 0.6 * k, 5 + 3 * k); }
   function dispose() { for (const d of disposables) d.dispose(); for (const m of [trunks, frame, ferns, nearFerns, sprays, grass, litter, stems, caps, rocks]) m.dispose(); }
 
-  return { group, setFrame, groundHeight, update, dispose };
+  return { group, setFrame, groundHeight, shroomLights, clearance, update, setNight, dispose };
 }

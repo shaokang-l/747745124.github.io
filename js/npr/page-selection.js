@@ -1,7 +1,8 @@
 // Selection (/recommend/) banner — "the recommendation shelf": a sideboard with one prop per section of the
 // page (games -> handheld console, music -> record player, books -> book stack, film -> retro TV), in page
 // order. Hover highlights a prop and names its section; click / tap scrolls to that section's heading.
-// mountPageScene(container, { root, quality, reducedMotion, accent }) — see CONTRACT-pages.md.
+// mountPageScene(container, { root, quality, reducedMotion, accent, night }) — see CONTRACT-pages.md; night mode
+// (CONTRACT-night.md): setNight() crossfades to a warm night lit by the table lamp, the TV and the turntable light.
 import * as THREE from 'three';
 import { createStage, createPointer, seededRandom } from './core.js';
 import {
@@ -14,6 +15,8 @@ const SLOT = 1.0;      // shelf width per prop
 const END = 0.55;      // shelf width for the lamp / plant at each end
 const DEPTH = 0.8;     // sideboard depth
 const FLOOR = -0.06 - BODY - 0.05 - LEG;
+const FADE_MS = 800;   // day <-> night crossfade
+const LAMP_DAY = 1.4, LAMP_NIGHT = 6; // table lamp intensity (the night key light)
 
 // Section kinds, matched against the page's headings (first match wins, each kind used once).
 const KINDS = [
@@ -64,6 +67,23 @@ function hullGeometry(group) {
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
+const isNight = () => document.documentElement.dataset.theme === 'night';
+
+// Day/night look: every value that changes at night is registered once (its current value is the day one)
+// and apply(n) writes the blend for n = 0 (day) .. 1 (night). Colours blend in place (linear space).
+function createLook() {
+  const items = [];
+  return {
+    color(c, night) { items.push({ c, a: c.clone(), b: new THREE.Color(night) }); return c; },
+    num(o, k, night) { items.push({ o, k, a: o[k], b: night }); },
+    apply(n) {
+      for (const it of items) {
+        if (it.c) it.c.copy(it.a).lerp(it.b, n);
+        else it.o[it.k] = it.a + (it.b - it.a) * n;
+      }
+    },
+  };
+}
 
 function readSections(root) {
   const used = new Set(), out = [];
@@ -86,7 +106,7 @@ function readSections(root) {
 }
 
 export async function mountPageScene(container, opts = {}) {
-  const { root = document, quality, reducedMotion, accent = '#f5c46a' } = opts;
+  const { root = document, quality, reducedMotion, accent = '#f5c46a', night = isNight() } = opts;
   const sections = readSections(root);
   const stage = createStage(container, {
     clearColor: C.paper,
@@ -112,7 +132,7 @@ export async function mountPageScene(container, opts = {}) {
   const camera = new THREE.PerspectiveCamera(24, 1, 0.5, 100);
   const uniforms = { time: { value: 0 }, pxScale: { value: 800 }, hullPx: { value: 0.001 } };
   const textures = { game: gameScreenTexture(), tv: tvScreenTexture(), note: noteTexture(), blob: blobTexture() };
-  const ctx = { rand: seededRandom('niflheimr-selection'), uniforms, textures, glow: [], mat: null };
+  const ctx = { rand: seededRandom('niflheimr-selection'), uniforms, textures, glow: [], nightGlow: [], mat: null };
 
   // --- lights: warm key from the front-left (casts shadows on the shelf), soft fill, sky/ground, lamp
   const key = new THREE.DirectionalLight(0xffe2b8, 2.5);
@@ -123,7 +143,7 @@ export async function mountPageScene(container, opts = {}) {
   const fill = new THREE.DirectionalLight(0xe8eeff, 0.7);
   fill.position.set(6, 3, 4);
   const hemi = new THREE.HemisphereLight(0xfff0da, 0x9a7a62, 1.25);
-  const lampLight = new THREE.PointLight(0xffbe78, 1.4, 3, 1.2);
+  const lampLight = new THREE.PointLight(0xffbe78, LAMP_DAY, 3, 1.2);
   scene.add(key, key.target, fill, hemi, lampLight);
 
   // --- props, one per section
@@ -174,6 +194,62 @@ export async function mountPageScene(container, opts = {}) {
   let furniture = null;
   const furnitureMat = vcMaterial();
 
+  /* --------------------------------------------------------------------------------------------
+   * Night: the table lamp becomes the key light, the screens glow and spill light, the turntable's
+   * little target light comes on; faint cool moon rim from behind, plum/umber ambient.
+   * ------------------------------------------------------------------------------------------ */
+  const glowLights = [];
+  for (const e of entries) {
+    if (!e.spec.glowAt) continue;
+    const l = new THREE.PointLight(e.spec.glowColor, 0, e.s.key === 'music' ? 0.9 : 2.6, 1.4);
+    l.position.copy(e.spec.glowAt);
+    e.anim.add(l);
+    glowLights.push({ l, night: e.s.key === 'music' ? 0.6 : 2.4 });
+  }
+  const P = stage.pipeline.params;
+  const clear = new THREE.Color(C.paper);
+  for (const [o, k] of [[P.outline, 'color'], [P.grade, 'tint'], [P.grade, 'lift'], [P.vignette, 'color']]) o[k] = new THREE.Color(o[k]);
+  const look = createLook();
+  const bgLook = createLook(); // the paper / page colours lead the fade, to follow the page's own switch
+  bgLook.color(clear, 0x2a1f1d);
+  bgLook.color(P.vignette.color, 0x1c1714); // the dark page
+  look.num(P.vignette, 'strength', 0.4);
+  look.color(P.outline.color, 0x150d0b);
+  look.num(P.outline, 'colorBleed', 0.4);
+  look.num(P.bloom, 'strength', 0.9);
+  look.num(P.grade, 'saturation', 1.08);
+  look.color(P.grade.tint, 0xfff0e2);
+  look.color(P.grade.lift, 0x0c0708);
+  look.color(key.color, 0xffb35c);
+  look.num(key, 'intensity', 0.2);
+  look.color(fill.color, 0xb9c4ff);
+  look.num(fill, 'intensity', 0.4);
+  const fillDay = fill.position.clone(), fillNight = new THREE.Vector3(4, 4, -5);
+  look.color(hemi.color, 0x6a4a52);
+  look.color(hemi.groundColor, 0x2e2020);
+  look.num(hemi, 'intensity', 0.6);
+  look.num(lampLight, 'distance', 7);
+  look.num(lampLight, 'decay', 1.7);
+  look.num(lamp.shadeMat, 'emissiveIntensity', 0.9);
+  look.color(lamp.bulb.material.emissive, 0xffd08a);
+  look.num(lamp.bulb.material, 'emissiveIntensity', 6);
+  look.color(furnitureMat.color, 0xc4b8b4); // the big cream / wood surfaces sit back in the dark
+  look.color(blob.material.color, 0x0c0808);
+  look.num(blob.material, 'opacity', 0.6);
+  for (const g of glowLights) look.num(g.l, 'intensity', g.night);
+  for (const g of ctx.nightGlow) look.color(g.mat.color, g.night);
+  for (const e of entries) if (e.spec.noteColor) look.color(e.spec.noteColor, new THREE.Color(0xffc070).multiplyScalar(1.4));
+  const nightFx = { n: 0, nb: 0, from: 0, fromB: 0, to: night ? 1 : 0, t0: 0, lamp: 1 };
+  function applyNight(n, nb = n) {
+    nightFx.n = n; nightFx.nb = nb;
+    look.apply(n);
+    lampLight.intensity = LAMP_DAY + (LAMP_NIGHT * nightFx.lamp - LAMP_DAY) * n;
+    bgLook.apply(nb);
+    renderer.setClearColor(clear, 1);
+    fill.position.lerpVectors(fillDay, fillNight, n);
+  }
+  applyNight(nightFx.to);
+
   // --- DOM: a small name tag per prop (on the shelf edge) + a tooltip with the section heading
   const tip = document.createElement('div');
   tip.className = 'npr-sel-tip';
@@ -215,7 +291,9 @@ export async function mountPageScene(container, opts = {}) {
     });
     lamp.group.position.set(-W / 2 + END / 2, two ? rows[rowsN - 1].y : 0, -0.05);
     plant.group.position.set(W / 2 - END / 2, 0, -0.05);
-    lampLight.position.set(lamp.group.position.x, lamp.group.position.y + 0.52, 0);
+    lampLight.position.set(lamp.group.position.x, lamp.group.position.y + 0.52, two ? 0.15 : 0);
+    nightFx.lamp = two ? 0.35 : 1; // in the hutch the lamp stands close to the back panel
+    applyNight(nightFx.n, nightFx.nb);
     if (furniture) { scene.remove(furniture); furniture.geometry.dispose(); }
     furniture = mesh(buildFurniture({ W, D: DEPTH, rows, top, doors: rowsN > 1 ? 2 : Math.max(2, cols) }), furnitureMat);
     scene.add(furniture);
@@ -394,6 +472,11 @@ export async function mountPageScene(container, opts = {}) {
   let clock = 0;
   function update(dt) {
     clock += dt;
+    if (nightFx.n !== nightFx.to) {
+      const p = clamp01((performance.now() - nightFx.t0) / FADE_MS), q = Math.min(1, p * 2.5);
+      const { from, fromB, to } = nightFx;
+      applyNight(from + (to - from) * p * p * (3 - 2 * p), fromB + (to - fromB) * q * (2 - q));
+    }
     uniforms.time.value = clock;
     if (pointer) {
       pointer.update(dt);
@@ -409,10 +492,10 @@ export async function mountPageScene(container, opts = {}) {
       e.anim.position.y = e.h * 0.08;
       e.anim.rotation.z = wob;
       e.anim.scale.set(1 - e.bounce * 0.5, 1 + e.bounce, 1 - e.bounce * 0.5);
-      for (const m of e.mats) m.rimStrength = e.h * 0.6;
+      for (const m of e.mats) m.rimStrength = e.h * 0.6 + nightFx.n * 0.1; // lamp-lit edges keep shapes legible at night
       e.hull.visible = e.h > 0.01;
       e.hull.material.uniforms.uWidth.value = e.h * 3;
-      for (const g of e.glows) g.mat.color.setHex(g.base).multiplyScalar(1 + e.h * 0.35);
+      for (const g of e.glows) g.mat.color.setHex(g.base).multiplyScalar((1 + e.h * 0.35) * (1 + (g.night - 1) * nightFx.n));
       if (e.spec.update) e.spec.update(still ? 0 : clock, e.h);
     }
     placeTags(false);
@@ -440,6 +523,15 @@ export async function mountPageScene(container, opts = {}) {
       if (still) stage.renderOnce(); else stage.start();
     },
     stop() { started = false; stage.stop(); },
+    // warm night look on / off: ~0.8 s crossfade while the loop runs, otherwise (or reduced motion) at once
+    setNight(on, { instant = false } = {}) {
+      if (disposed) return;
+      Object.assign(nightFx, { from: nightFx.n, fromB: nightFx.nb, to: on ? 1 : 0, t0: performance.now() });
+      if (instant || still || !stage.running) {
+        applyNight(nightFx.to);
+        stage.renderOnce();
+      }
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

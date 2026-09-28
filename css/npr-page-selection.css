@@ -34,6 +34,15 @@
 .npr-page-selection ~ .article h2,.npr-page-selection ~ .article h3 {scroll-margin-top:64px;}
 body.touch .npr-page-selection ~ .article h2,body.touch .npr-page-selection ~ .article h3 {scroll-margin-top:12px;}
 
+/* warm night (html[data-theme="night"], CONTRACT-night.md): the band melts into the dark page; lamp-lit tags */
+html[data-theme="night"] .npr-page-selection {background:transparent;}
+html[data-theme="night"] .npr-sel-tag {background:#2a211c;color:#eadfcf;border-color:rgba(232,184,106,.45);box-shadow:0 1px 0 rgba(0,0,0,.45);}
+html[data-theme="night"] .npr-sel-tag i {background:rgba(232,184,106,.18);color:#f3d9a8;}
+html[data-theme="night"] .npr-sel-tag.npr-sel-on {background:#e8b86a;border-color:#ffd08a;color:#2a1a10;}
+html[data-theme="night"] .npr-sel-tag.npr-sel-on i {background:rgba(42,26,16,.15);color:#2a1a10;}
+html[data-theme="night"] .npr-sel-tip {background:#f3e6d2;color:#2a1a10;box-shadow:0 2px 10px rgba(0,0,0,.45),0 0 16px rgba(255,179,92,.2);}
+html[data-theme="night"] .npr-sel-tip::after {color:#b0702e;}
+
 @media screen and (max-width:780px) {
   .npr-sel-tag {font-size:11px;padding:1px 7px 2px;}
 }

@@ -121,11 +121,17 @@ function headGeometry() {
   });
   const parts = [head];
   for (const side of [1, -1]) {
-    const eye = new THREE.SphereGeometry(0.021, 10, 8);
+    // pale fawn eye ring peeking out around a dark, warm-brown eye (the catchlight is added in createStag)
+    const ring = new THREE.SphereGeometry(0.027, 12, 8);
+    ring.scale(1.35, 0.95, 0.5);
+    ring.rotateY(-0.5 * side);
+    ring.translate(0.13, 0.004, 0.083 * side);
+    parts.push(paint(ring, 0xc9a57c));
+    const eye = new THREE.SphereGeometry(0.021, 12, 8);
     eye.scale(1.35, 0.95, 0.6);
     eye.rotateY(-0.5 * side);
     eye.translate(0.13, 0.004, 0.086 * side);
-    parts.push(paint(eye, 0x120c0a));
+    parts.push(paint(eye, 0x21130c));
   }
   const nose = new THREE.SphereGeometry(0.026, 10, 8);
   nose.scale(0.8, 1.05, 1.6);
@@ -301,6 +307,9 @@ export function createStag({ accent = new THREE.Color(0xf5c46a), fog = noFog } =
     ...fog(antlerGlow, '-antler2'),
   });
   disposables.push(furMat, antlerMat);
+  // night (forest.js): the antlers become the key light; the fur keeps a warm rim from them (not moonlight)
+  antlerMat.userData.night = { emissiveScale: 1.3, rimScale: 1 };
+  furMat.userData.night = { rimColor: 0xffb35c, rimScale: 0.75 };
 
   const root = new THREE.Group();
   root.name = 'stag';
@@ -323,6 +332,21 @@ export function createStag({ accent = new THREE.Color(0xf5c46a), fog = noFog } =
   head.rotation.z = -0.8;                        // nose down ~46 degrees
   head.scale.setScalar(1.2);
   headPivot.add(head);
+
+  // Catchlights: a tiny unlit highlight on the upper front of each eye (in headGeometry's space), so the eyes
+  // read as glossy instead of flat black; at night they warm into a faint golden eyeshine (forest.js night).
+  const glintMat = createToonMaterial({ color: 0x000000, emissive: 0xfff4e2, emissiveIntensity: 1.1, bands: 2 });
+  glintMat.userData.night = { emissive: 0xffb84a, emissiveScale: 1.5 };
+  const glintGeo = new THREE.SphereGeometry(0.0055, 8, 6);
+  disposables.push(glintMat, glintGeo);
+  const glints = [];
+  for (const side of [1, -1]) {
+    const n = new THREE.Vector3(0, 0, side).applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.5 * side); // eye's outward axis
+    const glint = new THREE.Mesh(glintGeo, glintMat);
+    glint.position.set(0.13, 0.004, 0.086 * side).addScaledVector(n, 0.0135).add(new THREE.Vector3(0.006, 0.007, 0));
+    head.add(glint);
+    glints.push(glint);
+  }
 
   const earGeo = earGeometry();
   const ears = [];
@@ -353,6 +377,7 @@ export function createStag({ accent = new THREE.Color(0xf5c46a), fog = noFog } =
 
   markOutline(root);
   markOutline(antlers, false); // glowing antlers: no ink frame around the light
+  for (const g of glints) markOutline(g, false);
 
   const geos = [torso.geometry, legs.geometry, neck.geometry, head.geometry, earGeo, antlerGeo, tail.geometry];
   disposables.push(...geos);

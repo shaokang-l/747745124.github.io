@@ -1,0 +1,310 @@
+/* Night mode (js/theme.js): <html data-theme="night"> turns the pages into a warm night — umber/plum paper,
+   cream text, lamplight-gold links. Loaded before npr.css / npr-room.css / npr-page-*.css, which style their
+   own scenes' night look. The sun/moon toggle (.npr-theme-toggle) is styled here for both themes. */
+
+html[data-theme="night"] {
+  color-scheme:dark;
+  --night-bg:#1c1714;       /* page */
+  --night-surface:#241e19;  /* cards, bars */
+  --night-raised:#2c241e;
+  --night-border:#3a3029;
+  --night-border-hi:#4d3f34;
+  --night-text:#eadfcf;
+  --night-strong:#f6ecdd;
+  --night-soft:#cdbfac;
+  --night-muted:#a89886;
+  --night-faint:#7d6e5f;
+  --night-accent:#e8b86a;
+  --night-accent-hi:#f7d08f;
+  --night-code:#15110e;
+}
+
+/* ---- the toggle ---------------------------------------------------------------------------------------- */
+.npr-theme-toggle {box-sizing:border-box;display:block;width:32px;height:32px;margin:0;padding:6px;border:0;border-radius:2px;
+  background:none;color:inherit;font:inherit;line-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.npr-theme-toggle svg {display:block;width:20px;height:20px;pointer-events:none;overflow:visible;}
+.npr-theme-toggle .npr-tt-sun,
+.npr-theme-toggle .npr-tt-moon {transform-origin:12px 12px;transition:opacity .35s ease,transform .5s cubic-bezier(.3,1.4,.5,1);}
+/* shows what a click switches to: the moon by day, the sun by night */
+.npr-theme-toggle .npr-tt-sun {opacity:0;transform:rotate(-90deg) scale(.4);}
+.npr-theme-toggle[aria-pressed="true"] .npr-tt-sun {opacity:1;transform:none;}
+.npr-theme-toggle[aria-pressed="true"] .npr-tt-moon {opacity:0;transform:rotate(60deg) scale(.4);}
+.npr-theme-toggle:focus {outline:none;}
+.npr-theme-toggle:focus-visible {outline:2px solid #e8b86a;outline-offset:2px;}
+
+/* home header, left of the search (right:40px) and menu (right:0) icons; colour follows them (theme.js) */
+#header .npr-tt-header {position:absolute;z-index:4;right:80px;top:0;margin-top:-3px;background:rgba(255,255,255,.9);color:#333;}
+#header .npr-tt-header.npr-tt-nosearch {right:40px;}
+html.npr-hero-on #header .npr-tt-header {background:rgba(12,24,32,.55);}
+body.mu #header .npr-tt-header {background:none;}
+html.npr-hero-on body.mu #header .npr-tt-header {color:#9a6428 !important;} /* as the icons over the light menu (npr.css) */
+html.npr-entering #header .npr-tt-header {pointer-events:none;}
+
+/* #top bar of posts and pages: at the right end; the post's QR icon steps left */
+#top .npr-tt-top {position:absolute;right:10px;top:9px;color:#666;}
+#top .npr-tt-top:hover {color:#333;}
+#top.npr-has-toggle .social {right:40px;}
+
+/* pages without #header / #top */
+.npr-tt-float {position:fixed;z-index:20;right:16px;bottom:16px;width:40px;height:40px;padding:10px;border-radius:50%;
+  background:rgba(255,255,255,.92);color:#333;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+
+@media (prefers-reduced-motion:reduce) {
+  .npr-theme-toggle .npr-tt-sun, .npr-theme-toggle .npr-tt-moon {transition:none;}
+}
+
+/* colours crossfade when the theme is switched (not on load); elements with their own transitions keep them */
+:where(html.npr-theme-anim), :where(html.npr-theme-anim) :where(body, body *:not(.npr-canvas)) {
+  transition:background-color .5s ease, color .5s ease, border-color .5s ease, fill .5s ease, box-shadow .5s ease;
+}
+@media (prefers-reduced-motion:reduce) {
+  :where(html.npr-theme-anim), :where(html.npr-theme-anim) :where(body, body *) {transition:none;}
+}
+
+/* ---- base ------------------------------------------------------------------------------------------------ */
+html[data-theme="night"],
+html[data-theme="night"] body {background:#1c1714;color:#eadfcf;scrollbar-color:#4d3f34 #1c1714;}
+html[data-theme="night"] #preview {background:#1c1714;scrollbar-color:#4d3f34 #1c1714;}
+html[data-theme="night"] ::selection {background:rgba(232,184,106,.34);color:#fff6e8;}
+html[data-theme="night"] body:before {background:#e8b86a;} /* loading dot */
+html[data-theme="night"] #loader {
+  background-image:linear-gradient(to right,#e8b86a 0%,#e8b86a 12.5%,#c96f4a 12.5%,#c96f4a 25%,#ffd08a 25%,#ffd08a 37.5%,#ff8a3d 37.5%,#ff8a3d 50%,
+    #b07a4f 50%,#b07a4f 62.5%,#f5c46a 62.5%,#f5c46a 75%,#d9824a 75%,#d9824a 87.5%,#ffb35c 87.5%,#ffb35c 100%);}
+
+/* header icons (home): warm glass over the painting / forest, lamplight gold over the dark menu */
+html[data-theme="night"] #header .icon-menu,
+html[data-theme="night"] #header .icon-search,
+html[data-theme="night"] #header .npr-tt-header {background:rgba(36,28,24,.86);}
+html[data-theme="night"] #header .npr-tt-header:not([style*="color"]) {color:#eadfcf;}
+html[data-theme="night"].npr-hero-on #header .icon-menu,
+html[data-theme="night"].npr-hero-on #header .icon-search,
+html[data-theme="night"].npr-hero-on #header .npr-tt-header {background:rgba(30,20,22,.58);}
+html[data-theme="night"] body.mu #header .icon-menu,
+html[data-theme="night"] body.mu #header .icon-search,
+html[data-theme="night"] body.mu #header .npr-tt-header {background:none;color:#e8b86a !important;}
+html[data-theme="night"] body.mu .image-logo {background-color:#eadfcf;}
+/* the post title's diagonal backdrop over the forest (colour set inline by diaspora.js): plum instead of teal
+   (npr.css, loaded later, may refine it) */
+html[data-theme="night"].npr-hero-on #vibrant polygon {fill:#241519 !important;transition:fill .8s ease;}
+html[data-theme="night"].npr-hero-on #vibrant div {background-color:#241519 !important;}
+@media screen and (max-width:780px) {
+  html[data-theme="night"].npr-hero-on #vibrant {background:linear-gradient(to top, rgba(24,14,16,.74) 0%, rgba(24,14,16,.26) 32%, rgba(24,14,16,0) 55%);}
+}
+html[data-theme="night"] .npr-tt-float {background:rgba(36,30,25,.94);color:#eadfcf;box-shadow:0 2px 12px rgba(0,0,0,.45);}
+
+/* ---- home: timeline cards around the centre line, pager -------------------------------------------------- */
+html[data-theme="night"] #container:before {background:#3a3029;}
+html[data-theme="night"] .else {background:#241e19;border-color:#3a3029;}
+html[data-theme="night"] .else p:first-child {color:#a89886;}
+html[data-theme="night"] .else h3 a {color:#f3e7d6;}
+html[data-theme="night"] .else h3 a:hover {color:#f7d08f;}
+html[data-theme="night"] .else h3 + p {color:#c3b4a1;}
+html[data-theme="night"] .here {color:#a89886;}
+html[data-theme="night"] .post.plain .else:hover {border-color:#5a4838;box-shadow:0 8px 28px rgba(0,0,0,.35),0 0 0 1px rgba(232,184,106,.06);}
+html[data-theme="night"] .post.plain:before {border-color:#5e4c3e;background:#1c1714;}
+html[data-theme="night"] .post.plain:hover:before {border-color:#e8b86a;box-shadow:0 0 8px rgba(232,184,106,.45);}
+html[data-theme="night"] .post.plain:after {background:#3a3029;}
+html[data-theme="night"] .post > a img {filter:brightness(.86);}
+html[data-theme="night"] #pager a {color:#cdbfac;background:#241e19;border-color:#4d3f34;}
+html[data-theme="night"] #pager a:hover {color:#f7d08f;border-color:#e8b86a;}
+@media screen and (max-width:900px) {
+  html[data-theme="night"] .post {background:#1c1714;border-bottom-color:#3a3029;}
+  html[data-theme="night"] .post.plain .else {background:transparent;}
+}
+
+/* ---- #top bar -------------------------------------------------------------------------------------------- */
+html[data-theme="night"] #top {background:#211a16;border-bottom-color:#3a3029;}
+html[data-theme="night"] .image-icon,
+html[data-theme="night"] .icon-icon {color:#eadfcf;}
+html[data-theme="night"] .image-icon:hover {color:#f7d08f;}
+html[data-theme="night"] .subtitle {color:#a89886;}
+html[data-theme="night"] .icon-play,
+html[data-theme="night"] .icon-pause {color:#cdbfac;}
+html[data-theme="night"] #top .icon-play[style*="not-allowed"] {color:#54463b !important;} /* no audio (diaspora.js greys it inline) */
+html[data-theme="night"] .share a,
+html[data-theme="night"] .social > div {color:#cdbfac;}
+html[data-theme="night"] .share a:hover {color:#f7d08f;}
+html[data-theme="night"] #qr {border-color:#3a3029;} /* stays white: the code needs its contrast */
+html[data-theme="night"] .bar {background:rgba(255,214,150,.06);}
+html[data-theme="night"] .scrollbar {background-color:#e8b86a;}
+html[data-theme="night"] #top .npr-tt-top {color:#cdbfac;}
+html[data-theme="night"] #top .npr-tt-top:hover {color:#f7d08f;}
+
+/* ---- posts and pages ------------------------------------------------------------------------------------- */
+html[data-theme="night"] #single {background:#1c1714;}
+html[data-theme="night"] h1.title {color:#f6ecdd;}
+html[data-theme="night"] .stuff,
+html[data-theme="night"] .stuff .count {color:#a89886;}
+html[data-theme="night"] .post-tags-list-item {background:rgba(232,184,106,.08);}
+html[data-theme="night"] .post-tags-list-link {color:#bca991;}
+html[data-theme="night"] .post-tags-list-link:hover {color:#f7d08f;}
+html[data-theme="night"] .article .toc li a {color:#a89886;}
+html[data-theme="night"] .article .toc li a:hover {border-left-color:#e8b86a;color:#eadfcf;}
+
+html[data-theme="night"] .content {color:#e3d7c5;}
+html[data-theme="night"] .content > h1,
+html[data-theme="night"] .content > h2,
+html[data-theme="night"] .content > h3,
+html[data-theme="night"] .content > h4,
+html[data-theme="night"] .content > h5,
+html[data-theme="night"] .content > h6 {color:#f6ecdd;}
+html[data-theme="night"] .content strong {color:#f3e7d6;}
+html[data-theme="night"] .content a {color:#e8b86a;}
+html[data-theme="night"] .content a:hover {color:#f7d08f;}
+html[data-theme="night"] .content hr {border-top-color:#3a3029;}
+html[data-theme="night"] .content mark {background:rgba(232,184,106,.28);color:inherit;}
+html[data-theme="night"] .content blockquote {color:#c3b4a1;background-color:rgba(255,220,170,.035);border-left-color:rgba(232,184,106,.38);}
+html[data-theme="night"] .content table tr {background-color:transparent;border-top-color:#3a3029;}
+html[data-theme="night"] .content table th,
+html[data-theme="night"] .content table td {border-color:#3a3029;}
+html[data-theme="night"] .content table th {background:#241e19;color:#f3e7d6;}
+html[data-theme="night"] .content table tr:nth-child(2n) td {background:rgba(255,220,170,.025);}
+html[data-theme="night"] .content img {filter:brightness(.86) contrast(1.03);transition:filter .3s ease;}
+html[data-theme="night"] .content img:hover {filter:none;}
+/* embeds (e.g. Steam widgets) are light documents: a light color-scheme keeps their transparent parts
+   transparent instead of the opaque white a scheme mismatch paints */
+html[data-theme="night"] .content iframe {color-scheme:light;}
+
+/* code */
+html[data-theme="night"] .content code {background:rgba(255,220,170,.08);color:#f2a27a;}
+html[data-theme="night"] .content pre,
+html[data-theme="night"] .content .highlight {background:#15110e;color:#e6d8c4;border-color:#3a3029;}
+html[data-theme="night"] .content pre code {background:none;color:inherit;}
+html[data-theme="night"] .content .highlight table tr,
+html[data-theme="night"] .content .highlight table td {background:none;}
+html[data-theme="night"] .content .highlight .gutter pre {color:#6b5d50;}
+html[data-theme="night"] .content .highlight figcaption {color:#a89886;}
+html[data-theme="night"] pre .comment,
+html[data-theme="night"] pre .title {color:#8f7f6d;}
+html[data-theme="night"] pre .variable, html[data-theme="night"] pre .attribute, html[data-theme="night"] pre .tag,
+html[data-theme="night"] pre .regexp, html[data-theme="night"] pre .ruby .constant, html[data-theme="night"] pre .xml .tag,
+html[data-theme="night"] pre .xml .pi, html[data-theme="night"] pre .xml .doctype, html[data-theme="night"] pre .html .doctype,
+html[data-theme="night"] pre .css .id, html[data-theme="night"] pre .css .class, html[data-theme="night"] pre .css .pseudo {color:#f08a6c;}
+html[data-theme="night"] pre .number, html[data-theme="night"] pre .preprocessor, html[data-theme="night"] pre .built_in,
+html[data-theme="night"] pre .literal, html[data-theme="night"] pre .params, html[data-theme="night"] pre .constant {color:#f2a86b;}
+html[data-theme="night"] pre .class, html[data-theme="night"] pre .string, html[data-theme="night"] pre .value,
+html[data-theme="night"] pre .inheritance, html[data-theme="night"] pre .header, html[data-theme="night"] pre .ruby .symbol,
+html[data-theme="night"] pre .xml .cdata {color:#b9c98a;}
+html[data-theme="night"] pre .function, html[data-theme="night"] pre .python .decorator, html[data-theme="night"] pre .python .title,
+html[data-theme="night"] pre .javascript .title {color:#e8c07a;}
+html[data-theme="night"] pre .keyword, html[data-theme="night"] pre .javascript .function {color:#d9a0c4;}
+html[data-theme="night"] pre .type {color:#e8c07a;}
+
+/* MathJax (CHTML follows the text colour; keep error boxes readable) */
+html[data-theme="night"] mjx-container {color:inherit;}
+html[data-theme="night"] mjx-merror {background:#3a1f1c !important;color:#ffb4a0 !important;}
+
+/* comments button + Valine */
+html[data-theme="night"] .comment.link {color:#cdbfac;border-color:#4d3f34;}
+html[data-theme="night"] .comment.link:hover {color:#f7d08f;border-color:#e8b86a;}
+html[data-theme="night"] .v[data-class=v] .vwrap {background:#211b17;border-color:#3a3029;}
+html[data-theme="night"] .v[data-class=v] .veditor,
+html[data-theme="night"] .v[data-class=v] .vinput,
+html[data-theme="night"] .v[data-class=v] p,
+html[data-theme="night"] .v[data-class=v] pre code,
+html[data-theme="night"] .v[data-class=v] .vcount,
+html[data-theme="night"] .v[data-class=v] .vnick {color:#e3d7c5;}
+html[data-theme="night"] .v[data-class=v] .veditor::placeholder,
+html[data-theme="night"] .v[data-class=v] .vinput::placeholder {color:#7d6e5f;}
+html[data-theme="night"] .v[data-class=v] .vwrap .vheader .vinput {border-bottom-color:#4d3f34;}
+html[data-theme="night"] .v[data-class=v] .vwrap .vheader .vinput:focus {border-bottom-color:#e8b86a;}
+html[data-theme="night"] .v[data-class=v] .vsys,
+html[data-theme="night"] .v[data-class=v] .vtime,
+html[data-theme="night"] .v[data-class=v] .vempty,
+html[data-theme="night"] .v[data-class=v] .status-bar {color:#a89886;}
+html[data-theme="night"] .v[data-class=v] .vpower {color:#7d6e5f;}
+html[data-theme="night"] .v[data-class=v] a {color:#e8b86a;}
+html[data-theme="night"] .v[data-class=v] a:hover,
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vhead .vnick:hover {color:#f7d08f;}
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vh .vmeta .vat {color:#ff9a5c;}
+html[data-theme="night"] .v[data-class=v] code,
+html[data-theme="night"] .v[data-class=v] pre {background-color:#15110e;color:#e6d8c4;}
+html[data-theme="night"] .v[data-class=v] blockquote {color:#c3b4a1;border-left-color:rgba(232,184,106,.3);}
+html[data-theme="night"] .v[data-class=v] hr,
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vh {border-color:#3a3029;}
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vquote {border-left-color:#3a3029;}
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vimg {border-color:#3a3029;background:#2c241e;}
+html[data-theme="night"] .v[data-class=v] .vwrap .vemojis,
+html[data-theme="night"] .v[data-class=v] .vwrap .vpreview {box-shadow:0 0 1px #4d3f34;}
+html[data-theme="night"] .v[data-class=v] .vicon {fill:#cdbfac;}
+html[data-theme="night"] .v[data-class=v] .vicon.actived {fill:#e8b86a;}
+html[data-theme="night"] .v[data-class=v] .vbtn {color:#e3d7c5;background:transparent;border-color:#4d3f34;}
+html[data-theme="night"] .v[data-class=v] .vbtn:hover,
+html[data-theme="night"] .v[data-class=v] .vbtn:active {color:#f7d08f;border-color:#e8b86a;}
+html[data-theme="night"] .v[data-class=v] .vbtn:disabled {color:#6b5d50;border-color:#3a3029;background:transparent;}
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vcontent.expand:before {background:linear-gradient(180deg,rgba(28,23,20,0),rgba(28,23,20,.95));}
+html[data-theme="night"] .v[data-class=v] .vcards .vcard .vcontent.expand:after {background:rgba(28,23,20,.95);color:#a89886;}
+html[data-theme="night"] .v[data-class=v] .vspinner {border-color:#a89886;border-top-color:transparent;border-bottom-color:transparent;}
+/* Valine turns itself dark with the OS setting; by day the page is white, so keep its light look */
+@media (prefers-color-scheme:dark) {
+  html:not([data-theme="night"]) .v[data-class=v] .veditor,
+  html:not([data-theme="night"]) .v[data-class=v] .vinput,
+  html:not([data-theme="night"]) .v[data-class=v] p,
+  html:not([data-theme="night"]) .v[data-class=v] pre code {color:#555;}
+  html:not([data-theme="night"]) .v[data-class=v] .vsys,
+  html:not([data-theme="night"]) .v[data-class=v] .vtime {color:#b3b3b3;}
+  html:not([data-theme="night"]) .v[data-class=v] code,
+  html:not([data-theme="night"]) .v[data-class=v] pre {color:inherit;background-color:#f8f8f8;}
+  html:not([data-theme="night"]) .v[data-class=v] .vwrap {border-color:#f0f0f0;}
+  html:not([data-theme="night"]) .v[data-class=v] .vicon {fill:#555;}
+  html:not([data-theme="night"]) .v[data-class=v] .vbtn {color:#555;border-color:#ededed;}
+  html:not([data-theme="night"]) .v[data-class=v] .vbtn:hover {color:#3090e4;border-color:#3090e4;}
+  html:not([data-theme="night"]) .v[data-class=v] .vcards .vcard .vcontent.expand:before {background:linear-gradient(180deg,hsla(0,0%,100%,0),hsla(0,0%,100%,.9));}
+  html:not([data-theme="night"]) .v[data-class=v] .vcards .vcard .vcontent.expand:after {background:hsla(0,0%,100%,.9);}
+}
+
+/* ---- archives, categories, tags, search ------------------------------------------------------------------ */
+html[data-theme="night"] .timeline {border-left-color:#4d3f34;}
+html[data-theme="night"] .timeline .timeline-title::before,
+html[data-theme="night"] .timeline .timeline-subtitle::before,
+html[data-theme="night"] .timeline .timeline-item::before {border-color:#6a5646;background:#1c1714;}
+html[data-theme="night"] .timeline-title:hover::before,
+html[data-theme="night"] .timeline-subtitle:hover::before,
+html[data-theme="night"] .timeline-item:hover::before {border-color:#e8b86a;}
+html[data-theme="night"] .timeline-title,
+html[data-theme="night"] .timeline-subtitle {color:#f3e7d6;}
+html[data-theme="night"] .timeline-item time {color:#a89886;}
+html[data-theme="night"] .timeline-item a {color:#e3d7c5;}
+html[data-theme="night"] .timeline-title:hover a,
+html[data-theme="night"] .timeline-subtitle:hover a,
+html[data-theme="night"] .timeline-item:hover a {color:#f7d08f;}
+html[data-theme="night"] .content .timeline hr {border-top-color:#3a3029;}
+
+html[data-theme="night"] .set h2 {color:#f3e7d6;}
+html[data-theme="night"] .set h2[style] {color:#a89886 !important;} /* the search page's inline grey */
+html[data-theme="night"] .set a {color:#e3d7c5;}
+html[data-theme="night"] .set a[style*="color"] {color:#cdbfac !important;} /* tag cloud's inline greys */
+html[data-theme="night"] .set a:hover {color:#f7d08f !important;}
+html[data-theme="night"] .set a::before {background:#e8b86a;}
+html[data-theme="night"] .set .category-list-item .category-list-count,
+html[data-theme="night"] .set .tag-list-item .tag-list-count,
+html[data-theme="night"] .set .category-list-item .tag-list-count,
+html[data-theme="night"] .set .tag-list-item .category-list-count {color:#a89886;}
+html[data-theme="night"] .set .search .search-input {color:#f3e7d6;caret-color:#e8b86a;border-bottom-color:#8a6a3e;}
+html[data-theme="night"] .set .search .search-input[type=text]:focus {border-bottom-color:#e8b86a;}
+html[data-theme="night"] .set .search .search-input::placeholder {color:#7d6e5f;}
+html[data-theme="night"] .set .search li {border-bottom-color:#3a3029;}
+html[data-theme="night"] .set .search .search-result {color:#c3b4a1;}
+html[data-theme="night"] .set .search .search-keyword {background:rgba(232,184,106,.3);color:#fff6e8;}
+
+/* ---- media cards (css/media-card.css), rating widget (/rating.css), friend cards ------------------------- */
+html[data-theme="night"] .media-card {background:#241e19;border-color:#3a3029;box-shadow:0 2px 12px rgba(0,0,0,.28);}
+html[data-theme="night"] .media-card .mc-art img {background:#2c241e;box-shadow:0 1px 5px rgba(0,0,0,.5);}
+html[data-theme="night"] .media-card .mc-kind,
+html[data-theme="night"] .media-card .mc-by span,
+html[data-theme="night"] .media-card .mc-score small {color:#a89886;}
+html[data-theme="night"] .content .media-card .mc-title {color:#f3e7d6;}
+html[data-theme="night"] .content .media-card .mc-title:hover {color:#f7d08f;}
+html[data-theme="night"] .media-card .mc-orig {color:#a89886;}
+html[data-theme="night"] .media-card .mc-by,
+html[data-theme="night"] .media-card .mc-score {color:#cdbfac;}
+html[data-theme="night"] .media-card .mc-score b {color:#f2b24e;}
+html[data-theme="night"] .media-card .mc-stars {color:#4d3f34;}
+html[data-theme="night"] .content .media-card .mc-link {color:#e8b86a;border-color:rgba(232,184,106,.35);}
+html[data-theme="night"] .content .media-card .mc-link:hover {background:rgba(232,184,106,.1);}
+/* empty stars only: the filled ones ([data-rating^=..] .star-n) are more specific and keep their colours */
+:where(html[data-theme="night"]) div.rating i {background:#3a3029;border-color:#3a3029;color:#1c1714;text-shadow:none;}
+html[data-theme="night"] .link-grid-1 .link-item,
+html[data-theme="night"] .link-grid-2 .link-item,
+html[data-theme="night"] .link-grid-3 .link-item,
+html[data-theme="night"] .link-grid-4 .link-item {background-color:#241e19;box-shadow:0 2px 8px rgba(0,0,0,.35);}

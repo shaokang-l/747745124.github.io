@@ -1,7 +1,8 @@
 // Atmosphere for the forest hero: one "haze" colour function shared by the sky dome and by the
 // distance/ground-mist fog of every toon material (so the farthest trunks dissolve exactly into the sky,
 // while nearer layers fog to a dimmer haze and keep dark silhouettes against the glow), a shared cool
-// hue-shift of every material's shadow side, plus additive god-ray shafts.
+// hue-shift of every material's shadow side, plus additive god-ray shafts. setNight(k) blends every colour
+// toward the warm night: a plum / umber sky with a low moon glow (and the moon itself) behind the antlers.
 import * as THREE from 'three';
 import { seededRandom } from './core.js';
 import { additive } from './forest-geo.js';
@@ -18,6 +19,9 @@ uniform float uHzCore;
 uniform vec4 uHzLive;   // breathing: x = intensity, y = size, zw = drift of the centre (radians)
 uniform vec2 uHzEnter;  // "enter the forest" flight: x = glow boost, y = flood of every surface into light
 uniform float uHzTime;
+uniform vec2 uMoon;
+uniform vec3 uMoonDir;
+uniform vec3 uMoonColor;
 // Colour of the misty air seen along world direction d: teal-green gradient with a golden glow
 // (k scales the glow: 1 for the sky, less for the air in front of nearer objects).
 vec3 forestHaze( vec3 d, float k ) {
@@ -37,7 +41,19 @@ vec3 forestHaze( vec3 d, float k ) {
   c = mix( c, uHzGlow * 0.42, min( wide * 0.8 * k * I, 1.0 ) );
   c += uHzGlow * exp( - r2 * uHzCore ) * 0.45 * k * I;
   // stays under the bloom threshold (only emissives bloom), except while flying into the light
-  return min( c, vec3( 0.95 + uHzEnter.x * 2.5 ) );
+  c = min( c, vec3( 0.95 + uHzEnter.x * 2.5 ) );
+  // night: the moon, a soft, faintly mottled disc seen through the far mist (only where the air is fully
+  // hazed: the sky and the farthest layers), blooming a touch
+  if ( uMoon.x > 0.0 && k > 0.85 ) {
+    float md = acos( clamp( dot( d, uMoonDir ), - 1.0, 1.0 ) );
+    float aa = max( fwidth( md ) * 1.5, 1e-4 );
+    float disc = 1.0 - smoothstep( uMoon.y - aa, uMoon.y + aa, md );
+    float mott = 0.92 + 0.08 * sin( d.x * 170.0 + d.y * 130.0 ) * sin( d.y * 190.0 - d.z * 80.0 );
+    float w = uMoon.x * smoothstep( 0.85, 1.0, k );
+    c = mix( c, uMoonColor * mott, disc * w );
+    c += uMoonColor * exp( - md * md / ( uMoon.y * uMoon.y * 5.0 ) ) * 0.22 * w;
+  }
+  return c;
 }
 `;
 
@@ -98,6 +114,9 @@ export function createAtmosphere({ accent, quality }) {
     uHzLive: { value: new THREE.Vector4(1, 1, 0, 0) },
     uHzEnter: { value: new THREE.Vector2(0, 0) },
     uHzTime: { value: 0 },
+    uMoon: { value: new THREE.Vector2(0, 0.025) }, // x = visibility (night), y = angular radius
+    uMoonDir: { value: new THREE.Vector3(0, 0.3, -1).normalize() },
+    uMoonColor: { value: new THREE.Color(0xfff0d8).multiplyScalar(0.95) },
     uFogNear: { value: 8 },
     uFogDensity: { value: 0.028 },
     uMistHeight: { value: 1.3 },
@@ -155,32 +174,72 @@ export function createAtmosphere({ accent, quality }) {
   sky.renderOrder = 10;
   sky.frustumCulled = false;
 
-  /* god rays: camera-facing (around their axis) additive shafts, one draw call */
+  /* god-ray shafts: camera-facing (around their axis) additive planes, one draw call (a soft layer under
+     the pipeline's screen-space rays) */
   const rays = createRays(quality === 'low' ? 8 : 13, gold);
+  const RU = rays.material.uniforms;
 
-  function setGlowFrom(camPos, target) {
-    U.uHzGlowDir.value.copy(target).sub(camPos).normalize();
+  /* day -> warm night: plum / umber air, a pale moon glow (lower, a little to the side), violet shadows,
+     denser amber-violet mist; the shafts turn into faint moonbeams */
+  const C = (hex) => new THREE.Color(hex);
+  const DAY = {}, NIGHT = { uHzZenith: C(0x110b13), uHzHorizon: C(0x2b1c26), uHzGround: C(0x1d1316), uHzWarm: C(0x4a2a34),
+    uCoolShade: C(0x46305e) };
+  for (const k in NIGHT) DAY[k] = U[k].value.clone();
+  const NUM = { uHzWide: [9, 16], uHzCore: [45, 90], uFogDensity: [0.028, 0.032], uMistAmount: [0.6, 0.75],
+    uHzObjGlow: [0.45, 0.3], uHzConeFloor: [0.32, 0.18], uCoolAmount: [0.6, 0.75] };
+  const glowDay = U.uHzGlow.value.clone(), glowNight = C(0xcdb6d6).multiplyScalar(0.36);
+  const lamp = C(0xffb35c).multiplyScalar(0.95); // the night flight dissolves into warm lamplight
+  const rayDay = RU.uColor.value.clone(), rayNight = C(0xcdbde6);
+  const rayStrength = [0.75, 0.3];
+  const dayDir = U.uHzGlowDir.value.clone(), nightDir = dayDir.clone();
+  let night = 0, boost = 0;
+
+  function apply() {
+    const k = night;
+    for (const key in NIGHT) U[key].value.copy(DAY[key]).lerp(NIGHT[key], k);
+    for (const key in NUM) U[key].value = NUM[key][0] + (NUM[key][1] - NUM[key][0]) * k;
+    U.uHzGlow.value.copy(glowDay).lerp(glowNight, k).lerp(lamp, k * Math.min(1, boost * 1.5));
+    U.uHzGlowDir.value.copy(dayDir).lerp(nightDir, k).normalize();
+    // the moon sits in the centre of its glow and fades out in the flight's lamplight
+    U.uMoonDir.value.copy(nightDir);
+    U.uMoon.value.x = k * (1 - Math.min(1, boost * 3));
+    RU.uColor.value.copy(rayDay).lerp(rayNight, k);
+    RU.uStrength.value = rayStrength[0] + (rayStrength[1] - rayStrength[0]) * k;
   }
 
-  // breath: -1..1, in step with the antler pulse (forest.js)
+  // Glow direction for day and night (from the camera's rest position toward a far target).
+  function setGlowFrom(camPos, target, nightTarget = target) {
+    dayDir.copy(target).sub(camPos).normalize();
+    nightDir.copy(nightTarget).sub(camPos).normalize();
+    apply();
+  }
+
+  // k: 0 day .. 1 night (forest.js crossfades it)
+  function setNight(k) { night = k; apply(); }
+
+  // Day shaft strength (lowered while the pipeline's screen-space god rays carry the light).
+  function setRayPlanes(day, nightStrength = rayStrength[1]) { rayStrength[0] = day; rayStrength[1] = nightStrength; apply(); }
+
+  // breath: -1..1, in step with the antler pulse (forest.js); the moon glow barely breathes
   function update(t, camera, breath = 0) {
     sky.position.copy(camera.position);
-    rays.material.uniforms.uTime.value = t;
-    rays.material.uniforms.uBreath.value = 1 + 0.14 * breath;
+    RU.uTime.value = t;
+    const b = breath * (1 - 0.7 * night);
+    RU.uBreath.value = 1 + 0.14 * b;
     U.uHzTime.value = t;
-    U.uHzLive.value.set(1 + 0.1 * breath + 0.03 * Math.sin(t * 0.37), 1 + 0.07 * breath,
+    U.uHzLive.value.set(1 + 0.1 * b + 0.03 * Math.sin(t * 0.37), 1 + 0.07 * b,
       Math.sin(t * 0.13) * 0.018 + Math.sin(t * 0.051 + 2) * 0.01, Math.sin(t * 0.093 + 1) * 0.01);
   }
 
   // "enter the forest" flight: boost (glow brighter / wider, may bloom) and flood (everything fogs into light)
-  function setEnter(boost, flood) { U.uHzEnter.value.set(boost, flood); }
+  function setEnter(b, flood) { U.uHzEnter.value.set(b, flood); boost = b; apply(); }
 
   function dispose() {
     sky.geometry.dispose(); skyMat.dispose();
     rays.geometry.dispose(); rays.material.dispose();
   }
 
-  return { fog, sky, rays, setGlowFrom, update, setEnter, dispose };
+  return { fog, sky, rays, setGlowFrom, setNight, setRayPlanes, update, setEnter, dispose };
 }
 
 function createRays(n, gold) {

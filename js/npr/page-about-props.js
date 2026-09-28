@@ -275,9 +275,11 @@ export function buildRobot(ctx) {
   const eyes = new THREE.Group();
   eyes.position.set(0, 0.3, 0.232);
   head.add(eyes);
+  // the rings get their own material: they glow softly at night (page-about.js drives its emissive)
+  const eyeMat = ctx.track(vcMaterial({ shadeColor: 0xb7b3dc }));
   P = new Parts();
   for (const x of [-0.14, 0.14]) P.cyl(0.085, 0.085, 0.02, C.white, { p: [x, 0, 0], r: [Math.PI / 2, 0, 0] }, 20);
-  eyes.add(mesh(P.build(), mat, { cast: false }));
+  eyes.add(mesh(P.build(), eyeMat, { cast: false }));
   P = new Parts();
   for (const x of [-0.14, 0.14]) P.cyl(0.046, 0.046, 0.02, C.botDark, { p: [x, 0, 0.012], r: [Math.PI / 2, 0, 0] }, 16);
   const pupils = mesh(P.build(), mat, { cast: false, outline: false });
@@ -297,7 +299,7 @@ export function buildRobot(ctx) {
     arms.push(arm);
   }
   root.traverse((o) => { if (o.isMesh) o.userData.robot = true; });
-  return { root, body, head, eyes, pupils, armL: arms[0], armR: arms[1], mat, anchor: new THREE.Vector3(0.1, 1.84, 0) };
+  return { root, body, head, eyes, pupils, armL: arms[0], armR: arms[1], mat, eyeMat, anchor: new THREE.Vector3(0.1, 1.84, 0) };
 }
 
 /* ------------------------------------------------------------------------------------------------
@@ -349,6 +351,51 @@ export function buildNotes(ctx, count) {
   m.frustumCulled = false;
   return m;
 }
+
+// Warm sparkles drifting through the lamp light at night (one additive Points draw; hidden by day).
+// Positions are in desk space (radius 1 on x/z, scaled by the caller like the desk).
+export function buildMotes(ctx, count) {
+  const pos = new Float32Array(count * 3), seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const a = ctx.rand() * Math.PI * 2, r = Math.sqrt(ctx.rand()) * 0.95;
+    pos.set([Math.cos(a) * r, 0.15 + ctx.rand() * 1.4, Math.sin(a) * r], i * 3);
+    seed[i] = ctx.rand();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  const m = new THREE.Points(g, ctx.track(new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uTime: ctx.uniforms.time, uScale: ctx.uniforms.pxScale, uAlpha: { value: 0 }, uColor: { value: new THREE.Color(0xffc070).multiplyScalar(1.6) } },
+    vertexShader: MOTE_VERT, fragmentShader: MOTE_FRAG,
+  })));
+  m.frustumCulled = false;
+  m.renderOrder = 4;
+  m.raycast = () => {};
+  return m;
+}
+const MOTE_VERT = /* glsl */`
+attribute float aSeed;
+uniform float uTime, uScale;
+varying float vA;
+void main() {
+  float t = uTime * ( 0.05 + 0.04 * aSeed ) + aSeed * 7.0;
+  vec3 p = position + vec3( sin( t * 3.1 ) * 0.06, sin( t * 2.3 + aSeed * 5.0 ) * 0.12, cos( t * 2.7 ) * 0.05 );
+  vA = 0.35 + 0.65 * pow( 0.5 + 0.5 * sin( uTime * ( 0.8 + aSeed ) + aSeed * 40.0 ), 3.0 );
+  vec4 mv = modelViewMatrix * vec4( p, 1.0 );
+  gl_PointSize = ( 0.03 + 0.03 * aSeed ) * uScale / - mv.z;
+  gl_Position = projectionMatrix * mv;
+}`;
+const MOTE_FRAG = /* glsl */`
+uniform vec3 uColor;
+uniform float uAlpha;
+varying float vA;
+void main() {
+  float d = length( gl_PointCoord - 0.5 ) * 2.0;
+  float a = smoothstep( 1.0, 0.2, d ) * vA * uAlpha;
+  if ( a < 0.004 ) discard;
+  gl_FragColor = vec4( uColor * a, 1.0 );
+}`;
 
 function controller(content, ctx) {
   const P = new Parts();
@@ -434,7 +481,7 @@ function teapot(content, ctx) {
 
   return {
     anchor: new THREE.Vector3(0, 0.62, 0), // just above the teapot, not the lamp head
-    spin, bulb, light,
+    spin, bulb, light, cone,
     update(t) { spin.rotation.y = t * 0.45; },
   };
 }

@@ -760,8 +760,9 @@ const DEFAULT_PARAMS = () => ({
   // tone mapping, so exposure / grade / vignette apply. Off by default (then it costs nothing).
   godrays: {
     enabled: false,
-    // Light, read every frame: a THREE.Vector3 world point, an Object3D (its world position), or a
-    // THREE.Vector4 with w = 0 for a direction toward a light at infinity (sun, sky glow). null = off.
+    // Light, read every frame: a world point (THREE.Vector3 or any {x, y, z}), an Object3D (its world
+    // position), or a direction toward a light at infinity (sun, sky glow) as a THREE.Vector4 / {x, y, z}
+    // with w = 0. null = off.
     position: null,
     color: 0xffe0a8,      // ray colour (multiplied by the mask hue, see sceneTint)
     intensity: 1,         // animate this (or color) for day / night; 0 skips the passes

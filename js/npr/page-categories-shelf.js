@@ -342,7 +342,7 @@ export function bestRows(books, aspect) {
 }
 
 /* ------------------------------------------------------------------------------------------------
- * Bookcase frame + decor for a layout. Returns { group, anim (swaying decor), glow (lamp bulb), bounds }
+ * Bookcase frame + decor for a layout. Returns { group, anims (swaying decor), bulb (lamp), flame (candle), bounds }
  * and places the book meshes (rowsOf: [{ books:[{mesh, w, d, h}] }]).
  * ---------------------------------------------------------------------------------------------- */
 export function buildCase(rowsOf, rand, mats, wide) {
@@ -420,7 +420,16 @@ export function buildCase(rowsOf, rand, mats, wide) {
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 14, 10), mats.glow);
   bulb.position.set(lx + 0.3, yt + 0.51, 0.04);
   group.add(bulb);
-  layStack(decor, W / 2 - 0.55, yt, 0.62, rand);
+  // a candle on the stack of books: unlit by day, the flame (and its light, page-categories.js) at night
+  const cx = W / 2 - 0.55, cy = layStack(decor, cx, yt, 0.62, rand);
+  decor.cyl(0.1, 0.11, 0.025, C.brass, [cx, cy + 0.0125, 0.02]);
+  decor.cyl(0.045, 0.048, 0.2, C.cream, [cx, cy + 0.125, 0.02], undefined, 12);
+  decor.cyl(0.004, 0.004, 0.03, C.back, [cx, cy + 0.24, 0.02], undefined, 4);
+  const flame = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), mats.flame);
+  flame.geometry.translate(0, 0.03, 0);
+  flame.scale.set(1, 1.9, 1);
+  flame.position.set(cx, cy + 0.245, 0.02);
+  group.add(flame);
   if (W > 3.2) anims.push(plant(group, mats, W / 2 - 1.15, yt, 0.02, 0.9));
 
   if (wide) {
@@ -448,7 +457,7 @@ export function buildCase(rowsOf, rand, mats, wide) {
   const dg = decor.build();
   if (dg) group.add(mesh(dg, mats.frame));
   const bounds = new THREE.Box3(new THREE.Vector3(-W / 2 - (wide ? WIDE.left : 0.1), -0.06, -D / 2), new THREE.Vector3(W / 2 + (wide ? WIDE.right : 0.1), H + 0.75, D / 2 + (wide ? 0.85 : 0.3)));
-  return { group, anims, bulb, bounds, W, H, D };
+  return { group, anims, bulb, flame, bounds, W, H, D };
 }
 
 function layStack(p, cx, yb, w, rand) {
@@ -460,6 +469,7 @@ function layStack(p, cx, yb, w, rand) {
     p.box(ww, h, 0.3 + rand() * 0.06, CLOTH[Math.floor(rand() * CLOTH.length)], [cx + (rand() - 0.5) * 0.06, y + h / 2, 0.02], [0, (rand() - 0.5) * 0.25, 0], 0.01);
     y += h;
   }
+  return y;
 }
 
 function globe(p, cx, yb) {

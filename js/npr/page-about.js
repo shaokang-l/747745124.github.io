@@ -1,21 +1,41 @@
 // About page banner, "the maker's desk": the blog's robot mascot on a floating desk, surrounded by props
 // for the interests listed on the page (camera, keyboard + notes, game controller, Utah teapot under a
 // render lamp, sketchbook, books + mortarboard). Hover a prop for its label. See CONTRACT-pages.md.
+// Night mode (CONTRACT-night.md): setNight() crossfades to a warm night lit by the desk lamp.
 import * as THREE from 'three';
 import { createStage, createPointer, seededRandom } from './core.js';
 import {
-  C, DESK_T, PROPS, buildDesk, buildRobot, buildNotes, vcMaterial, plankTexture, sketchTexture, blobTexture,
+  C, DESK_T, PROPS, buildDesk, buildRobot, buildNotes, buildMotes, vcMaterial, plankTexture, sketchTexture, blobTexture,
 } from './page-about-props.js';
 
 const DEG = Math.PI / 180;
 const RX = 3.3, RZ = 1.55;     // desk radii on wide screens
 const FLOAT = 0.95;            // gap between the desk bottom and its shadow on the paper
 const NOTES = 4;
+const MOTES = 34;
+const FADE_MS = 800;       // day <-> night crossfade
 const PROP_SCALE = 1.2;  // props read a little larger than life next to the robot (x1.15 on wide bands)
 const HEAD_YAW = 25 * DEG; // beyond this the ring eyes turn to slivers; the pupils carry the rest of the gaze
 const noRaycast = () => {};
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const isNight = () => document.documentElement.dataset.theme === 'night';
+
+// Day/night look: every value that changes at night is registered once (its current value is the day one)
+// and apply(n) writes the blend for n = 0 (day) .. 1 (night). Colours blend in place (linear space).
+function createLook() {
+  const items = [];
+  return {
+    color(c, night) { items.push({ c, a: c.clone(), b: new THREE.Color(night) }); return c; },
+    num(o, k, night) { items.push({ o, k, a: o[k], b: night }); },
+    apply(n) {
+      for (const it of items) {
+        if (it.c) it.c.copy(it.a).lerp(it.b, n);
+        else it.o[it.k] = it.a + (it.b - it.a) * n;
+      }
+    },
+  };
+}
 
 // Screen-constant accent rim from an inflated back-face hull (welded normals), as in the menu room.
 const HULL_VERT = /* glsl */`
@@ -66,7 +86,7 @@ function readLines(root) {
   return out;
 }
 
-export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a' } = {}) {
+export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a', night = isNight() } = {}) {
   const stage = createStage(container, {
     clearColor: C.paper,
     quality: quality || 'auto',
@@ -88,7 +108,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
 
   const rand = seededRandom('niflheimr-about');
   const accentCol = new THREE.Color(accent);
-  const uniforms = { time: { value: 0 } };
+  const uniforms = { time: { value: 0 }, pxScale: { value: 800 } };
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(26, 1, 0.5, 200);
   const owned = new Set(); // materials + textures to dispose
@@ -107,7 +127,9 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const fill = new THREE.DirectionalLight(0xe4ecff, 0.6);
   fill.position.set(4, 3, 2);
   const hemi = new THREE.HemisphereLight(0xfff0da, 0x9a7a62, 1.25);
-  scene.add(key, key.target, fill, hemi);
+  // the desk lamp's glow over the whole desk (off by day; placed at the lamp's bulb by layout())
+  const lampGlow = new THREE.PointLight(0xffb35c, 0, 10, 1.5);
+  scene.add(key, key.target, fill, hemi, lampGlow);
 
   // --- the floating world (bobs gently) and its shadow on the paper
   const world = new THREE.Group();
@@ -187,6 +209,61 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   });
   const renderEntry = entries.find((e) => e.spec.key === 'render');
   const musicEntry = entries.find((e) => e.notes);
+  const motes = buildMotes(ctx, MOTES);
+  motes.visible = false;
+  world.add(motes);
+
+  /* --------------------------------------------------------------------------------------------
+   * Night: the desk lamp becomes the key light (warm, from the right), a faint cool moon rim from
+   * behind, plum/umber ambient; the robot's eyes, the notes and drifting sparkles glow warm.
+   * ------------------------------------------------------------------------------------------ */
+  const P = stage.pipeline.params;
+  const clear = new THREE.Color(C.paper);
+  for (const [o, k] of [[P.outline, 'color'], [P.grade, 'tint'], [P.grade, 'lift'], [P.vignette, 'color']]) o[k] = new THREE.Color(o[k]);
+  const look = createLook();
+  const bgLook = createLook(); // the paper / page colours lead the fade, to follow the page's own switch
+  bgLook.color(clear, 0x2a1f1d);
+  look.color(P.outline.color, 0x150d0b);
+  look.num(P.outline, 'colorBleed', 0.4);
+  look.num(P.bloom, 'strength', 0.95);
+  look.num(P.grade, 'saturation', 1.08);
+  look.color(P.grade.tint, 0xfff0e2);
+  look.color(P.grade.lift, 0x0c0708);
+  look.num(P.paper, 'strength', 0.12);
+  bgLook.color(P.vignette.color, 0x1c1714); // the dark page
+  look.num(P.vignette, 'strength', 0.62);
+  look.color(key.color, 0xffb35c);
+  look.num(key, 'intensity', 0.5);
+  const keyDay = key.position.clone(), keyNight = new THREE.Vector3(3.6, 5.6, 1.6);
+  look.color(fill.color, 0xb9c4ff);
+  look.num(fill, 'intensity', 0.4);
+  const fillDay = fill.position.clone(), fillNight = new THREE.Vector3(-3, 3.5, -4);
+  look.color(hemi.color, 0x6a4a52);
+  look.color(hemi.groundColor, 0x2e2020);
+  look.num(hemi, 'intensity', 0.85);
+  look.num(lampGlow, 'intensity', 11);
+  look.color(shadow.material.color, 0x0c0808);
+  look.num(shadow.material, 'opacity', 0.6);
+  look.color(bot.eyeMat.emissive, new THREE.Color(0xffc27a).multiplyScalar(0.9));
+  if (musicEntry) look.color(musicEntry.notes.material.emissive, new THREE.Color(0xffb35c).multiplyScalar(1.5));
+  const lamp = { base: 5 };
+  look.num(lamp, 'base', 9);
+  if (renderEntry) {
+    look.color(renderEntry.built.bulb.material.color, new THREE.Color(0xffd08a).multiplyScalar(4.6));
+    look.color(renderEntry.built.cone.material.uniforms.uColor.value, new THREE.Color(0xffc27a).multiplyScalar(0.6));
+  }
+  look.num(motes.material.uniforms.uAlpha, 'value', 1);
+  const nightFx = { n: 0, nb: 0, from: 0, fromB: 0, to: night ? 1 : 0, t0: 0 };
+  function applyNight(n, nb = n) {
+    nightFx.n = n; nightFx.nb = nb;
+    look.apply(n);
+    bgLook.apply(nb);
+    renderer.setClearColor(clear, 1);
+    key.position.lerpVectors(keyDay, keyNight, n);
+    fill.position.lerpVectors(fillDay, fillNight, n);
+    motes.visible = n > 0.005;
+  }
+  applyNight(nightFx.to);
 
   /* --------------------------------------------------------------------------------------------
    * Layout: wide bands spread the props along an oval desk; narrow ones squeeze x and deepen z.
@@ -232,6 +309,9 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       }
     }
     if (musicEntry) pts.push(musicEntry.root.localToWorld(new THREE.Vector3(0, 1.25, 0)));
+    motes.scale.set(RX * sx, 1, RZ * sz);
+    if (renderEntry) renderEntry.built.bulb.getWorldPosition(lampGlow.position).y += 0.25;
+    else lampGlow.position.set(RX * sx * 0.7, 1.6, -0.4);
     fit.el = (22 + 9 * k - 3 * wide) * DEG;
     fit.az = -4 * DEG;
     camera.fov = 24 + 6 * k;
@@ -260,6 +340,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     const O = stage.pipeline.params.outline;
     O.fadeStart = dist + 20; O.fadeEnd = dist + 50;
     hullPx.value = 2 * Math.tan(camera.fov * DEG / 2) / h;
+    uniforms.pxScale.value = h * stage.pixelRatio / (2 * Math.tan(camera.fov * DEG / 2));
   }
 
   /* --------------------------------------------------------------------------------------------
@@ -451,7 +532,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
       e.hullMat.uniforms.uWidth.value = e.h * 3.2;
       for (const m of e.mats) {
         m.emissive.copy(accentCol).multiplyScalar(e.i === 0 ? 0 : e.h * 0.06); // the dark robot would turn muddy
-        m.rimStrength = e.h * 0.25;
+        m.rimStrength = e.h * 0.25 + nightFx.n * 0.1; // a warm lamp-lit edge keeps shapes legible at night
       }
       if (e.built.update) e.built.update(T);
       if (e.notes) {
@@ -468,12 +549,17 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     }
     if (renderEntry) {
       const pulse = still ? 1 : 0.94 + 0.06 * Math.sin(T * 1.3);
-      renderEntry.built.light.intensity = 5 * pulse * (1 + renderEntry.h * 0.4);
+      renderEntry.built.light.intensity = lamp.base * pulse * (1 + renderEntry.h * 0.4);
     }
   }
 
   function update(dt, t) {
     const T = still ? 2.4 : t;
+    if (nightFx.n !== nightFx.to) {
+      const p = clamp01((performance.now() - nightFx.t0) / FADE_MS), q = Math.min(1, p * 2.5);
+      const { from, fromB, to } = nightFx;
+      applyNight(from + (to - from) * p * p * (3 - 2 * p), fromB + (to - fromB) * q * (2 - q));
+    }
     uniforms.time.value = T;
     pointer.update(dt);
     if (tap !== null && performance.now() > tapUntil) tap = null;
@@ -502,6 +588,12 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     // reduced motion: no loop — one frame now, more only on hover / tap / resize
     start() { if (disposed) return; if (still) stage.renderOnce(); else stage.start(); },
     stop() { stage.stop(); },
+    // warm night look on / off: ~0.8 s crossfade while the loop runs, otherwise (or reduced motion) at once
+    setNight(on, { instant = false } = {}) {
+      if (disposed) return;
+      Object.assign(nightFx, { from: nightFx.n, fromB: nightFx.nb, to: on ? 1 : 0, t0: performance.now() });
+      if (instant || still || !stage.running) { applyNight(nightFx.to); refresh(); }
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

@@ -1,7 +1,8 @@
 // NPR boot: mounts the three.js forest behind the home cover (#npr-hero, forest.js), the 3D menu room
 // (.nav > .npr-room, room.js) and the sub-page banners (config.pages, page-*.js). Any failure logs one
 // warning and leaves the original Diaspora page in place. Debug switches: ?npr=0 disables everything,
-// ?npr=low forces low quality.
+// ?npr=low forces low quality. Night mode (js/theme.js): every scene mounts with { night } and gets
+// setNight(night) on each 'npr:theme' event.
 const html = document.documentElement;
 const MENU_SLIDE_MS = 300;   // .nav slide-out transition in diaspora.css
 const HERO_REVEAL_MS = 6000; // show the painting meanwhile if the forest is this slow to appear
@@ -26,6 +27,27 @@ const domReady = () => (document.readyState === 'loading'
   ? new Promise((resolve) => document.addEventListener('DOMContentLoaded', resolve, { once: true }))
   : Promise.resolve());
 const menuOpen = () => document.body.classList.contains('mu');
+const isNight = () => html.getAttribute('data-theme') === 'night';
+
+// Mounted scene controllers, for night mode. A scene gets the state current when its mount starts; if the
+// toggle flipped while it was loading, it is corrected (instantly) as soon as it is ready.
+const scenes = new Set();
+function nightScene(api, night) {
+  if (api && typeof api.setNight === 'function') {
+    try { api.setNight(night, { instant: true }); } catch (e) { warn('night mode', e); }
+  }
+}
+function adopt(api, mountedNight) {
+  scenes.add(api);
+  if (isNight() !== mountedNight) nightScene(api, isNight());
+}
+document.addEventListener('npr:theme', (e) => {
+  const night = !!(e.detail && e.detail.night);
+  scenes.forEach((api) => {
+    if (typeof api.setNight !== 'function') return;
+    try { api.setNight(night); } catch (err) { warn('night mode', err); }
+  });
+});
 
 function createHero(el, opts) {
   let api = null, dead = false;
@@ -36,7 +58,7 @@ function createHero(el, opts) {
     dead = true;
     html.classList.remove('npr-hero-on', 'npr-hero-pending');
     if (err) warn('hero', err);
-    if (api) try { api.dispose(); } catch (e) { /* already gone */ }
+    if (api) { scenes.delete(api); try { api.dispose(); } catch (e) { /* already gone */ } }
     api = null;
   };
   // core dispatches npr:error (non-bubbling) on the stage container; capture also sees nested containers
@@ -45,8 +67,10 @@ function createHero(el, opts) {
   const ready = import('./forest.js')
     .then(async ({ mountForest }) => {
       await domReady(); // diaspora.js sizes #mark and binds the npr:hero listener on DOM ready
-      api = await mountForest(el, opts);
+      const night = isNight();
+      api = await mountForest(el, { ...opts, night });
       if (dead) return fail();
+      adopt(api, night);
       html.classList.add('npr-hero-on');
       document.dispatchEvent(new CustomEvent('npr:hero'));
       // Diaspora lifts its loading state 1 s after the painting loads; the forest does not need to wait
@@ -138,7 +162,7 @@ function createRoom(el, opts) {
     dead = true;
     html.classList.remove('npr-room-on');
     if (err) warn('menu room', err);
-    if (api) try { api.dispose(); } catch (e) { /* already gone */ }
+    if (api) { scenes.delete(api); try { api.dispose(); } catch (e) { /* already gone */ } }
     api = null;
   };
   el.addEventListener('npr:error', () => fail(), true);
@@ -148,11 +172,13 @@ function createRoom(el, opts) {
     const a = items[i] && items[i].el.querySelector('a');
     if (a) a.click(); // Diaspora's delegated body handler opens the AJAX preview and closes the menu
   };
+  let night = false;
   const mount = () => mountP || (mountP = load()
-    .then(({ mountRoom }) => mountRoom(el, { items, onSelect, onHover() {}, ...opts }))
+    .then(({ mountRoom }) => { night = isNight(); return mountRoom(el, { items, onSelect, onHover() {}, ...opts, night }); })
     .then((r) => {
       api = r;
       if (dead) return fail();
+      adopt(api, night);
       html.classList.add('npr-room-on');
       sync(menuOpen());
     })
@@ -207,7 +233,7 @@ function createPages(pages, opts) {
     if (!cur) return;
     cur.dead = true;
     cur.single.classList.remove('npr-page-on');
-    if (cur.api) try { cur.api.dispose(); } catch (e) { /* already gone */ }
+    if (cur.api) { scenes.delete(cur.api); try { cur.api.dispose(); } catch (e) { /* already gone */ } }
     cur.container.remove();
     cur = null;
   };
@@ -227,11 +253,13 @@ function createPages(pages, opts) {
     const me = cur = { single, container, api: null, dead: false };
     loadCSS('npr-pages.css');
     loadCSS('npr-page-' + key + '.css');
+    let night = false;
     import('./page-' + key + '.js')
-      .then((m) => m.mountPageScene(container, { root: single, ...opts }))
+      .then((m) => { night = isNight(); return m.mountPageScene(container, { root: single, ...opts, night }); })
       .then((api) => {
         if (me.dead) { api.dispose(); return; }
         me.api = api;
+        adopt(api, night);
         container.classList.add('npr-ready');
         api.start();
       })

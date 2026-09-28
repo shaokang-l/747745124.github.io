@@ -7,6 +7,29 @@ import { C, M, TOON, vcMaterial, hash01, bookWidth, clothColors, spineAtlas, boo
   splitRows, bestRows, buildCase, WIDE } from './page-categories-shelf.js';
 
 const DEG = Math.PI / 180;
+const FADE = 0.8; // day <-> night crossfade (s)
+
+// Day / night values of everything the theme toggle changes. Night: the study after dark, lit by the shelf
+// lamp, a candle and a warm glow from the room in front; moonlight only as a faint cool key.
+const LOOK = {
+  clear: [C.paper, 0x2b211c],
+  key: [[0xffe2b8, 2.5], [0xb9c4ff, 0.3]],
+  fill: [[0xdce6ff, 0.55], [0xc98a5a, 0.25]],
+  hemi: [[0xfff0da, 0x9a7a62, 1.25], [0x6a4c48, 0x2a1a14, 0.7]],
+  lamp: [[1.6, 3.2], [5.5, 7]],       // intensity, distance
+  front: [0, 2.0],                    // warm fill from the room (off by day)
+  candle: [0, 1.3],
+  bulb: [3.2, 5.5],
+  flame: [0, 6],
+  blob: [[0x8a7258, 0.45], [0x0a0605, 0.6]],
+  outline: [[0x3a2618, 0.9, 0.3], [0x1c100b, 0.85, 0.45]], // colour, opacity, colour bleed
+  bloom: [0.5, 0.85],
+  paper: [0xfff4e2, 0xffe2c2],
+  grade: [[0xfffaf2, 1.0, 1.02], [0xffe8d2, 1.06, 1.06]],  // tint, exposure, saturation
+  vignette: [[0xe6dac5, 0.1], [0x1a1411, 0.5]],
+};
+const lerp = (a, b, t) => a + (b - a) * t;
+const pair = (a, b) => [new THREE.Color(a), new THREE.Color(b)];
 
 // Screen-constant accent outline from an inflated back-face hull (as in the menu room).
 const HULL_VERT = /* glsl */`
@@ -53,7 +76,7 @@ function silhouette(group) {
   return new Float32Array(out);
 }
 
-export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a' } = {}) {
+export async function mountPageScene(container, { root, quality, reducedMotion, accent = '#f5c46a', night } = {}) {
   const stage = createStage(container, {
     clearColor: C.paper,
     quality: quality || 'auto',
@@ -90,7 +113,10 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   fill.position.set(6, 2.5, 5);
   const hemi = new THREE.HemisphereLight(0xfff0da, 0x9a7a62, 1.25);
   const lamp = new THREE.PointLight(0xffc878, 1.6, 3.2, 1.6);
-  scene.add(key, key.target, fill, hemi, lamp);
+  // night only (intensity 0 by day, so the light setup and the shader programs never change)
+  const front = new THREE.PointLight(0xffc27e, 0, 0, 1);
+  const candle = new THREE.PointLight(0xff9a48, 0, 2.6, 1.4);
+  scene.add(key, key.target, fill, hemi, lamp, front, candle);
 
   // --- books from the page
   const cats = readCategories(root);
@@ -108,7 +134,8 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
   const bookMat = vcMaterial({ map: atlas.tex, rimColor: accentCol, rimPower: 2.5 });
   const frameMat = vcMaterial();
   const glowMat = createToonMaterial({ color: 0xffe6b0, emissive: 0xffc46a, emissiveIntensity: 3.2, ...TOON });
-  disposables.push(bookMat, frameMat, glowMat);
+  const flameMat = createToonMaterial({ color: 0xffd08a, emissive: 0xffa04a, emissiveIntensity: 0, ...TOON });
+  disposables.push(bookMat, frameMat, glowMat, flameMat);
   const shelfRoot = new THREE.Group();
   scene.add(shelfRoot);
   for (const b of books) {
@@ -154,7 +181,7 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     }
     rows = r; wide = w;
     const rowsOf = books.length ? splitRows(books, r) : [{ books: [], width: 0 }];
-    shelf = buildCase(rowsOf, seededRandom('shelf-decor'), { frame: frameMat, glow: glowMat }, wide);
+    shelf = buildCase(rowsOf, seededRandom('shelf-decor'), { frame: frameMat, glow: glowMat, flame: flameMat }, wide);
     shelfRoot.add(shelf.group);
     shelf.bounds.getCenter(center);
     fitPts = silhouette(shelf.group);
@@ -162,6 +189,9 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     ground.position.x = center.x;
     ground.position.y = -0.055; ground.position.z = 0.1;
     lamp.position.copy(shelf.bulb.position).add(new THREE.Vector3(0, -0.05, 0.1));
+    candle.position.copy(shelf.flame.position).add(new THREE.Vector3(0, 0.08, 0.12));
+    front.position.set(center.x + 0.8, center.y + 0.4, shelf.D / 2 + 3.6);
+    shelf.flame.visible = mix > 0.01;
     // shadow camera around the bookcase
     const s = Math.max(shelf.W, shelf.H) * 0.62;
     key.position.set(center.x - 4.5, center.y + 5.5, 8);
@@ -288,6 +318,46 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     books[i].bounce = 1;
   }));
 
+  // --- day / night
+  const P = stage.pipeline.params;
+  P.outline.color = new THREE.Color(); P.paper.tint = new THREE.Color();
+  P.grade.tint = new THREE.Color(); P.vignette.color = new THREE.Color();
+  const L = {
+    clear: pair(...LOOK.clear), key: pair(LOOK.key[0][0], LOOK.key[1][0]), fill: pair(LOOK.fill[0][0], LOOK.fill[1][0]),
+    sky: pair(LOOK.hemi[0][0], LOOK.hemi[1][0]), ground: pair(LOOK.hemi[0][1], LOOK.hemi[1][1]),
+    blob: pair(LOOK.blob[0][0], LOOK.blob[1][0]), outline: pair(LOOK.outline[0][0], LOOK.outline[1][0]),
+    paper: pair(...LOOK.paper), grade: pair(LOOK.grade[0][0], LOOK.grade[1][0]),
+    vignette: pair(LOOK.vignette[0][0], LOOK.vignette[1][0]),
+  };
+  const clearCol = new THREE.Color();
+  let isNight = night !== undefined ? !!night : document.documentElement.dataset.theme === 'night';
+  let mix = isNight ? 1 : 0, look = -1;
+  function applyLook(m) {
+    const e = m * m * (3 - 2 * m);
+    if (e === look) return;
+    look = e;
+    const two = (k, i) => lerp(LOOK[k][0][i], LOOK[k][1][i], e);
+    renderer.setClearColor(clearCol.lerpColors(L.clear[0], L.clear[1], e), 1);
+    key.color.lerpColors(L.key[0], L.key[1], e); key.intensity = two('key', 1);
+    fill.color.lerpColors(L.fill[0], L.fill[1], e); fill.intensity = two('fill', 1);
+    hemi.color.lerpColors(L.sky[0], L.sky[1], e); hemi.groundColor.lerpColors(L.ground[0], L.ground[1], e);
+    hemi.intensity = two('hemi', 2);
+    lamp.intensity = two('lamp', 0); lamp.distance = two('lamp', 1);
+    front.intensity = lerp(LOOK.front[0], LOOK.front[1], e);
+    candle.intensity = lerp(LOOK.candle[0], LOOK.candle[1], e);
+    flameMat.emissiveIntensity = lerp(LOOK.flame[0], LOOK.flame[1], e);
+    if (shelf) shelf.flame.visible = e > 0.01;
+    ground.material.color.lerpColors(L.blob[0], L.blob[1], e); ground.material.opacity = two('blob', 1);
+    P.outline.color.lerpColors(L.outline[0], L.outline[1], e);
+    P.outline.opacity = two('outline', 1); P.outline.colorBleed = two('outline', 2);
+    P.bloom.strength = lerp(LOOK.bloom[0], LOOK.bloom[1], e);
+    P.paper.tint.lerpColors(L.paper[0], L.paper[1], e);
+    P.grade.tint.lerpColors(L.grade[0], L.grade[1], e);
+    P.grade.exposure = two('grade', 1); P.grade.saturation = two('grade', 2);
+    P.vignette.color.lerpColors(L.vignette[0], L.vignette[1], e); P.vignette.strength = two('vignette', 1);
+  }
+  applyLook(mix);
+
   // --- animation
   const pointer = createPointer(container);
   const lpos = new THREE.Vector3();
@@ -314,11 +384,21 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     hullMat.uniforms.uWidth.value = active !== null ? 4 * books[active].t : 0;
     hull.visible = active !== null;
 
-    // idle: plants sway, lamp breathes, camera parallax
+    // day <-> night crossfade (snaps when rendered without the loop)
+    const goal = isNight ? 1 : 0;
+    if (mix !== goal) mix = still || dt === 0 ? goal : Math.max(0, Math.min(1, mix + Math.sign(goal - mix) * dt / FADE));
+    applyLook(mix);
+
+    // idle: plants sway, lamp breathes, candle flickers, camera parallax
     const calm = still ? 0 : 1;
     const sway = shelf.anims;
     for (let i = 0; i < sway.length; i++) sway[i].rotation.z = Math.sin(t * 0.8 + i * 1.7) * 0.035 * calm;
-    glowMat.emissiveIntensity = 3.2 + Math.sin(t * 1.3) * 0.25 * calm;
+    glowMat.emissiveIntensity = lerp(LOOK.bulb[0], LOOK.bulb[1], look) + Math.sin(t * 1.3) * 0.25 * calm;
+    if (look > 0 && !still) {
+      const f = Math.sin(t * 7.3) * 0.5 + Math.sin(t * 11.1 + 1.3) * 0.3 + Math.sin(t * 4.1) * 0.2;
+      shelf.flame.scale.set(1 - f * 0.05, 1.9 + f * 0.14, 1 - f * 0.05);
+      candle.intensity = LOOK.candle[1] * look * (1 + f * 0.04);
+    }
     place(BASE_AZ + pointer.x * 3 * DEG * calm, BASE_EL + pointer.y * 1.5 * DEG * calm);
 
     // label above the active book
@@ -348,6 +428,17 @@ export async function mountPageScene(container, { root, quality, reducedMotion, 
     stage,
     start() { if (disposed) return; if (still) stillRender(); else stage.start(); },
     stop() { stage.stop(); },
+    // Theme toggle: crossfade while the loop runs; otherwise (stopped, reduced motion, instant) switch and
+    // repaint the still frame so the next reveal is already right.
+    setNight(on, { instant = false } = {}) {
+      if (disposed) return;
+      isNight = !!on;
+      if (instant || still || !stage.running) {
+        mix = isNight ? 1 : 0;
+        applyLook(mix);
+        if (stage.frames > 0) { renderer.shadowMap.needsUpdate = true; stage.renderOnce(); }
+      }
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

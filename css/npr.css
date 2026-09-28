@@ -10,10 +10,21 @@ html.npr-hero-on #mark {background:#0f2426;}
 html.npr-hero-pending #mark .layer,
 html.npr-hero-on #mark .layer {opacity:0;visibility:hidden;transition:opacity .8s ease, visibility 0s linear 1.2s;}
 html.npr-hero-on #npr-hero .npr-canvas {opacity:1;}
+/* night (theme.js, data-theme): the forest's warm plum dark behind the canvas */
+html[data-theme="night"].npr-hero-pending #mark,
+html[data-theme="night"].npr-hero-on #mark {background:#1b1418;}
 
 /* #vibrant, #header and #post0 follow #mark in the DOM, so they already paint above the canvas
    (no z-index here: the icons must stay above the fixed .nav) */
 html.npr-hero-on #post0 {text-shadow:0 1px 12px rgba(6,14,20,.55);}
+html[data-theme="night"].npr-hero-on #post0 {color:#f3e7d6;text-shadow:0 1px 12px rgba(18,9,12,.7);}
+html[data-theme="night"].npr-hero-on #post0 .posttitle:hover {color:#f7d08f;}
+/* the diagonal backdrop at night: deep plum, a touch warmer than night.css's default; lamplit icon chips */
+html[data-theme="night"].npr-hero-on #vibrant polygon {fill:#22151b !important;}
+html[data-theme="night"].npr-hero-on #vibrant div {background-color:#22151b !important;}
+html[data-theme="night"].npr-hero-on body:not(.mu) #header .icon-menu,
+html[data-theme="night"].npr-hero-on body:not(.mu) #header .icon-search,
+html[data-theme="night"].npr-hero-on body:not(.mu) #header .npr-tt-header {background:rgba(34,21,27,.62);color:#f1dcb8 !important;}
 html.npr-hero-on #header .icon-menu,
 html.npr-hero-on #header .icon-search {background:rgba(12,24,32,.55);}
 html.npr-hero-on body.mu #header .icon-menu,
@@ -37,6 +48,10 @@ html.npr-hero-on body.mu #header .icon-search {background:none;color:#9a6428 !im
 #npr-hero .npr-veil::before {opacity:var(--warm);
   background:radial-gradient(circle at var(--lx) var(--ly), #fffdf6 0%, #fff0c8 22%, rgba(255,214,140,.85) 48%, rgba(240,180,90,.35) 80%, rgba(240,180,90,0) 110%);}
 #npr-hero .npr-veil::after {opacity:var(--white);background:#fff;}
+/* night: the flight dissolves into warm lamplight, then the dark page ground (night.css #1c1714) */
+html[data-theme="night"] #npr-hero .npr-veil::before {
+  background:radial-gradient(circle at var(--lx) var(--ly), #ffe6b8 0%, #ffc670 18%, rgba(232,140,62,.9) 42%, rgba(120,58,40,.75) 75%, rgba(40,22,22,.6) 110%);}
+html[data-theme="night"] #npr-hero .npr-veil::after {background:#1c1714;}
 #npr-hero .npr-veil.npr-veil-out {opacity:0;transition:opacity .9s ease;}
 /* the overlay steps aside at the start of the flight and comes back with the hero */
 html.npr-hero-on #vibrant, html.npr-hero-on #post0, html.npr-hero-on #header > div {transition:opacity .45s ease;}

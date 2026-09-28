@@ -1,8 +1,22 @@
 
 <!DOCTYPE html>
-<html lang="en-us,default" class="loading">
+
+<html lang="en-us,default" class="loading" data-theme-default="auto">
 <head>
     <meta charset="UTF-8" />
+    
+    <script>(function (h, k) {
+        var t, q = /[?&]night=([01])(?=&|#|$)/.exec(location.search), d = h.getAttribute('data-theme-default');
+        try {
+            if (q) {
+                t = q[1] === '1' ? 'night' : 'day';
+                localStorage.setItem(k, t);
+                history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])night=[01](&|$)/, '$1').replace(/[?&]$/, '') + location.hash);
+            } else t = localStorage.getItem(k);
+        } catch (e) {}
+        if (t !== 'night' && t !== 'day') t = d === 'night' || (d !== 'day' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+        h.setAttribute('data-theme', t);
+    })(document.documentElement, 'npr-theme');</script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tag: C/C++ - Niflheimr</title>
@@ -33,6 +47,10 @@
     
 <link rel="stylesheet" href="/css/media-card.css">
 
+    
+<link rel="stylesheet" href="/css/night.css">
+
+    <script src="/js/theme.js" defer></script>
     
     
 <link rel="stylesheet" href="/css/npr.css">
@@ -220,9 +238,20 @@
 <div class="post plain">
 
     <div class="else">
-        <p>四月 30, 2025</p>
-        <h3><a href="/2025/04/30/Transition%20from%20RT%20in%20one%20Weeknd%20to%20PBRT/" title="Notes on transitioning from RT in One Weeknd to PBRT" class="posttitle">Notes on transitioning from RT in One Weeknd to PBRT</a></h3>
+        <p>五月 01, 2025</p>
+        <h3><a href="/2025/05/01/Transition%20from%20RT%20in%20one%20Weeknd%20to%20PBRT/" title="Notes on transitioning from RT in One Weeknd to PBRT" class="posttitle">Notes on transitioning from RT in One Weeknd to PBRT</a></h3>
         <p>So recently I was thinking reading PBRT for volumetric path-tracing stuff, as...</p>
+    </div>
+</div>
+
+
+
+<div class="post plain">
+
+    <div class="else">
+        <p>四月 21, 2025</p>
+        <h3><a href="/2025/04/21/%E6%8A%98%E5%8F%A0%E8%A1%A8%E8%BE%BE%E5%BC%8F(Fold%20Expression)%EF%BC%9A%E4%BD%8E%E9%80%9F%E4%B8%8B%E8%84%9A%E7%8E%B0%E4%BB%A3C++%20Chapter%202%20Exercise/" title="折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise" class="posttitle">折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise</a></h3>
+        <p>最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可...</p>
     </div>
 </div>
 
@@ -245,17 +274,6 @@
         <p>三月 24, 2023</p>
         <h3><a href="/2023/03/24/%E9%9B%A8%E6%BB%B4%E5%90%88%E6%88%90%E5%99%A8/" title="雨滴合成器&#x2F;A Raindrop Synthesizer" class="posttitle">雨滴合成器&#x2F;A Raindrop Synthesizer</a></h3>
         <p>​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果...</p>
-    </div>
-</div>
-
-
-
-<div class="post plain">
-
-    <div class="else">
-        <p>一月 17, 2022</p>
-        <h3><a href="/2022/01/17/Point%20Matching%20-%20A%20Voting%20Tree%20Method/" title="Point Matching - Voting Tree" class="posttitle">Point Matching - Voting Tree</a></h3>
-        <p>Chapter 1: IntroductionPoint Matching Problem:Given two polygons (each is def...</p>
     </div>
 </div>
 

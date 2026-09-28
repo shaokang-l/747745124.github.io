@@ -1,10 +1,11 @@
 // The Diaspora menu as an NPR cut-away room ("the study"): every menu entry is an object in the room.
-// mountRoom(container, { items, onSelect, onHover, quality, reducedMotion, accent }) — see CONTRACT 3.3.
+// mountRoom(container, { items, onSelect, onHover, quality, reducedMotion, accent, night }) — see CONTRACT 3.3;
+// ctrl.setNight(night, { instant }) crossfades to the warm night version (lamps, candle, moonlit window).
 import * as THREE from 'three';
 import { createStage, createPointer, seededRandom } from './core.js';
 import {
   ROOM, WIN, C, PLACES, SPOTS, DECOR, BUILDERS, buildShell, buildDecor, vcMaterial,
-  paintingTexture, tagTexture, portraitTexture, blobTexture, outsideTexture,
+  paintingTexture, tagTexture, portraitTexture, blobTexture, outsideTexture, outsideNightTexture,
 } from './room-objects.js';
 
 const DEG = Math.PI / 180;
@@ -14,6 +15,24 @@ const noRaycast = () => {};
 const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 const easeOutBack = (x) => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const NIGHT_FADE = 0.8; // s
+
+// Day -> warm night: everything the crossfade touches (colours are hex; lights by name).
+const NIGHT = {
+  clear: [C.paper, 0x1e1517],
+  sun: { color: [0xffe0b0, 0xb9c4ff], intensity: [2.7, 0.42] }, // the moon takes the sun's window
+  fill: { color: [0xfff0dc, 0xffb070], intensity: [1.0, 0.34] },
+  hemi: { color: [0xfff0da, 0x8a5c68], groundColor: [0x9a7a62, 0x4a2c22], intensity: [1.3, 0.72] },
+  beam: [0xffd9a0, 0xb9c4ff], beamK: [0.22, 0.045],
+  mote: [0xffe2a8, 0xffd29a], moteK: [1.6, 0.55],
+  ground: { color: [0x9a8468, 0x080405], opacity: [0.5, 0.55] },
+  blob: { color: [0x3b2a1e, 0x0a0506], opacity: [0.32, 0.42] },
+  outline: { color: [0x3a2618, 0x1c100c], opacity: [0.92, 0.95], colorBleed: [0.3, 0.5] },
+  bloom: { strength: [0.55, 0.75], threshold: [1.0, 1.0] },
+  paper: { strength: [0.14, 0.12], tint: [0xfff4e2, 0xffe2c2] },
+  grade: { exposure: [1.0, 1.05], saturation: [1.02, 1.06], tint: [0xfffaf2, 0xffe6cc], lift: [0x000000, 0x0c0608] },
+  vignette: { strength: [0.16, 0.34], color: [0xe6dac5, 0x0b0607] },
+};
 
 // Screen-constant accent rim drawn from an inflated back-face hull (smooth welded normals).
 const HULL_VERT = /* glsl */`
@@ -106,6 +125,7 @@ function buildHullGeometry(content) {
 
 export async function mountRoom(container, opts = {}) {
   const { items = [], onSelect, onHover, quality, reducedMotion, accent = '#f5c46a' } = opts;
+  const night0 = opts.night !== undefined ? !!opts.night : document.documentElement.dataset.theme === 'night';
   const stage = createStage(container, {
     clearColor: C.paper,
     quality: quality || 'auto',
@@ -157,9 +177,11 @@ export async function mountRoom(container, opts = {}) {
     portrait: await portraitTexture(),
     blob: blobTexture(),
     outside: outsideTexture(),
+    outsideNight: outsideNightTexture(seededRandom('night-sky')),
   };
   disposables.push(...Object.values(textures));
-  const ctx = { rand, uniforms, textures, mat: () => vcMaterial() };
+  // night: builders register fn(k) (k = 0 day ... 1 night); updates: fn(t) per frame
+  const ctx = { rand, uniforms, textures, mat: () => vcMaterial(), night: [], updates: [] };
 
   // --- shell + decor
   const shell = buildShell(ctx);
@@ -296,6 +318,55 @@ export async function mountRoom(container, opts = {}) {
   motes.frustumCulled = false;
   motes.renderOrder = 3;
   scene.add(motes);
+
+  /* --------------------------------------------------------------------------------------------
+   * Night mode: one crossfade value k (0 day ... 1 night) drives lights, glows, the window sky,
+   * particles, the clear colour and the grade. Pipeline colours become THREE.Colors lerped in place.
+   * ------------------------------------------------------------------------------------------ */
+  const PP = stage.pipeline.params;
+  PP.outline.color = new THREE.Color(); PP.paper.tint = new THREE.Color();
+  PP.grade.tint = new THREE.Color(); PP.grade.lift = new THREE.Color(); PP.vignette.color = new THREE.Color();
+  const clearCol = new THREE.Color();
+  const pair = ([a, b]) => [new THREE.Color(a), new THREE.Color(b)];
+  const mix = ([a, b], k) => a + (b - a) * k;
+  const nightColors = [
+    [clearCol, NIGHT.clear], [sun.color, NIGHT.sun.color], [fill.color, NIGHT.fill.color], [hemi.color, NIGHT.hemi.color],
+    [hemi.groundColor, NIGHT.hemi.groundColor], [ground.material.color, NIGHT.ground.color], [blobMesh.material.color, NIGHT.blob.color],
+    [PP.outline.color, NIGHT.outline.color], [PP.paper.tint, NIGHT.paper.tint], [PP.grade.tint, NIGHT.grade.tint],
+    [PP.grade.lift, NIGHT.grade.lift], [PP.vignette.color, NIGHT.vignette.color],
+    [beam.material.uniforms.uColor.value, NIGHT.beam], [motes.material.uniforms.uColor.value, NIGHT.mote],
+  ].map(([c, hex]) => [c, pair(hex)]);
+  function applyNight(k) {
+    for (const [c, [a, b]] of nightColors) c.lerpColors(a, b, k);
+    beam.material.uniforms.uColor.value.multiplyScalar(mix(NIGHT.beamK, k));
+    motes.material.uniforms.uColor.value.multiplyScalar(mix(NIGHT.moteK, k));
+    renderer.setClearColor(clearCol, 1);
+    sun.intensity = mix(NIGHT.sun.intensity, k);
+    fill.intensity = mix(NIGHT.fill.intensity, k);
+    hemi.intensity = mix(NIGHT.hemi.intensity, k);
+    ground.material.opacity = mix(NIGHT.ground.opacity, k);
+    blobMesh.material.opacity = mix(NIGHT.blob.opacity, k);
+    PP.outline.opacity = mix(NIGHT.outline.opacity, k);
+    PP.outline.colorBleed = mix(NIGHT.outline.colorBleed, k);
+    PP.bloom.strength = mix(NIGHT.bloom.strength, k);
+    PP.bloom.threshold = mix(NIGHT.bloom.threshold, k);
+    PP.paper.strength = mix(NIGHT.paper.strength, k);
+    PP.grade.exposure = mix(NIGHT.grade.exposure, k);
+    PP.grade.saturation = mix(NIGHT.grade.saturation, k);
+    PP.vignette.strength = mix(NIGHT.vignette.strength, k);
+    for (const f of ctx.night) f(k);
+  }
+  // nightP: linear fade progress toward nightTo; the applied value is its smoothstep
+  let nightTo = night0 ? 1 : 0, nightP = nightTo;
+  function stepNight(dt) {
+    if (nightP === nightTo) return;
+    nightP = nightTo > nightP ? Math.min(nightTo, nightP + dt / NIGHT_FADE) : Math.max(nightTo, nightP - dt / NIGHT_FADE);
+    applyNight(nightP * nightP * (3 - 2 * nightP));
+  }
+  function snapNight() {
+    nightP = nightTo;
+    applyNight(nightTo);
+  }
 
   /* --------------------------------------------------------------------------------------------
    * Camera fit: the room's bounding box fills the region between the header and the menu footer.
@@ -611,6 +682,7 @@ export async function mountRoom(container, opts = {}) {
   function update(dt, t) {
     const T = frozen !== null ? frozen : still ? 2 : t;
     uniforms.time.value = T;
+    stepNight(dt);
     pointer.update(dt);
     if (pickDirty) { pickDirty = false; setHover(pick(pickX, pickY)); }
     // camera: intro ease + gentle parallax
@@ -619,6 +691,7 @@ export async function mountRoom(container, opts = {}) {
     const px = still ? 0 : pointer.x, py = still ? 0 : pointer.y;
     placeCamera(fit.az + px * 2.5 * DEG - (1 - e) * 9 * DEG, fit.el - py * 1.5 * DEG + (1 - e) * 5 * DEG, fit.dist * (1 + (1 - e) * 0.16));
     decor.update(T);
+    for (const u of ctx.updates) u(T);
     const animating = updateEntries(dt, T);
     if (animating || introT <= INTRO) placeBlobs();
     // the shadow map only changes while objects move (idle sway casts no shadow); one more refresh once
@@ -635,10 +708,12 @@ export async function mountRoom(container, opts = {}) {
   stage.setScene(scene, camera);
   layout(Math.max(1, stage.width), Math.max(1, stage.height));
 
-  // compile everything (hulls included) before the first frame
+  // compile everything (hulls, both window skies included) before the first frame
   for (const e of entries) e.hull.visible = true;
+  applyNight(0.5);
   await stage.compile();
   for (const e of entries) e.hull.visible = false;
+  snapNight();
   measureLabels();
   stage.renderOnce();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!disposed) { measureLabels(); refresh(); } });
@@ -661,11 +736,18 @@ export async function mountRoom(container, opts = {}) {
         for (const e of entries) { e.pop = 0; e.h = 0; e.lift = 0; e.liftV = 0; e.wobT = 9; }
         shadowDirty = true;
       }
+      snapNight();
       stage.renderOnce();
     },
     focus(i) {
       focusIndex = i === null || i === undefined || !entries[i] ? null : i;
       refresh();
+    },
+    // warm night version on / off: ~0.8 s crossfade while the room is on screen, instant otherwise
+    setNight(night, { instant = false } = {}) {
+      nightTo = night ? 1 : 0;
+      if (disposed) return;
+      if (instant || still || !stage.running) { snapNight(); refresh(); }
     },
     playIntro() {
       if (still || disposed) return;

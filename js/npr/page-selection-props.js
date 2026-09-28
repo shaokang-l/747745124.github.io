@@ -210,7 +210,7 @@ function games(root, ctx) {
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.195), screenMat);
   screen.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.0215).premultiply(M));
   root.add(screen);
-  ctx.glow.push({ mat: screenMat, base: 0xe8e4dc });
+  ctx.glow.push({ mat: screenMat, base: 0xe8e4dc, night: 1.3 });
   return { anchor: new THREE.Vector3(0, 0.36, 0), size: [0.9, 0.36, 0.55] };
 }
 
@@ -235,7 +235,14 @@ function music(root, ctx) {
   P.cyl(0.13, 0.13, 0.004, C.mustard, { p: [-0.126, 0.21, -0.318], r: [Math.PI / 2 - 0.14, 0, 0] }, 24);
   P.box(0.4, 0.4, 0.014, C.terracotta, { p: [0.14, 0.2, -0.36], r: [-0.12, -0.14, 0] });
   P.box(0.24, 0.05, 0.004, C.white, { p: [0.14, 0.3, -0.35], r: [-0.12, -0.14, 0] });
+  // pop-up target light on the plinth's front-right corner (lit at night)
+  P.cyl(0.012, 0.012, 0.06, C.brass, { p: [0.285, 0.19, 0.2] }, 8);
+  P.cyl(0.028, 0.022, 0.03, C.brass, { p: [0.285, 0.23, 0.2], r: [0.5, 0, 0.35] }, 12);
   root.add(mesh(P.build(), ctx.mat()));
+  const lampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), new THREE.MeshBasicMaterial({ color: 0x8a6a48 }));
+  lampBulb.position.set(0.28, 0.222, 0.21);
+  root.add(lampBulb);
+  ctx.nightGlow.push({ mat: lampBulb.material, night: new THREE.Color(0xffd08a).multiplyScalar(5) });
 
   const R = new Parts();
   R.cyl(0.2, 0.2, 0.008, C.vinyl, {}, 40);
@@ -286,6 +293,7 @@ function music(root, ctx) {
   root.add(notes);
   return {
     anchor: new THREE.Vector3(0, 0.44, -0.2), size: [0.8, 0.44, 0.8],
+    glowAt: new THREE.Vector3(0.22, 0.26, 0.2), glowColor: 0xffb35c, noteColor: noteMat.uniforms.uColor.value,
     update(t, h) { record.rotation.y = -t * (2.2 + 2.5 * h); noteMat.uniforms.uHover.value = h; },
   };
 }
@@ -353,8 +361,11 @@ function film(root, ctx) {
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 0.29), screenMat);
   screen.position.set(-0.06, 0.3, 0.2165);
   root.add(screen);
-  ctx.glow.push({ mat: screenMat, base: 0xe6e0d6 });
-  return { anchor: new THREE.Vector3(0, 0.9, -0.08), size: [0.85, 0.88, 0.5] };
+  ctx.glow.push({ mat: screenMat, base: 0xe6e0d6, night: 1.55 });
+  return {
+    anchor: new THREE.Vector3(0, 0.9, -0.08), size: [0.85, 0.88, 0.5],
+    glowAt: new THREE.Vector3(-0.06, 0.32, 0.55), glowColor: 0xffc9a0, // the screen's light spill at night
+  };
 }
 
 export const PROPS = { games, music, books, film };
@@ -399,11 +410,12 @@ export function buildLamp(ctx) {
   P.cyl(0.012, 0.012, 0.22, C.brass, { p: [0, 0.37, 0] }, 8);
   P.lathe([[0.19, 0.44], [0.11, 0.64], [0.1, 0.64], [0.18, 0.44]], 0xf6e2bb, {}, 24);
   const g = new THREE.Group();
-  g.add(mesh(P.build(), vcMaterial({ side: THREE.DoubleSide, emissive: 0xffb866, emissiveIntensity: 0.25 })));
+  const shadeMat = vcMaterial({ side: THREE.DoubleSide, emissive: 0xffb866, emissiveIntensity: 0.25 });
+  g.add(mesh(P.build(), shadeMat));
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), glowMaterial(0xffc27a, 4));
   bulb.position.set(0, 0.52, 0);
   g.add(bulb);
-  return { group: g, bulb };
+  return { group: g, bulb, shadeMat };
 }
 
 export function buildPlant(ctx) {

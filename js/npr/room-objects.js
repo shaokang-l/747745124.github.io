@@ -217,6 +217,43 @@ export function outsideTexture() {
   });
 }
 
+// Warm night behind the window: plum sky glowing amber at the horizon, moon, stars, a lit village.
+export function outsideNightTexture(rand) {
+  return canvasTex(512, 512, (g, w, h) => {
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#1e1630'); sky.addColorStop(0.45, '#3b2544'); sky.addColorStop(0.7, '#6e3f4a'); sky.addColorStop(0.86, '#a5604a');
+    g.fillStyle = sky; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 90; i++) {
+      const x = rand() * w, y = rand() * h * 0.62, r = 0.6 + rand() * rand() * 2.2;
+      g.globalAlpha = 0.45 + rand() * 0.55 * (1 - y / (h * 0.7));
+      g.fillStyle = rand() < 0.3 ? '#ffe2b0' : '#fff6e4';
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    g.globalAlpha = 1;
+    const mx = w * 0.34, my = h * 0.3, mr = w * 0.045;
+    const halo = g.createRadialGradient(mx, my, mr, mx, my, mr * 5);
+    halo.addColorStop(0, 'rgba(255,232,196,0.45)'); halo.addColorStop(1, 'rgba(255,232,196,0)');
+    g.fillStyle = halo; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#fff1d0';
+    g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(214,190,160,0.5)';
+    for (const [dx, dy, r] of [[-0.3, -0.2, 0.28], [0.25, 0.15, 0.2], [-0.05, 0.4, 0.16]]) {
+      g.beginPath(); g.arc(mx + dx * mr, my + dy * mr, r * mr, 0, Math.PI * 2); g.fill();
+    }
+    // far hills with a few lit windows
+    const ridge = (x) => h * 0.8 - Math.abs(Math.sin(x * 0.045)) * 18 - Math.sin(x * 0.012) * 12;
+    g.fillStyle = '#2a1a22';
+    g.beginPath(); g.moveTo(0, h);
+    for (let x = 0; x <= w; x += 8) g.lineTo(x, ridge(x));
+    g.lineTo(w, h); g.closePath(); g.fill();
+    g.fillStyle = '#ffc070';
+    for (let i = 0; i < 16; i++) {
+      const x = rand() * w;
+      g.fillRect(x, ridge(x) + 6 + rand() * 30, 2.5, 2.5);
+    }
+  });
+}
+
 export function tagTexture() {
   const W = 64, H = 96;
   return canvasTex(W, H, (g) => {
@@ -416,10 +453,49 @@ export function buildShell(ctx) {
 
   // outside view behind the window (HDR so it blooms a little); close behind the wall and below the
   // sight line over the wall top even at the steep portrait view, so it only shows through the window
-  const outside = new THREE.Mesh(new THREE.PlaneGeometry(ww + 1.4, 2.35),
+  const outsideGeo = new THREE.PlaneGeometry(ww + 1.4, 2.35);
+  const outside = new THREE.Mesh(outsideGeo,
     new THREE.MeshBasicMaterial({ map: ctx.textures.outside, color: new THREE.Color(1.45, 1.36, 1.22), fog: false }));
   outside.position.set(cx, 1.775, z0 - T - 0.3);
-  group.add(outside);
+  // the night sky fades in over it (only one of the two is drawn outside the crossfade)
+  const nightSky = new THREE.Mesh(outsideGeo, new THREE.MeshBasicMaterial({
+    map: ctx.textures.outsideNight, color: new THREE.Color(1.5, 1.42, 1.3), fog: false, transparent: true, depthWrite: false,
+  }));
+  nightSky.position.set(cx, 1.775, z0 - T - 0.29);
+  group.add(outside, nightSky);
+  ctx.night.push((k) => {
+    nightSky.material.opacity = k;
+    nightSky.visible = k > 0.001;
+    outside.visible = k < 0.999;
+  });
+
+  // a candle on the sill, lit at night
+  {
+    const g = new THREE.Group();
+    g.position.set(WIN.x1 - 0.32, WIN.y0 + 0.006, z0 + 0.06);
+    const P = new Parts();
+    P.cyl(0.08, 0.09, 0.02, C.brass, { p: [0, 0.01, 0] }, 16);
+    P.torus(0.035, 0.008, C.brass, { p: [0.095, 0.012, 0], r: [Math.PI / 2, 0, 0] }, Math.PI * 2, 5, 12);
+    P.cyl(0.04, 0.042, 0.17, C.white, { p: [0, 0.105, 0] }, 14);
+    P.cyl(0.004, 0.004, 0.03, 0x3a2618, { p: [0, 0.2, 0] }, 4);
+    g.add(mesh(P.build(), vcMaterial(), { cast: false }));
+    const flameMat = glowMaterial(0xffb35c, 5);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 8), flameMat);
+    flame.position.y = 0.235;
+    const light = new THREE.PointLight(0xffa24e, 0, 3.4, 1.5);
+    light.position.set(0, 0.34, 0.12);
+    g.add(flame, light);
+    group.add(g);
+    let lit = 0;
+    ctx.night.push((k) => { lit = k; light.intensity = 2.2 * k; });
+    // gentle flicker (flame height + light); the flame shrinks away by day
+    ctx.updates.push((t) => {
+      const f = 1 + 0.07 * Math.sin(t * 7.3) * Math.sin(t * 3.1 + 1.3);
+      flame.visible = lit > 0.001;
+      flame.scale.set(lit, lit * 2.1 * f, lit);
+      light.intensity = 2.2 * lit * (0.93 + 0.07 * f);
+    });
+  }
 
   return { group };
 }
@@ -451,6 +527,14 @@ export function buildDecor(ctx) {
     light.position.set(0, 1.6, 0.1);
     g.add(light);
     group.add(g);
+    // at night it is the key light of the reading corner: a glowing shade and a wide warm pool
+    ctx.night.push((k) => {
+      shadeMesh.material.emissiveIntensity = 0.45 + 0.3 * k;
+      bulb.material.emissiveIntensity = 4 + 2 * k;
+      light.intensity = 2.2 + 2.0 * k;
+      light.distance = 5 + 2.2 * k;
+      light.position.set(-0.1 * k, 1.6 - 0.2 * k, 0.1 + 0.3 * k); // off the wall: a wider, softer pool
+    });
   }
 
   // potted plant between the bookshelf and the window
@@ -648,6 +732,7 @@ function portrait(root, ctx) {
   const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.02, 0.03), glowMaterial(0xffd58a, 3));
   bulb.position.set(0, cy + H / 2 + 0.07, 0.2);
   root.add(bulb);
+  ctx.night.push((k) => { bulb.material.emissiveIntensity = 3 + 2 * k; });
   return { anchor: new THREE.Vector3(0, cy + H / 2 + 0.35, 0.1), pivot: new THREE.Vector3(0, cy, 0.04), wall: true, footprint: null };
 }
 
@@ -739,6 +824,11 @@ function desk(root, ctx) {
   bulb.rotation.z = Math.PI / 2;
   bulb.position.set(lx, TH + 0.3, lz + 0.05);
   root.add(bulb);
+  // the banker's lamp is switched on at night: a warm pool over the logbook
+  const light = new THREE.PointLight(0xffb35c, 0, 3, 1.6);
+  light.position.set(lx - 0.1, TH + 0.26, lz + 0.34);
+  root.add(light);
+  ctx.night.push((k) => { bulb.material.emissiveIntensity = 3.5 + 2.5 * k; light.intensity = 1.8 * k; });
   return { anchor: new THREE.Vector3(0.1, 0.95, D / 2 + 0.05), label: 'right', pivot: new THREE.Vector3(0, 0, 0), footprint: [W, D + 0.5] };
 }
 

@@ -1,8 +1,22 @@
 
 <!DOCTYPE html>
-<html lang="en-us,default" class="loading">
+
+<html lang="en-us,default" class="loading" data-theme-default="auto">
 <head>
     <meta charset="UTF-8" />
+    
+    <script>(function (h, k) {
+        var t, q = /[?&]night=([01])(?=&|#|$)/.exec(location.search), d = h.getAttribute('data-theme-default');
+        try {
+            if (q) {
+                t = q[1] === '1' ? 'night' : 'day';
+                localStorage.setItem(k, t);
+                history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])night=[01](&|$)/, '$1').replace(/[?&]$/, '') + location.hash);
+            } else t = localStorage.getItem(k);
+        } catch (e) {}
+        if (t !== 'night' && t !== 'day') t = d === 'night' || (d !== 'day' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+        h.setAttribute('data-theme', t);
+    })(document.documentElement, 'npr-theme');</script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Niflheimr</title>
@@ -34,6 +48,10 @@
 <link rel="stylesheet" href="/css/media-card.css">
 
     
+<link rel="stylesheet" href="/css/night.css">
+
+    <script src="/js/theme.js" defer></script>
+    
     
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
@@ -57,7 +75,7 @@
                 
                     <div class="set">
   <h2>Category</h2>
-  <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computer-Graphics-Rendering/">Computer Graphics, Rendering</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rendering/">Rendering</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Life-Journal/">Life, Journal</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Life-Journal-Travel/">Life, Journal, Travel</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Design/">Design</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computer-Graphics-Rendering-textbook/">Computer Graphics, Rendering, textbook</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computing/">Computing</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Translation/">Translation</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Lyric-Analysis/">Lyric Analysis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Audio-Programming/">Audio Programming</a><span class="category-list-count">1</span></li></ul>
+  <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computer-Graphics-Rendering/">Computer Graphics, Rendering</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rendering/">Rendering</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Life-Journal/">Life, Journal</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Life-Journal-Travel/">Life, Journal, Travel</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Design/">Design</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computer-Graphics-Rendering-textbook/">Computer Graphics, Rendering, textbook</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Computing/">Computing</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Translation/">Translation</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Audio-Programming/">Audio Programming</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Lyric-Analysis/">Lyric Analysis</a><span class="category-list-count">1</span></li></ul>
 </div>
                 
                 </div>

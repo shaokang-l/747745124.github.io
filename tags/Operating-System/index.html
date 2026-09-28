@@ -1,8 +1,22 @@
 
 <!DOCTYPE html>
-<html lang="en-us,default" class="loading">
+
+<html lang="en-us,default" class="loading" data-theme-default="auto">
 <head>
     <meta charset="UTF-8" />
+    
+    <script>(function (h, k) {
+        var t, q = /[?&]night=([01])(?=&|#|$)/.exec(location.search), d = h.getAttribute('data-theme-default');
+        try {
+            if (q) {
+                t = q[1] === '1' ? 'night' : 'day';
+                localStorage.setItem(k, t);
+                history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])night=[01](&|$)/, '$1').replace(/[?&]$/, '') + location.hash);
+            } else t = localStorage.getItem(k);
+        } catch (e) {}
+        if (t !== 'night' && t !== 'day') t = d === 'night' || (d !== 'day' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+        h.setAttribute('data-theme', t);
+    })(document.documentElement, 'npr-theme');</script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tag: Operating System - Niflheimr</title>
@@ -33,6 +47,10 @@
     
 <link rel="stylesheet" href="/css/media-card.css">
 
+    
+<link rel="stylesheet" href="/css/night.css">
+
+    <script src="/js/theme.js" defer></script>
     
     
 <link rel="stylesheet" href="/css/npr.css">

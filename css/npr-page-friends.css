@@ -1,12 +1,22 @@
 /* Friends banner ("the friend village", js/npr/page-friends.js): a dusk watercolour wash that fades into
    the white page behind a transparent canvas, plus the hover label. */
-.npr-page-friends {
+/* Both washes fade out at the band's edges into the page colour; night mode (js/theme.js) crossfades them. */
+.npr-page-friends::before,.npr-page-friends::after {content:"";position:absolute;inset:0;z-index:0;pointer-events:none;transition:opacity .8s ease;}
+.npr-page-friends::before {
   background:
     radial-gradient(ellipse 34% 60% at 50% 58%, rgba(255, 214, 170, .55), rgba(255, 214, 170, 0) 70%),
-    radial-gradient(ellipse 58% 92% at 50% 44%, rgba(214, 190, 226, .75), rgba(236, 214, 226, .45) 55%, rgba(255, 255, 255, 0) 100%),
-    #fff;
+    radial-gradient(ellipse 58% 92% at 50% 44%, rgba(214, 190, 226, .75), rgba(236, 214, 226, .45) 55%, rgba(255, 255, 255, 0) 100%);
 }
-.npr-page-friends .npr-canvas {position:absolute;inset:0;}
+/* night: a deep plum sky with the village's lantern haze in the middle */
+.npr-page-friends::after {
+  opacity:0;
+  background:
+    radial-gradient(ellipse 36% 50% at 50% 60%, rgba(255, 160, 80, .2), rgba(255, 160, 80, 0) 72%),
+    radial-gradient(ellipse 62% 62% at 50% 40%, rgba(58, 38, 52, .95), rgba(44, 30, 38, .6) 55%, rgba(28, 23, 20, 0) 100%);
+}
+html[data-theme="night"] .npr-page-friends::before {opacity:0;}
+html[data-theme="night"] .npr-page-friends::after {opacity:1;}
+.npr-page-friends .npr-canvas {position:absolute;inset:0;z-index:1;}
 /* The village replaces the friend cards, so it gets a big band. */
 #single .npr-page-scene.npr-page-friends {height:clamp(440px,72vh,720px);}
 @media screen and (max-width:780px) {
@@ -22,7 +32,7 @@
   overflow:hidden;clip-path:inset(50%);white-space:nowrap;
 }
 .npr-page-friends .npr-friends-tip {
-  position:absolute;left:0;top:0;z-index:1;pointer-events:none;
+  position:absolute;left:0;top:0;z-index:2;pointer-events:none;
   max-width:260px;padding:6px 12px 7px;border:1.5px solid #3a2618;border-radius:8px;
   background:#fbf6ea;color:#3a2618;box-shadow:2px 3px 0 rgba(58,38,24,.85);
   font:14px/1.35 Georgia, "Songti SC", "PingFang SC", "Microsoft YaHei", serif;text-align:center;white-space:nowrap;
@@ -41,12 +51,19 @@
 .npr-page-friends .npr-friends-tip span[hidden] {display:none;}
 .npr-page-friends .npr-friends-tip span {display:block;font-size:12px;font-style:italic;color:#6e4a32;overflow:hidden;text-overflow:ellipsis;}
 @media (prefers-reduced-motion:reduce) {
-  .npr-page-friends .npr-friends-tip {transition:none;}
+  .npr-page-friends .npr-friends-tip,.npr-page-friends::before,.npr-page-friends::after {transition:none;}
 }
 /* name tags pinned under the sign boards on narrow bands (phones) */
 .npr-page-friends .npr-friends-tag {
-  position:absolute;left:0;top:0;z-index:1;pointer-events:none;white-space:nowrap;
+  position:absolute;left:0;top:0;z-index:2;pointer-events:none;white-space:nowrap;
   padding:1px 6px 2px;border:1.5px solid #3a2618;border-radius:6px;margin-top:-4px;background:#fbf0d6;color:#2a170b;
   box-shadow:1px 2px 0 rgba(58,38,24,.8);font:700 11px/1.3 Georgia, "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
 }
 .npr-page-friends .npr-friends-tag-plot {background:#fff3c9;border-color:#8a5a1c;}
+/* night mode: lantern-lit label and name tags */
+html[data-theme="night"] .npr-page-friends .npr-friends-tip {background:#2a211b;border-color:#e8b86a;color:#f1e4cf;box-shadow:2px 3px 0 rgba(0,0,0,.55);}
+html[data-theme="night"] .npr-page-friends .npr-friends-tip span {color:#d9b48a;}
+html[data-theme="night"] .npr-page-friends .npr-friends-tip i {color:#b8a088;}
+html[data-theme="night"] .npr-page-friends .npr-friends-tip.npr-kbd {outline-color:#e8b86a;}
+html[data-theme="night"] .npr-page-friends .npr-friends-tag {background:#f4d8aa;border-color:#1c1410;color:#24160c;box-shadow:1px 2px 0 rgba(0,0,0,.6);}
+html[data-theme="night"] .npr-page-friends .npr-friends-tag-plot {background:#ffe3a6;border-color:#8a5a1c;}
