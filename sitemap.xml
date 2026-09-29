@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://naoyuki.top/updateLog/index.html</loc>
+    
+    <lastmod>2026-09-29</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://naoyuki.top/about/index.html</loc>
+    
+    <lastmod>2026-09-29</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/2026/05/18/ReSTIR_DI_02_temporal_reuse/</loc>
     
     <lastmod>2026-09-29</lastmod>
@@ -96,20 +110,6 @@
     <loc>http://naoyuki.top/2025/04/20/%E8%AD%B2%E3%82%8A%E8%91%89%E5%A1%9A/</loc>
     
     <lastmod>2025-04-21</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/about/index.html</loc>
-    
-    <lastmod>2025-04-21</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/updateLog/index.html</loc>
-    
-    <lastmod>2023-06-20</lastmod>
     
   </url>
   
