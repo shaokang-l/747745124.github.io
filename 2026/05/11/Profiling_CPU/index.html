@@ -53,6 +53,16 @@
     <script src="/js/theme.js" defer></script>
     
     
+<link rel="stylesheet" href="/css/i18n.css">
+
+    <script src="/js/i18n.js" defer></script>
+    
+    <link rel="alternate" hreflang="zh" href="http://naoyuki.top/2026/05/11/Profiling_CPU_zh/">
+    <link rel="alternate" hreflang="en" href="http://naoyuki.top/2026/05/11/Profiling_CPU/">
+    <link rel="alternate" hreflang="x-default" href="http://naoyuki.top/2026/05/11/Profiling_CPU_zh/">
+    
+    
+    
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
 
@@ -82,7 +92,8 @@
 </div>
 
     <div class="section">
-        <div class="article">
+        
+<div class="article">
     <div class='main'>
         <h1 class="title">
             CPU Profiling a Small Path Tracer on M1 Max
@@ -96,7 +107,10 @@
 
 
         </div>
-        <div class="content markdown">
+        
+<nav class="i18n-switch" aria-label="Languages · 语言"><a class="i18n-link" href="/2026/05/11/Profiling_CPU_zh/" hreflang="zh" lang="zh" title="在 M1 Max 上 Profiling 一个小型 Path Tracer" rel="alternate">中文</a><span class="i18n-sep" aria-hidden="true">|</span><a class="i18n-link is-current" href="/2026/05/11/Profiling_CPU/" hreflang="en" lang="en" title="CPU Profiling a Small Path Tracer on M1 Max" aria-current="page">English</a></nav>
+
+        <div class="content markdown" lang="en">
             <p>This note records a small CPU profiling pass on the bunny scene. The goal was not to do a full renderer rewrite, but to use Instruments to identify real bottlenecks and make small, measurable improvements.</p>
 <p>The profiling setup was intentionally simple:</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_X 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIGHT_SAMPLE_Y 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_RAY_DEPTH 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_X 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPP_Y 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WIDTH 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HEIGHT 500</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> useBVH false <span class="comment">// disable scene-level BVH / TLAS</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USE_MAXDEPTH_NEE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OVERRIDE_LOCAL_RENDER_VAL TRUE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_THREADS 1</span></span><br></pre></td></tr></table></figure>

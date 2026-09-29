@@ -1,0 +1,48 @@
+/* Translated posts (scripts/i18n-posts.js, js/i18n.js): language chips on the home list / hero, switch on posts */
+
+/* chips: "中文 · English" under a card's summary; the translation the card shows is marked */
+.i18n-chips {margin-top:16px;font-size:12px;line-height:20px;letter-spacing:.04em;color:#b5b5b5;}
+.i18n-chips .i18n-dot {margin:0 7px;}
+.i18n-chip {color:#999;padding:6px 0;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:5px;transition:color .2s ease,text-decoration-color .2s ease;}
+.i18n-chip:hover {color:#9e1900;}
+.i18n-chip.is-shown {color:#555;text-decoration-color:#c9c9c9;}
+.i18n-chip.is-shown:hover {color:#9e1900;text-decoration-color:#9e1900;}
+/* timeline cards overlap the next card's (transparent) wrapper by 90px; keep the chips clickable above it */
+.post.plain .else .i18n-chips {margin:16px 0 0;position:relative;z-index:2;}
+
+/* hero (#post0 over the cover / 3D forest) */
+#post0 .i18n-chips {margin-top:18px;color:rgba(255,255,255,.55);text-shadow:0 1px 6px rgba(0,0,0,.35);}
+#post0 .i18n-chip {color:rgba(255,255,255,.72);}
+#post0 .i18n-chip.is-shown {color:#fff;text-decoration-color:rgba(255,255,255,.6);}
+#post0 .i18n-chip:hover {color:#f5c46a;text-decoration-color:#f5c46a;}
+
+/* post page: "中文 | English" under the date / tags */
+.i18n-switch {margin-top:14px;font-size:13px;line-height:22px;color:#c4c4c4;}
+.i18n-switch .i18n-sep {margin:0 10px;}
+.i18n-switch .i18n-link {color:#888;padding:6px 0;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:6px;transition:color .2s ease,text-decoration-color .2s ease;}
+.i18n-switch .i18n-link:hover {color:#9e1900;text-decoration-color:#9e1900;}
+.i18n-switch .i18n-link.is-current {color:#333;font-weight:bold;text-decoration-color:#9e1900;text-decoration-thickness:2px;cursor:default;}
+
+/* archive timeline: which language a translated entry is in */
+.i18n-tag {display:inline-block;margin-left:8px;padding:0 6px;font-size:11px;line-height:18px;letter-spacing:.04em;color:#999;border:1px solid #e2e2e2;border-radius:3px;vertical-align:1px;}
+
+@media screen and (max-width:480px) {
+  #post0 .i18n-chips {margin-top:10px;}
+  .i18n-switch {margin-top:10px;}
+}
+
+/* warm night mode (css/night.css) */
+html[data-theme="night"] .i18n-chips {color:#6e5f52;}
+html[data-theme="night"] .i18n-chip {color:#a89886;}
+html[data-theme="night"] .i18n-chip:hover {color:#f7d08f;}
+html[data-theme="night"] .i18n-chip.is-shown {color:#e8d9c5;text-decoration-color:#6e5a47;}
+html[data-theme="night"] .i18n-chip.is-shown:hover {color:#f7d08f;text-decoration-color:#e8b86a;}
+html[data-theme="night"] #post0 .i18n-chips {color:rgba(255,236,210,.5);}
+html[data-theme="night"] #post0 .i18n-chip {color:rgba(255,240,220,.72);}
+html[data-theme="night"] #post0 .i18n-chip.is-shown {color:#fff4e4;text-decoration-color:rgba(255,236,210,.55);}
+html[data-theme="night"] #post0 .i18n-chip:hover {color:#f5c46a;text-decoration-color:#f5c46a;}
+html[data-theme="night"] .i18n-switch {color:#5a4b3f;}
+html[data-theme="night"] .i18n-switch .i18n-link {color:#a89886;}
+html[data-theme="night"] .i18n-switch .i18n-link:hover {color:#f7d08f;text-decoration-color:#e8b86a;}
+html[data-theme="night"] .i18n-switch .i18n-link.is-current {color:#f6ecdd;text-decoration-color:#e8b86a;}
+html[data-theme="night"] .i18n-tag {color:#a89886;border-color:#4d3f34;}

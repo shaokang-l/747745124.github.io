@@ -53,6 +53,13 @@
     <script src="/js/theme.js" defer></script>
     
     
+<link rel="stylesheet" href="/css/i18n.css">
+
+    <script src="/js/i18n.js" defer></script>
+    
+    
+    
+    
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
 
@@ -82,7 +89,8 @@
 </div>
 
     <div class="section">
-        <div class="article">
+        
+<div class="article">
     <div class='main'>
         <h1 class="title">
             Diving into Halton Sampling in Your Renderer
@@ -96,6 +104,7 @@
 
 
         </div>
+        
         <div class="content markdown">
             <p>When you swap out <code>rand()</code> for a low-discrepancy sequence like Halton, you expect smoother, faster-converging Monte Carlo renders. But Halton isn’t just “fancier randomness”—it has its own quirks that can trip you up when you mix 1D and 2D draws. </p>
 <h3 id="1-The-Halton-“Spreadsheet”-Analogy"><a href="#1-The-Halton-“Spreadsheet”-Analogy" class="headerlink" title="1. The Halton “Spreadsheet” Analogy"></a>1. The Halton “Spreadsheet” Analogy</h3><p>Imagine your pixel sampler has an <strong>infinite spreadsheet</strong> of precomputed values:</p>

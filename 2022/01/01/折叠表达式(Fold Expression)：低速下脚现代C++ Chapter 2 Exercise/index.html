@@ -53,6 +53,13 @@
     <script src="/js/theme.js" defer></script>
     
     
+<link rel="stylesheet" href="/css/i18n.css">
+
+    <script src="/js/i18n.js" defer></script>
+    
+    
+    
+    
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
 
@@ -82,20 +89,22 @@
 </div>
 
     <div class="section">
-        <div class="article">
+        
+<div class="article">
     <div class='main'>
         <h1 class="title">
             折叠表达式(Fold Expression)，低速下脚现代C++ Chapter 2 Exercise
         </h1>
         <div class="stuff">
             <span>
-                April 21, 2025
+                January 01, 2022
             </span>
             
   <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/C-C/" rel="tag">C&#x2F;C++</a></li></ul>
 
 
         </div>
+        
         <div class="content markdown">
             <p>最近在看高速上手现代C++，这是一本很不错的书，作者用仅80余页的长度介绍了C++自C++11以来至C++20带来的许多特性。这些特性给C++带来了语言可用性上的强化，运行期的强化 etc. 以及使得这门语言本身更好地支持例如函数式编程的范式。</p>
 <p>每一章的结尾作者都会提供一些简单的小题目，其中第二章的小题目cover了折叠表达式(Fold Expression, since C++17)和结构化绑定（Structured Binding, since C++17）。在自己闲着摸索的时候发现了一个有意思的小事情，于是稍微写点东西记录一下。</p>

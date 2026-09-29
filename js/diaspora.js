@@ -536,6 +536,13 @@ $(function () {
                 Diaspora.HS($(e.target), 'push')
                 return false;
                 break;
+            // translated post: list/hero chips open the preview, the post's switch swaps it in place (js/i18n.js)
+            case (tag.indexOf('i18n-link') != -1):
+                if ($(e.target).attr('aria-current') == 'page') return false;
+                if (!$('#preview').length || e.metaKey || e.ctrlKey || e.shiftKey) return true;
+                Diaspora.HS($(e.target), $(e.target).closest('#preview').length ? 'replace' : 'push')
+                return false;
+                break;
             // prev, next post
             case (rel == 'prev' || rel == 'next'):
                 if (rel == 'prev') {

@@ -56,6 +56,13 @@
     <script src="/js/theme.js" defer></script>
     
     
+<link rel="stylesheet" href="/css/i18n.css">
+
+    <script src="/js/i18n.js" defer></script>
+    
+    
+    
+    
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
 
@@ -85,7 +92,8 @@
 </div>
 
     <div class="section">
-        <div class="article">
+        
+<div class="article">
     <div class='main'>
         <h1 class="title">
             ReSTIR DI - 01 - 无复用版本
@@ -99,6 +107,7 @@
 
 
         </div>
+        
         <div class="content markdown">
             <p>因为最近在给Pathtracer加一点Optix backend，想说既然加了，那就加点新东西（好吧其实也是5-6年的老东西了），就选择了ReSTIR DI作为学习和实现的目标。</p>
 <p>长话短说，ReSTIR DI我个人认为是改进NEE直接光源采样的过程中，光源样本可能不佳的问题。解决方式是通过额外的信息（不管是预先计算每个sample的预期贡献，还是样本复用也好），来尽量让我们采样到更好的光源sample。</p>

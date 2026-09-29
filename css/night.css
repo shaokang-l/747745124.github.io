@@ -33,7 +33,9 @@ html[data-theme="night"] {
 .npr-theme-toggle:focus-visible {outline:2px solid #e8b86a;outline-offset:2px;}
 
 /* home header, left of the search (right:40px) and menu (right:0) icons; colour follows them (theme.js) */
-#header .npr-tt-header {position:absolute;z-index:4;right:80px;top:0;margin-top:-3px;background:rgba(255,255,255,.9);color:#333;}
+#header .npr-tt-header {position:absolute;z-index:4;right:80px;top:0;margin-top:-3px;background:rgba(255,255,255,.9);color:#333;
+  width:34px;height:35px;padding:6px 6px 7px;} /* same box as the 22px iconfont icons (34x35) */
+#header .npr-tt-header svg {width:22px;height:22px;}
 #header .npr-tt-header.npr-tt-nosearch {right:40px;}
 html.npr-hero-on #header .npr-tt-header {background:rgba(12,24,32,.55);}
 body.mu #header .npr-tt-header {background:none;}

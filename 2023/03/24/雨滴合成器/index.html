@@ -53,6 +53,13 @@
     <script src="/js/theme.js" defer></script>
     
     
+<link rel="stylesheet" href="/css/i18n.css">
+
+    <script src="/js/i18n.js" defer></script>
+    
+    
+    
+    
 <link rel="stylesheet" href="/css/npr.css">
 <link rel="stylesheet" href="/css/npr-room.css">
 
@@ -82,7 +89,8 @@
 </div>
 
     <div class="section">
-        <div class="article">
+        
+<div class="article">
     <div class='main'>
         <h1 class="title">
             雨滴合成器/A Raindrop Synthesizer
@@ -96,6 +104,7 @@
 
 
         </div>
+        
         <div class="content markdown">
             <p>​		这学期的Audio Programming课写了一个雨滴合成器作为最终作业，期间因为种种原因代码改了好几个版本，现在的版本效果算是差强人意。虽然结果不是尽善尽美，整个迭代的过程还是值得记录的，如此也就有了这篇博客。</p>
 <h4 id="为什么想做雨滴合成器？"><a href="#为什么想做雨滴合成器？" class="headerlink" title="为什么想做雨滴合成器？"></a>为什么想做雨滴合成器？</h4><p>​		这学期的其中一个作业是复现一篇1984年的physcally-based synthesizer (Karplus-Strong model). 简单来说，就是基于物理规则对声音进行建模，例如市场上有物理建模钢琴<code>pianoteq</code>，据说声音可以媲美昂贵的采样音源，而且体积非常小巧。对钢琴来说，物理建模就需要包括琴槌的属性，琴槌击弦发声的过程，以及声音在钢琴腔体内的传播等等。每一个步骤都会涉及到非常复杂的推导过程，所以不适合数学不好的我（悲）。</p>
