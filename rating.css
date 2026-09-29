@@ -71,7 +71,7 @@
 [data-rating^="4.5"] .star-5 {
   border-left-color: #f26a2c;
 }
-[data-rating="5"] i {
+.rating[data-rating="5"] i {
   background: #dd050b;
   border-color: #dd050b;
 }

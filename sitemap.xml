@@ -23,14 +23,14 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/2026/05/18/ReSTIR_DI_02_temporal_reuse/</loc>
+    <loc>http://naoyuki.top/2026/05/18/ReSTIR_DI_02_temporal_reuse_en/</loc>
     
     <lastmod>2026-09-29</lastmod>
     
   </url>
   
   <url>
-    <loc>http://naoyuki.top/2026/05/18/ReSTIR_DI_02_temporal_reuse_en/</loc>
+    <loc>http://naoyuki.top/2026/05/18/ReSTIR_DI_02_temporal_reuse/</loc>
     
     <lastmod>2026-09-29</lastmod>
     
@@ -277,14 +277,14 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/Easy/</loc>
+    <loc>http://naoyuki.top/tags/Medium/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/Medium/</loc>
+    <loc>http://naoyuki.top/tags/Easy/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -305,6 +305,13 @@
   </url>
   
   <url>
+    <loc>http://naoyuki.top/tags/Rendering/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://naoyuki.top/tags/Redering/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
@@ -313,13 +320,6 @@
   
   <url>
     <loc>http://naoyuki.top/tags/Blender/</loc>
-    <lastmod>2026-09-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://naoyuki.top/tags/Rendering/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -347,7 +347,7 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/Point-Matching/</loc>
+    <loc>http://naoyuki.top/tags/CG/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -368,13 +368,6 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/CG/</loc>
-    <lastmod>2026-09-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://naoyuki.top/tags/ReSTIR/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
@@ -382,14 +375,21 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/Data-Structure/</loc>
+    <loc>http://naoyuki.top/tags/Operating-System/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://naoyuki.top/tags/Operating-System/</loc>
+    <loc>http://naoyuki.top/tags/Point-Matching/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://naoyuki.top/tags/Data-Structure/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -468,13 +468,6 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/categories/Design/</loc>
-    <lastmod>2026-09-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
@@ -482,7 +475,7 @@
   </url>
   
   <url>
-    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering-textbook/</loc>
+    <loc>http://naoyuki.top/categories/Design/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -497,6 +490,13 @@
   
   <url>
     <loc>http://naoyuki.top/categories/Translation/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://naoyuki.top/categories/Computer-Graphics-Rendering-textbook/</loc>
     <lastmod>2026-09-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
